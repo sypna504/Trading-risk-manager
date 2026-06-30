@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package ml;
+
+// Описываем сервис — это набор функций, которые Python-сервер будет предоставлять наружу
+service MLService {
+  rpc PredictSignalQuality (PredictSignalQualityRequest) returns (PredictSignalQualityResponse);
+}
+
+// Признаки рынка (метрики)
+message SignalFeatures {
+  double rsi_14 = 1;
+  double return_1 = 2;
+  double return_6 = 3;
+  double return_24 = 4;
+  double volatility_24 = 5;
+  double volume_zscore = 6;
+  double trend_strength = 7;
+  double ma_distance = 8;
+}
+
+// Структура запроса от Go к Python
+message PredictSignalQualityRequest {
+  string symbol = 1;
+  string interval = 2;
+  string strategy = 3;
+  string action = 4;         // buy, sell, hold
+  SignalFeatures features = 5; // вложенный объект с метриками
+}
+
+// Структура ответа от Python к Go
+message PredictSignalQualityResponse {
+  double p_win = 1;               // Вероятность успеха (0.0 - 1.0)
+  double expected_return_pct = 2; // Ожидаемая доходность в %
+  string risk_level = 3;          // low, medium, high
+  string model_version = 4;       // Версия модели для логирования
+}
