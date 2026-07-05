@@ -1,4 +1,5 @@
-import requests
+import ccxt
+import time
 from dataclasses import dataclass, field
 from typing import Annotated
 import pandas as pd
@@ -28,37 +29,46 @@ class Candles:
         if not self.items:
             return pd.DataFrame()
 
-        # Превращаем список датаклассов в список словарей и отдаем в Pandas
         data = [c.__dict__ for c in self.items]
         df = pd.DataFrame(data)
         return df
 
 class GetCandles:
     def __init__(self, symbol="BTCUSDT", interval="1h", limit=100):
-        self.symbol = symbol
+        if "/" not in symbol and symbol.endswith("USDT"):
+            self.symbol = symbol[:-4] + "/" + symbol[-4:]
+        else:
+            self.symbol = symbol
         self.interval = interval
         self.limit = limit
+        
+        # Оптимизация: Сетевые подключения создаются ОДИН раз при инициализации класса
+        self.binance_exchange = ccxt.binance({'enableRateLimit': True})
+        self.bybit_exchange = ccxt.bybit({'enableRateLimit': True})
 
     def get_binance_candles(self) -> Candles:
-        url = "https://api.binance.com/api/v3/klines"
-        params = {"symbol": self.symbol, "interval": self.interval, "limit": self.limit}
-
-        try:
-            response = requests.get(url, params=params, timeout=10)
-            response.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            raise ConnectionError(f"Ошибка сети при запросе к Binance: {e}")
-            
-        data = response.json()
+        timeframe_ms = self.binance_exchange.parse_timeframe(self.interval) * 1000
+        since = self.binance_exchange.milliseconds() - (self.limit * timeframe_ms)
         
-        if isinstance(data, dict) and "code" in data:
-            raise ValueError(f"Binance API Error: {data.get('msg')} (Code: {data.get('code')})")
-            
-        if not data:
+        raw_candles = []
+        while len(raw_candles) < self.limit:
+            try:
+                step_limit = min(1000, self.limit - len(raw_candles))
+                response = self.binance_exchange.fetch_ohlcv(self.symbol, self.interval, since, step_limit)
+                if not response:
+                    break
+                raw_candles.extend(response)
+                since = response[-1][0] + timeframe_ms
+                time.sleep(self.binance_exchange.rateLimit / 1000)
+            except Exception as e:
+                raise ConnectionError(f"Ошибка сети при запросе к Binance для {self.symbol}: {e}")
+                
+        if not raw_candles:
             raise ValueError(f"Binance вернул пустой список свечей для {self.symbol}")
         
+        raw_candles = raw_candles[-self.limit:]
         candle_list = []
-        for row in data:
+        for row in raw_candles:
             if not isinstance(row, list) or len(row) < 6:
                 raise ValueError(f"Некорректный формат свечи в ответе Binance: {row}")
             candle_list.append(
@@ -74,33 +84,33 @@ class GetCandles:
         return Candles(symbol=self.symbol, interval=self.interval, items=candle_list)
     
     def get_bybit_candles_dc(self) -> Candles:
-        url = "https://bybit.com"
-        params = {"category": "spot", "symbol": self.symbol, "interval": self.interval, "limit": self.limit}
+        timeframe_ms = self.bybit_exchange.parse_timeframe(self.interval) * 1000
+        since = self.bybit_exchange.milliseconds() - (self.limit * timeframe_ms)
         
-        try:
-            response = requests.get(url, params=params, timeout=10)
-            response.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            raise ConnectionError(f"Ошибка сети при запросе к Bybit: {e}")
+        raw_candles = []
+        while len(raw_candles) < self.limit:
+            try:
+                step_limit = min(1000, self.limit - len(raw_candles))
+                response = self.bybit_exchange.fetch_ohlcv(self.symbol, self.interval, since, step_limit, params={'category': 'spot'})
+                if not response:
+                    break
+                raw_candles.extend(response)
+                since = response[-1][0] + timeframe_ms
+                time.sleep(self.bybit_exchange.rateLimit / 1000)
+            except Exception as e:
+                raise ConnectionError(f"Ошибка сети при запросе к Bybit для {self.symbol}: {e}")
         
-        data = response.json()
-
-        if data.get("retCode") != 0:
-            raise ValueError(f"Bybit API Error: {data.get('retMsg')} (Code: {data.get('retCode')})")
-        
-        raw_list = data.get("result", {}).get("list", [])
-        if not raw_list:
+        if not raw_candles:
             raise ValueError(f"Bybit вернул пустой список свечей для {self.symbol}")
         
-        
+        raw_candles = raw_candles[-self.limit:]
         candle_list = []
-        # Bybit отдает от новых к старым, поэтому разворачиваем через [::-1]
-        for row in raw_list[::-1]:
+        for row in raw_candles:
             if not isinstance(row, list) or len(row) < 6:
                 raise ValueError(f"Некорректный формат свечи в ответе Bybit: {row}")
             candle_list.append(
                 Candle(
-                    timestamp=datetime.fromtimestamp(int(int(row[0])) / 1000),
+                    timestamp=datetime.fromtimestamp(int(row[0]) / 1000),
                     open=float(row[1]),
                     high=float(row[2]),
                     low=float(row[3]),
@@ -109,5 +119,3 @@ class GetCandles:
                 )
             )
         return Candles(symbol=self.symbol, interval=self.interval, items=candle_list)
-
-
