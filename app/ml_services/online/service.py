@@ -1,6 +1,6 @@
 import grpc
 from ml.v1 import ml_pb2, ml_pb2_grpc
-from app.ml_services.online.inference import predict_signal_quality
+from app.ml_services.online.non_ml_inference import predict_signal_quality
 from app.ml_services.online.validation import Validator
 
 class MLService(ml_pb2_grpc.MLServiceServicer):
