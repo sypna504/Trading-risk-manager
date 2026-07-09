@@ -1,0 +1,8 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: python-fastapi-backend
+    ports:
+      - "8000:8000"
