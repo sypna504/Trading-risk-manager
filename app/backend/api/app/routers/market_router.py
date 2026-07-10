@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from app.services.market_services import GetCandles
-from app.schemas.market_schemas import CandlesListResponce
+from ..services.market_services import GetCandles
+from ..schemas.market_schemas import CandlesListResponce
 
 market_router = APIRouter(prefix="/market")
 

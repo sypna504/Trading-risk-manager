@@ -1,10 +1,11 @@
 import grpc
-
+from app.ml_services.app.config import settings
 from ml.v1 import ml_pb2
 from ml.v1 import ml_pb2_grpc
 
 
-channel = grpc.insecure_channel("localhost:8001")
+
+channel = grpc.insecure_channel(f"127.0.0.1:{settings.ML_SERVICE_PORT}")
 client = ml_pb2_grpc.MLServiceStub(channel)
 
 request = ml_pb2.PredictSignalQualityRequest(

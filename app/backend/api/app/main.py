@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from app.routers.health_router import healt_router
-from app.routers.market_router import market_router
+from .routers.health_router import healt_router
+from .routers.market_router import market_router
 
 app = FastAPI()
 

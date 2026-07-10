@@ -1,7 +1,7 @@
 import grpc
 
 class Validator:
-    def __init__(self, context, request):
+    def __init__(self, context, request, features=None):
         self.context = context
         self.request = request
     
@@ -55,7 +55,7 @@ class Validator:
             )
     
     def validate_p_win(self):
-        if self.features["p_win"]<0 and self.features["p_win"]>1:
+        if self.features["p_win"]<0 or self.features["p_win"]>1:
             self.context.abort(
                 grpc.StatusCode.INVALID_ARGUMENT,
                 "ma distance must be non negative"

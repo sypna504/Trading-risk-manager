@@ -1,7 +1,7 @@
 import grpc
-from ml.v1 import ml_pb2, ml_pb2_grpc
-from app.ml_services.online.non_ml_inference import predict_signal_quality
-from app.ml_services.online.validation import Validator
+import ml_pb2, ml_pb2_grpc
+from ..online.non_ml_inference import predict_signal_quality
+from ..online.validation import Validator
 
 class MLService(ml_pb2_grpc.MLServiceServicer):
     def PredictSignalQuality(self, request, context):
@@ -21,15 +21,17 @@ class MLService(ml_pb2_grpc.MLServiceServicer):
             "ma_distance": request.features.ma_distance,
         }
 
-        validator.validate_rsi_14()
-        validator.validate_volatility_24()
-        validator.validate_trend_strength()
-        validator.validate_ma_distance()
-
+        features_validator = Validator(context, request, features)
+        features_validator.validate_rsi_14()
+        features_validator.validate_volatility_24()
+        features_validator.validate_trend_strength()
+        features_validator.validate_ma_distance()
 
         prediction = predict_signal_quality(features)
-        validator = Validator(context, prediction)
-        validator.validate_p_win()
+
+        prediction_validator = Validator(context, request, prediction)
+        prediction_validator.validate_p_win()
+
         return ml_pb2.PredictSignalQualityResponse(
             p_win=prediction["p_win"],
             expected_return_pct=prediction["expected_return_pct"],

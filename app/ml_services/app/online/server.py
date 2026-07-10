@@ -1,8 +1,8 @@
 from concurrent import futures
 import grpc
-from config import settings
-from ml.v1 import ml_pb2_grpc
-from app.ml_services.online.service import MLService
+from ..config import settings
+import ml_pb2_grpc
+from ..online.service import MLService
 
 def serv():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=4))

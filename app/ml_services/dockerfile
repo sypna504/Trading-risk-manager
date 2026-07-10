@@ -1,0 +1,23 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY app/ml_services/requirements.txt .
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY app/ml_services/ .
+
+COPY app/proto/ml/ ./ml
+
+RUN python -m grpc_tools.protoc \
+    -I./ml/v1 \
+    --python_out=./app/online \
+    --grpc_python_out=./app/online \
+    ./ml/v1/ml.proto
+
+ENV PYTHONPATH=/app:/app/app/online
+
+EXPOSE 50051
+
+CMD ["python", "-m", "app.online.server"]
