@@ -1,5 +1,6 @@
 import grpc
-import ml_pb2, ml_pb2_grpc
+from ml.v1 import ml_pb2
+from ml.v1 import ml_pb2_grpc
 from ..online.non_ml_inference import predict_signal_quality
 from ..online.validation import Validator
 

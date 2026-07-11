@@ -6,6 +6,16 @@ COPY app/backend/api/requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY app/proto/ml ./proto/ml
+
+RUN mkdir -p ./ml/v1
+
+RUN python -m grpc_tools.protoc \
+    -I./proto \
+    --python_out=. \
+    --grpc_python_out=. \
+    ./proto/ml/v1/ml.proto
+
 COPY . .
 
 ENV PYTHONPATH=/workspace/app/backend/api

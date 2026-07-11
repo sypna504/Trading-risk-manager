@@ -4,7 +4,6 @@ from ml.v1 import ml_pb2
 from ml.v1 import ml_pb2_grpc
 
 
-
 channel = grpc.insecure_channel(f"127.0.0.1:{settings.ML_SERVICE_PORT}")
 client = ml_pb2_grpc.MLServiceStub(channel)
 

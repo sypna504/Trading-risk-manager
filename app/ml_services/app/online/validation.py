@@ -4,6 +4,7 @@ class Validator:
     def __init__(self, context, request, features=None):
         self.context = context
         self.request = request
+        self.features = features or {}
     
     def validate_symbol(self):
         if not self.request.symbol:
@@ -48,11 +49,7 @@ class Validator:
             )
     
     def validate_ma_distance(self):
-        if self.features["ma_distance"]<0:
-            self.context.abort(
-                grpc.StatusCode.INVALID_ARGUMENT,
-                "ma distance must be non negative"
-            )
+        pass
     
     def validate_p_win(self):
         if self.features["p_win"]<0 or self.features["p_win"]>1:

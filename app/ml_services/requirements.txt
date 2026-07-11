@@ -7,3 +7,4 @@ grpcio-tools==1.66.1
 ccxt
 pandas
 pydantic
+pydantic-settings

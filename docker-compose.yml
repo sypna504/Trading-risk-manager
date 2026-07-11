@@ -2,14 +2,14 @@ services:
   backend:
     build:
       context: .
-      dockerfile: app/backend/api/Dockerfile
+      dockerfile: app/backend/api/dockerfile
     container_name: python-fastapi-backend
     ports:
       - "8000:8000"
   ml_service:
     build:
       context: .
-      dockerfile: app/ml_services/Dockerfile
+      dockerfile: app/ml_services/dockerfile
     container_name: ml-services-grpc
     ports:
       - "50051:50051"

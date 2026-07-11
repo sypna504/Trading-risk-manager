@@ -6,17 +6,19 @@ COPY app/ml_services/requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app/ml_services/ .
+COPY app/ml_services/app ./app
 
-COPY app/proto/ml/ ./ml
+COPY app/proto/ml ./proto/ml
+
+RUN mkdir -p ./ml/v1
 
 RUN python -m grpc_tools.protoc \
-    -I./ml/v1 \
-    --python_out=./app/online \
-    --grpc_python_out=./app/online \
-    ./ml/v1/ml.proto
+    -I./proto \
+    --python_out=. \
+    --grpc_python_out=. \
+    ./proto/ml/v1/ml.proto
 
-ENV PYTHONPATH=/app:/app/app/online
+ENV PYTHONPATH=/app
 
 EXPOSE 50051
 

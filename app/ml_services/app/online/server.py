@@ -1,7 +1,7 @@
 from concurrent import futures
 import grpc
 from ..config import settings
-import ml_pb2_grpc
+from ml.v1 import ml_pb2_grpc
 from ..online.service import MLService
 
 def serv():
