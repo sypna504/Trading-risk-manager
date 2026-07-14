@@ -1,0 +1,39 @@
+{
+    "model_version": "risk_model_v2_online",
+    "threshold": 0.49000000000000016,
+    "feature_cols": [
+        "symbol",
+        "strategy_name",
+        "ret_1",
+        "ret_7",
+        "ret_20",
+        "ret_50",
+        "vol_7",
+        "vol_20",
+        "vol_50",
+        "volume_z_20",
+        "volume_z_50",
+        "price_z_20",
+        "price_z_50",
+        "candle_range",
+        "body_size",
+        "rsi_14",
+        "atr_14_pct",
+        "distance_to_high_50",
+        "distance_to_low_50",
+        "vol_ratio_7_50",
+        "vol_ratio_20_50",
+        "dollar_volume_z_50",
+        "log_dollar_volume",
+        "hour",
+        "weekday"
+    ],
+    "cat_features": [
+        "symbol",
+        "strategy_name",
+        "hour",
+        "weekday"
+    ],
+    "train_start": "2025-12-11 20:00:00",
+    "train_end": "2026-05-06 22:00:00"
+}

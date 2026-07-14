@@ -1,60 +1,148 @@
 import grpc
 
+ALLOWED_INTERVALS = {
+    "1m",
+    "5m",
+    "15m",
+    "1h",
+    "4h",
+    "1d",
+}
+
+ALLOWED_STRATEGIES = {
+    "breakout",
+    "mean_reversion",
+}
+
+MIN_CANDLES = 60
+
 class Validator:
-    def __init__(self, context, request, features=None):
+    def __init__(self, context, request):
         self.context = context
         self.request = request
-        self.features = features or {}
     
     def validate_symbol(self):
-        if not self.request.symbol:
+        if not self.request.symbol.strip():
             self.context.abort(
                 grpc.StatusCode.INVALID_ARGUMENT,
                 "symbol is required",
             )
 
     def validate_interval(self):
-        if not self.request.interval:
+        if self.request.interval not in ALLOWED_INTERVALS:
             self.context.abort(
                 grpc.StatusCode.INVALID_ARGUMENT,
-                "interval is required",
+                (
+                    "interval must be one of: "
+                    + ", ".join(sorted(ALLOWED_INTERVALS))
+                ),
             )
 
     def validate_strategy(self):
-        if not self.request.strategy:
+        if (
+            self.request.strategy_name
+            not in ALLOWED_STRATEGIES
+        ):
             self.context.abort(
                 grpc.StatusCode.INVALID_ARGUMENT,
-                "strategy is required",
+                (
+                    "strategy_name must be "
+                    "breakout or mean_reversion"
+                ),
             )
-    
-    def validate_rsi_14(self):
-        if self.features["rsi_14"]<0 or self.features["rsi_14"]>100:
+    def validate_candles_count(self):
+        candles_count = len(self.request.candles)
+
+        print(
+            f"validator received candles: {candles_count}",
+            flush=True,
+        )
+
+        if candles_count < MIN_CANDLES:
             self.context.abort(
                 grpc.StatusCode.INVALID_ARGUMENT,
-                "rsi 14 must be in interval (0,100)"
+                (
+                    f"at least {MIN_CANDLES} candles "
+                    f"are required, received {candles_count}"
+                ),
             )
-        
-    def validate_volatility_24(self):
-        if self.features["volatility_24"]<0:
+    def validate_candles(self):
+        for index, candle in enumerate(
+            self.request.candles
+        ):
+            if candle.timestamp_ms <= 0:
+                self.context.abort(
+                    grpc.StatusCode.INVALID_ARGUMENT,
+                    (
+                        "invalid timestamp at "
+                        f"candle {index}"
+                    ),
+                )
+
+            if (
+                candle.open <= 0
+                or candle.high <= 0
+                or candle.low <= 0
+                or candle.close <= 0
+            ):
+                self.context.abort(
+                    grpc.StatusCode.INVALID_ARGUMENT,
+                    (
+                        "OHLC values must be "
+                        f"positive at candle {index}"
+                    ),
+                )
+
+            if candle.volume < 0:
+                self.context.abort(
+                    grpc.StatusCode.INVALID_ARGUMENT,
+                    (
+                        "volume must be non-negative "
+                        f"at candle {index}"
+                    ),
+                )
+
+            if candle.high < max(
+                candle.open,
+                candle.close,
+            ):
+                self.context.abort(
+                    grpc.StatusCode.INVALID_ARGUMENT,
+                    (
+                        "high is lower than "
+                        f"open or close at candle {index}"
+                    ),
+                )
+
+            if candle.low > min(
+                candle.open,
+                candle.close,
+            ):
+                self.context.abort(
+                    grpc.StatusCode.INVALID_ARGUMENT,
+                    (
+                        "low is higher than "
+                        f"open or close at candle {index}"
+                    ),
+                )
+    def validate_timestamp_order(self):
+        timestamps = [candle.timestamp_ms for candle in self.request.candles]
+
+        if timestamps != sorted(timestamps):
             self.context.abort(
                 grpc.StatusCode.INVALID_ARGUMENT,
-                "volatility 25 must be non negative"
+                "candles must be sorted by timestamp",
             )
 
-    def validate_trend_strength(self):
-        if self.features["trend_strength"]<0:
+        if len(timestamps) != len(set(timestamps)):
             self.context.abort(
                 grpc.StatusCode.INVALID_ARGUMENT,
-                "trend strength must be non negative"
+                "candles contain duplicate timestamps",
             )
-    
-    def validate_ma_distance(self):
-        pass
-    
-    def validate_p_win(self):
-        if self.features["p_win"]<0 or self.features["p_win"]>1:
-            self.context.abort(
-                grpc.StatusCode.INVALID_ARGUMENT,
-                "ma distance must be non negative"
-            )
-    
+    def validate(self):
+        self.validate_symbol()
+        self.validate_interval()
+        self.validate_strategy()
+        self.validate_candles_count()
+        self.validate_candles()
+        self.validate_timestamp_order()

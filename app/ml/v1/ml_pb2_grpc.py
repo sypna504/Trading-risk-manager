@@ -26,8 +26,7 @@ if _version_not_supported:
 
 
 class MLServiceStub:
-    """Описываем сервис — это набор функций, которые Python-сервер будет предоставлять наружу
-    """
+    """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
         """Constructor.
@@ -36,15 +35,14 @@ class MLServiceStub:
             channel: A grpc.Channel.
         """
         self.PredictSignalQuality = channel.unary_unary(
-                '/ml.MLService/PredictSignalQuality',
+                '/ml.v1.MLService/PredictSignalQuality',
                 request_serializer=ml_dot_v1_dot_ml__pb2.PredictSignalQualityRequest.SerializeToString,
                 response_deserializer=ml_dot_v1_dot_ml__pb2.PredictSignalQualityResponse.FromString,
                 _registered_method=True)
 
 
 class MLServiceServicer:
-    """Описываем сервис — это набор функций, которые Python-сервер будет предоставлять наружу
-    """
+    """Missing associated documentation comment in .proto file."""
 
     def PredictSignalQuality(self, request, context):
         """Missing associated documentation comment in .proto file."""
@@ -62,15 +60,14 @@ def add_MLServiceServicer_to_server(servicer, server):
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'ml.MLService', rpc_method_handlers)
+            'ml.v1.MLService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('ml.MLService', rpc_method_handlers)
+    server.add_registered_method_handlers('ml.v1.MLService', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
 class MLService:
-    """Описываем сервис — это набор функций, которые Python-сервер будет предоставлять наружу
-    """
+    """Missing associated documentation comment in .proto file."""
 
     @staticmethod
     def PredictSignalQuality(request,
@@ -86,7 +83,7 @@ class MLService:
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/ml.MLService/PredictSignalQuality',
+            '/ml.v1.MLService/PredictSignalQuality',
             ml_dot_v1_dot_ml__pb2.PredictSignalQualityRequest.SerializeToString,
             ml_dot_v1_dot_ml__pb2.PredictSignalQualityResponse.FromString,
             options,
