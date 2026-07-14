@@ -5,6 +5,7 @@ from datetime import timezone
 import grpc
 from ml.v1 import ml_pb2
 from ml.v1 import ml_pb2_grpc
+from ...training.data.preparing_data import GetCandles
 
 GRPC_ADDRESS = "127.0.0.1:50051"
 
@@ -74,6 +75,49 @@ def generate_test_candles(
 
     return candles
 
+def get_real_candles(
+    symbol: str = "BTCUSDT",
+    interval: str = "1h",
+    limit: int = 100,
+) -> list[ml_pb2.Candle]:
+    downloader = GetCandles(
+        symbol=symbol,
+        interval=interval,
+        limit=limit,
+    )
+
+    result = downloader.get_binance_candles()
+
+    candles = []
+
+    for candle in result.items:
+        timestamp = candle.timestamp
+
+        if timestamp.tzinfo is None:
+            timestamp = timestamp.replace(
+                tzinfo=timezone.utc
+            )
+        else:
+            timestamp = timestamp.astimezone(
+                timezone.utc
+            )
+
+        candles.append(
+            ml_pb2.Candle(
+                timestamp_ms=int(
+                    timestamp.timestamp() * 1000
+                ),
+                open=candle.open,
+                high=candle.high,
+                low=candle.low,
+                close=candle.close,
+                volume=candle.volume,
+            )
+        )
+
+    return candles
+
+
 
 def main() -> None:
     channel = grpc.insecure_channel(
@@ -84,8 +128,10 @@ def main() -> None:
         channel
     )
 
-    candles = generate_test_candles(
-        count=100
+    candles = get_real_candles(
+        symbol="BTCUSDT",
+        interval="1h",
+        limit=100,
     )
     print(
         "generated candles:",

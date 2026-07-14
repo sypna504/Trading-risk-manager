@@ -34,14 +34,16 @@ class MLService(ml_pb2_grpc.MLServiceServicer):
                         "volume": candle.volume,
                     }
                 )
-                features = build_inference_features(
-                                candles=candles,
-                                symbol=request.symbol,
-                                strategy_name=request.strategy_name,
-                            )
-                prediction = predictor.predict(
-                    features
-                )
+
+            features = build_inference_features(
+                candles=candles,
+                symbol=request.symbol,
+                strategy_name=request.strategy_name,
+            )
+
+            prediction = predictor.predict(
+                features
+            )
 
             return ml_pb2.PredictSignalQualityResponse(
                     prob_good_trade=prediction[

@@ -94,7 +94,7 @@ class ModelPredictor:
 
         if probability >= 0.65:
             risk_level = "low"
-        elif probability >= 0.50:
+        elif probability >= self.threshold:
             risk_level = "medium"
         else:
             risk_level = "high"
