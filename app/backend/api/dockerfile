@@ -18,7 +18,8 @@ RUN python -m grpc_tools.protoc \
 
 COPY . .
 
-ENV PYTHONPATH=/workspace/app/backend/api
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8000
 

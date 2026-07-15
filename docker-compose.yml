@@ -6,6 +6,11 @@ services:
     container_name: python-fastapi-backend
     ports:
       - "8000:8000"
+    environment:
+      ML_SERVICE_ADDRESS: "ml_service:50051"
+      PYTHONUNBUFFERED: "1"
+    depends_on:
+      - ml_service
   ml_service:
     build:
       context: .
@@ -13,4 +18,7 @@ services:
     container_name: ml-services-grpc
     ports:
       - "50051:50051"
+    environment:
+      ML_SERVICE_PORT: "50051"
+      PYTHONUNBUFFERED: "1"
     

@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import Annotated
 import pandas as pd
 from typing import List
-from datetime import datetime
+from datetime import datetime, timezone
 
 ms = Annotated[int, "ms"]
 
@@ -42,7 +42,6 @@ class GetCandles:
         self.interval = interval
         self.limit = limit
         
-        # Оптимизация: Сетевые подключения создаются ОДИН раз при инициализации класса
         self.binance_exchange = ccxt.binance({'enableRateLimit': True})
         self.bybit_exchange = ccxt.bybit({'enableRateLimit': True})
 
@@ -73,7 +72,10 @@ class GetCandles:
                 raise ValueError(f"Некорректный формат свечи в ответе Binance: {row}")
             candle_list.append(
                 Candle(
-                    timestamp=datetime.fromtimestamp(int(row[0]) / 1000),
+                    timestamp=datetime.fromtimestamp(
+                        int(row[0]) / 1000,
+                        tz=timezone.utc,
+                    ),
                     open=float(row[1]),
                     high=float(row[2]),
                     low=float(row[3]),
@@ -110,7 +112,10 @@ class GetCandles:
                 raise ValueError(f"Некорректный формат свечи в ответе Bybit: {row}")
             candle_list.append(
                 Candle(
-                    timestamp=datetime.fromtimestamp(int(row[0]) / 1000),
+                    timestamp=datetime.fromtimestamp(
+                        int(row[0]) / 1000,
+                        tz=timezone.utc,
+                    ),
                     open=float(row[1]),
                     high=float(row[2]),
                     low=float(row[3]),
