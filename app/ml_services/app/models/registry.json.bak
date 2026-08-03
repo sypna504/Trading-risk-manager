@@ -1,0 +1,27 @@
+{
+  "active_model_version": "risk_model_v2_online",
+  "previous_model_version": null,
+  "active_model_path": "active/risk_model_v2_online/model.cbm",
+  "active_config_path": "active/risk_model_v2_online/config.json",
+  "promoted_at": "2026-08-02T17:05:47.201572+00:00",
+  "rollback_available": false,
+  "candidate_history": [
+    {
+      "version": "risk_model_20260802_170632",
+      "path": "candidates\\risk_model_20260802_170632",
+      "created_at": "2026-08-02T17:06:32.946049+00:00",
+      "decision": "rejected",
+      "reasons": [
+        "mean net return is not positive",
+        "total net return is not positive",
+        "maximum drawdown exceeds limit",
+        "result is concentrated in one strategy"
+      ],
+      "roc_auc": 0.55253284762917,
+      "pr_auc": 0.27159981421699586,
+      "total_net_return": -0.6203523035144324,
+      "maximum_drawdown": -0.5484975315037233,
+      "decided_at": "2026-08-02T17:06:33.019279+00:00"
+    }
+  ]
+}

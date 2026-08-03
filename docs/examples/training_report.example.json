@@ -1,0 +1,36 @@
+{
+  "run_id": "run_20260802_190000",
+  "status": "completed",
+  "mode": "manual",
+  "history_update": {
+    "added_unique_rows": 144,
+    "failed_symbols": {}
+  },
+  "dataset_report": {
+    "dataset_rows": 12500,
+    "positive_class_rate": 0.31,
+    "training_window_days": 180
+  },
+  "candidate": {
+    "version": "risk_model_20260802_190000",
+    "metrics": {
+      "classification": {
+        "roc_auc": 0.56,
+        "pr_auc": 0.43,
+        "brier_score": 0.205
+      },
+      "trading": {
+        "trades": 240,
+        "selected_rate": 0.22,
+        "mean_net_return": 0.00075,
+        "total_net_return": 0.18,
+        "maximum_drawdown": -0.11
+      }
+    }
+  },
+  "promotion": {
+    "passed": true,
+    "reasons": []
+  },
+  "active_model_after_run": "risk_model_20260802_190000"
+}

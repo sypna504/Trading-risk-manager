@@ -1,11 +1,11 @@
 fastapi
 uvicorn
 httpx
-pydantic
+pydantic>=2.0
+pydantic-settings>=2.0
 ccxt
 pandas
+numpy
 grpcio==1.66.1
 grpcio-tools==1.66.1
 protobuf>=5.26.1,<6.0dev
-pydantic
-pydantic-settings

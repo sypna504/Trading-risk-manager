@@ -10,7 +10,10 @@ services:
       ML_SERVICE_ADDRESS: "ml_service:50051"
       PYTHONUNBUFFERED: "1"
     depends_on:
-      - ml_service
+      ml_service:
+        condition: service_healthy
+    restart: unless-stopped
+
   ml_service:
     build:
       context: .
@@ -21,4 +24,51 @@ services:
     environment:
       ML_SERVICE_PORT: "50051"
       PYTHONUNBUFFERED: "1"
-    
+      ML_MODELS_ROOT: "/app/app/models"
+      ML_REGISTRY_PATH: "/app/app/models/registry.json"
+      ML_HISTORY_PATH: "/app/app/training/data/history_data.parquet"
+      ML_DATASET_PATH: "/app/app/training/data/ml_dataset_v2.parquet"
+    volumes:
+      - ./app/ml_services/app/models:/app/app/models
+      - ./app/ml_services/app/training/data:/app/app/training/data
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import socket; s = socket.create_connection(('127.0.0.1', 50051), 2); s.close()"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    restart: unless-stopped
+
+  ml_trainer:
+    profiles:
+      - training
+    build:
+      context: .
+      dockerfile: app/ml_services/dockerfile
+    container_name: ml-trainer
+    command:
+      - python
+      - -m
+      - app.training.retrain_pipeline
+      - --mode
+      - manual
+    environment:
+      PYTHONUNBUFFERED: "1"
+      ML_EXCHANGE: "binance"
+      ML_INTERVAL: "1h"
+      TRAINING_WINDOW_DAYS: "180"
+      ML_HISTORY_SYMBOL_POLICY: "extend"
+      ML_MODELS_ROOT: "/app/app/models"
+      ML_REGISTRY_PATH: "/app/app/models/registry.json"
+      ML_HISTORY_PATH: "/app/app/training/data/history_data.parquet"
+      ML_DATASET_PATH: "/app/app/training/data/ml_dataset_v2.parquet"
+      ML_DEPLOY_AFTER_TRAINING: "true"
+      ML_RESTART_SERVICE_AFTER_PROMOTION: "false"
+    volumes:
+      - ./app/ml_services/app/models:/app/app/models
+      - ./app/ml_services/app/training/data:/app/app/training/data
+    restart: "no"

@@ -1,1 +1,15 @@
+.git
+.github
+.venv
+venv
+__pycache__
+.pytest_cache
+.mypy_cache
+.idea
+.vscode
+catboost_info
+logs
+*.log
 .env
+app/ml_services/app/models/archive
+app/ml_services/app/models/reports

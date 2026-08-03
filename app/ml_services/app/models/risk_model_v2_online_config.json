@@ -1,6 +1,6 @@
 {
     "model_version": "risk_model_v2_online",
-    "threshold": 0.49000000000000016,
+    "threshold": 0.48000000000000015,
     "feature_cols": [
         "symbol",
         "strategy_name",
@@ -35,5 +35,5 @@
         "weekday"
     ],
     "train_start": "2025-12-11 20:00:00",
-    "train_end": "2026-05-06 22:00:00"
+    "train_end": "2026-05-10 19:00:00"
 }

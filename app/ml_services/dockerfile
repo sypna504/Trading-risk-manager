@@ -3,15 +3,12 @@ FROM python:3.11-slim
 WORKDIR /app
 
 COPY app/ml_services/requirements.txt .
-
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app/ml_services/app ./app
-
 COPY app/proto/ml ./proto/ml
 
 RUN mkdir -p ./ml/v1
-
 RUN python -m grpc_tools.protoc \
     -I./proto \
     --python_out=. \
@@ -19,7 +16,6 @@ RUN python -m grpc_tools.protoc \
     ./proto/ml/v1/ml.proto
 
 ENV PYTHONPATH=/app
-
 EXPOSE 50051
 
 CMD ["python", "-m", "app.online.server"]

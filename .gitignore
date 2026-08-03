@@ -1,6 +1,37 @@
-.venv
+# virtual environments
+.venv/
+venv/
+
+# secrets and local environment
 .env
-__pycache__
-.mypy_cache
-config.py
+.env.local
+
+# python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# notebooks and IDE
+.ipynb_checkpoints/
+.idea/
+.vscode/
+
+# runtime
 catboost_info/
+logs/
+*.log
+*.tmp
+*.sqlite
+*.sqlite3
+
+# model training artifacts
+app/ml_services/app/models/archive/
+app/ml_services/app/models/reports/
+app/ml_services/app/models/candidates/
+app/ml_services/app/training/data/*_tmp.parquet
+
+# OS
+.DS_Store
+Thumbs.db

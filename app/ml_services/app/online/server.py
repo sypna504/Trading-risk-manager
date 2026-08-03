@@ -1,22 +1,31 @@
 from concurrent import futures
+
 import grpc
-from ..config import settings
 from ml.v1 import ml_pb2_grpc
-from ..online.service import MLService
+
+from ..config import settings
+from .ml_inference import predictor
+from .service import MLService
+
 
 def serv():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=4))
-    ml_pb2_grpc.add_MLServiceServicer_to_server(
-        MLService(),
-        server,
-    )
+    ml_pb2_grpc.add_MLServiceServicer_to_server(MLService(), server)
     ml_port = settings.ML_SERVICE_PORT
-    model_version = settings.MODEL_VERSION
 
-    server.add_insecure_port(f"[::]:{str(ml_port)}")
+    server.add_insecure_port(f"[::]:{ml_port}")
     server.start()
-    print(f"ML gRPC service started on port {ml_port}")
-    print(f"current model {model_version}")
+    metadata = predictor.metadata()
+    print(f"ML gRPC service started on port {ml_port}", flush=True)
+    print(
+        "active model: "
+        f"version={metadata['model_version']}, "
+        f"path={metadata['model_path']}, "
+        f"threshold={metadata['threshold']}, "
+        f"train_end={metadata['train_end']}, "
+        f"loaded_at={metadata['loaded_at']}",
+        flush=True,
+    )
     server.wait_for_termination()
 
 

@@ -1,7 +1,7 @@
-protobuf 
-pytest
+protobuf
 grpcio==1.66.1
 grpcio-tools==1.66.1
+pytest
 ccxt
 pandas
 pydantic
@@ -9,3 +9,6 @@ pydantic-settings
 catboost
 numpy
 pyarrow
+scikit-learn
+scipy
+joblib

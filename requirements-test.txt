@@ -1,0 +1,4 @@
+-r app/backend/api/requirements.txt
+-r app/ml_services/requirements.txt
+pytest
+pytest-cov

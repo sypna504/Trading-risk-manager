@@ -1,0 +1,18 @@
+{
+  "active_model_version": "risk_model_20260802_190000",
+  "previous_model_version": "risk_model_v2_online",
+  "active_model_path": "active/risk_model_20260802_190000/model.cbm",
+  "active_config_path": "active/risk_model_20260802_190000/config.json",
+  "promoted_at": "2026-08-02T19:15:00+00:00",
+  "rollback_available": true,
+  "candidate_history": [
+    {
+      "version": "risk_model_20260802_190000",
+      "decision": "promoted",
+      "roc_auc": 0.56,
+      "pr_auc": 0.43,
+      "total_net_return": 0.18,
+      "maximum_drawdown": -0.11
+    }
+  ]
+}

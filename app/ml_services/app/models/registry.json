@@ -1,0 +1,51 @@
+{
+  "active_model_version": "risk_model_20260802_183813",
+  "previous_model_version": "risk_model_20260802_183302",
+  "active_model_path": "active/risk_model_20260802_183813/model.cbm",
+  "active_config_path": "active/risk_model_20260802_183813/config.json",
+  "promoted_at": "2026-08-02T18:40:10.208490+00:00",
+  "rollback_available": true,
+  "candidate_history": [
+    {
+      "version": "risk_model_20260802_170632",
+      "path": "candidates/risk_model_20260802_170632",
+      "created_at": "2026-08-02T17:06:32.946049+00:00",
+      "decision": "rejected",
+      "reasons": [
+        "mean net return is not positive",
+        "total net return is not positive",
+        "maximum drawdown exceeds limit",
+        "result is concentrated in one strategy"
+      ],
+      "roc_auc": 0.55253284762917,
+      "pr_auc": 0.27159981421699586,
+      "total_net_return": -0.6203523035144324,
+      "maximum_drawdown": -0.5484975315037233,
+      "decided_at": "2026-08-02T17:06:33.019279+00:00"
+    },
+    {
+      "version": "risk_model_20260802_183302",
+      "path": "candidates/risk_model_20260802_183302",
+      "created_at": "2026-08-02T18:33:02.243114+00:00",
+      "decision": "promoted",
+      "reasons": [],
+      "roc_auc": 0.5569419646547306,
+      "pr_auc": 0.27277329175412823,
+      "total_net_return": -0.1886569234538386,
+      "maximum_drawdown": -0.19140617547883343,
+      "decided_at": "2026-08-02T18:35:20.928497+00:00"
+    },
+    {
+      "version": "risk_model_20260802_183813",
+      "path": "candidates/risk_model_20260802_183813",
+      "created_at": "2026-08-02T18:38:13.969857+00:00",
+      "decision": "promoted",
+      "reasons": [],
+      "roc_auc": 0.5569419646547306,
+      "pr_auc": 0.27277329175412823,
+      "total_net_return": -0.1886569234538386,
+      "maximum_drawdown": -0.19140617547883343,
+      "decided_at": "2026-08-02T18:40:10.219878+00:00"
+    }
+  ]
+}
