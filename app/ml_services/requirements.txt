@@ -1,6 +1,6 @@
-protobuf
-grpcio==1.66.1
-grpcio-tools==1.66.1
+protobuf>=6.33.5,<7
+grpcio>=1.81.1,<2
+grpcio-tools>=1.81.1,<2
 pytest
 ccxt
 pandas

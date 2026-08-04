@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import threading
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
@@ -32,7 +33,6 @@ def _apply_calibrator(calibrator: Any | None, probability: float) -> float:
 
 
 def _portable_registry_path(path_value: str | Path) -> Path:
-    """Convert a registry path written on Windows or Linux to a safe relative Path."""
     normalized = str(path_value).strip().replace("\\", "/")
     if not normalized:
         raise ValueError("registry path is empty")
@@ -122,7 +122,6 @@ class ModelPredictor:
             not force
             and model_path == self.model_path
             and config_path == self.config_path
-            and registry_mtime is not None
             and registry_mtime == self._registry_mtime_ns
         ):
             return False
@@ -137,6 +136,17 @@ class ModelPredictor:
             raise FileNotFoundError(f"model config not found: {config_path}")
 
         configuration = json.loads(config_path.read_text(encoding="utf-8"))
+        feature_columns = list(configuration.get("feature_cols", []))
+        cat_features = list(configuration.get("cat_features", []))
+        if not feature_columns:
+            raise ValueError("model config feature_cols is empty")
+        if not set(cat_features).issubset(feature_columns):
+            raise ValueError("model config cat_features are not a subset of feature_cols")
+
+        threshold = float(configuration["threshold"])
+        if not math.isfinite(threshold) or not 0 <= threshold <= 1:
+            raise ValueError("model threshold must be finite and between 0 and 1")
+
         expected_checksum = configuration.get("model_checksum")
         if expected_checksum and _checksum(model_path) != expected_checksum:
             raise ValueError("model checksum does not match config")
@@ -157,9 +167,9 @@ class ModelPredictor:
             self.model = new_model
             self.calibrator = new_calibrator
             self.config = configuration
-            self.feature_columns = list(configuration["feature_cols"])
-            self.cat_features = list(configuration["cat_features"])
-            self.threshold = float(configuration["threshold"])
+            self.feature_columns = feature_columns
+            self.cat_features = cat_features
+            self.threshold = threshold
             self.model_version = str(configuration["model_version"])
             self.model_path = model_path
             self.config_path = config_path
@@ -222,8 +232,9 @@ class ModelPredictor:
             pd.to_numeric,
             errors="coerce",
         )
-        if np.isinf(numeric_values.to_numpy(dtype=float)).any():
-            raise ValueError("inference features contain inf values")
+        numeric_array = numeric_values.to_numpy(dtype=float)
+        if np.isnan(numeric_array).any() or np.isinf(numeric_array).any():
+            raise ValueError("inference features contain NaN or inf values")
 
         raw_probability = float(
             model.predict_proba(
@@ -231,6 +242,9 @@ class ModelPredictor:
             )[0, 1]
         )
         probability = _apply_calibrator(calibrator, raw_probability)
+        if not math.isfinite(probability) or not 0 <= probability <= 1:
+            raise ValueError("model returned an invalid probability")
+
         risk_score = 1.0 - probability
         trade_allowed = probability >= threshold
 

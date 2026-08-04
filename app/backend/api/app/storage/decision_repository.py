@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from .database import get_connection
+from .database import connection_scope
 
 
 class DecisionRepository:
@@ -63,7 +63,7 @@ class DecisionRepository:
         columns = ", ".join(self.INSERT_COLUMNS)
         values = [payload.get(column) for column in self.INSERT_COLUMNS]
 
-        with get_connection() as connection:
+        with connection_scope() as connection:
             cursor = connection.execute(
                 f"INSERT INTO decisions ({columns}) VALUES ({placeholders})",
                 values,
@@ -72,7 +72,7 @@ class DecisionRepository:
             return int(cursor.lastrowid)
 
     def get(self, decision_id: int) -> dict[str, Any] | None:
-        with get_connection() as connection:
+        with connection_scope() as connection:
             row = connection.execute(
                 "SELECT * FROM decisions WHERE id = ?",
                 (decision_id,),
@@ -104,7 +104,7 @@ class DecisionRepository:
         where_sql = " WHERE " + " AND ".join(where) if where else ""
         values.extend([limit, offset])
 
-        with get_connection() as connection:
+        with connection_scope() as connection:
             rows = connection.execute(
                 "SELECT * FROM decisions"
                 + where_sql

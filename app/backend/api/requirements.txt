@@ -6,6 +6,6 @@ pydantic-settings>=2.0
 ccxt
 pandas
 numpy
-grpcio==1.66.1
-grpcio-tools==1.66.1
-protobuf>=5.26.1,<6.0dev
+grpcio>=1.81.1,<2
+grpcio-tools>=1.81.1,<2
+protobuf>=6.33.5,<7

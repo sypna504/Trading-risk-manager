@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-import json
 from datetime import datetime, timezone
-from pathlib import Path
 
 from fastapi import APIRouter
 
-from ..config import settings
 from ..grpc_client import MLGrpcClient
+from ..services.model_metadata_service import read_active_model_metadata
 
 
 healt_router = APIRouter()
@@ -15,17 +13,9 @@ health_client = MLGrpcClient()
 
 
 def _read_model_version() -> str:
-    config_path = Path(settings.MODEL_CONFIG_PATH)
-    if not config_path.exists():
-        return "unknown"
-
     try:
-        return str(
-            json.loads(config_path.read_text(encoding="utf-8")).get(
-                "model_version",
-                "unknown",
-            )
-        )
+        metadata = read_active_model_metadata()
+        return str(metadata.get("model_version") or "unknown")
     except (OSError, ValueError, TypeError):
         return "unknown"
 

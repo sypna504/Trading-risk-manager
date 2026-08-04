@@ -8,10 +8,30 @@ services:
       - "8000:8000"
     environment:
       ML_SERVICE_ADDRESS: "ml_service:50051"
+      ML_SERVICE_PORT: "50051"
+      MIN_CANDLES: "60"
+      DATABASE_PATH: "/app/data/trading_risk.db"
+      MODELS_ROOT: "/app/app/ml_services/app/models"
+      MODEL_REGISTRY_PATH: "/app/app/ml_services/app/models/registry.json"
+      MODEL_PATH: "/app/app/ml_services/app/models/risk_model_v2_online.cbm"
+      MODEL_CONFIG_PATH: "/app/app/ml_services/app/models/risk_model_v2_online_config.json"
       PYTHONUNBUFFERED: "1"
+    volumes:
+      - backend_data:/app/data
+      - ./app/ml_services/app/models:/app/app/ml_services/app/models:ro
     depends_on:
       ml_service:
         condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3)"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
     restart: unless-stopped
 
   ml_service:
@@ -23,6 +43,7 @@ services:
       - "50051:50051"
     environment:
       ML_SERVICE_PORT: "50051"
+      MIN_CANDLES: "60"
       PYTHONUNBUFFERED: "1"
       ML_MODELS_ROOT: "/app/app/models"
       ML_REGISTRY_PATH: "/app/app/models/registry.json"
@@ -72,3 +93,6 @@ services:
       - ./app/ml_services/app/models:/app/app/models
       - ./app/ml_services/app/training/data:/app/app/training/data
     restart: "no"
+
+volumes:
+  backend_data:

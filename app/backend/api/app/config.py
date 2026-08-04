@@ -19,6 +19,10 @@ class Settings(BaseSettings):
         "/app/app/ml_services/app/models/"
         "risk_model_v2_online_config.json"
     )
+    MODELS_ROOT: str = "/app/app/ml_services/app/models"
+    MODEL_REGISTRY_PATH: str = (
+        "/app/app/ml_services/app/models/registry.json"
+    )
     MODEL_MAX_AGE_DAYS: int = 30
 
     ATR_STOP_MULTIPLIER: float = 1.5

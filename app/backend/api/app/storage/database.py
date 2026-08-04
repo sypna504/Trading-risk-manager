@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import sqlite3
+from contextlib import contextmanager
 from pathlib import Path
+from typing import Iterator
 
 from ..config import settings
 
@@ -39,13 +41,25 @@ CREATE TABLE IF NOT EXISTS decisions (
 def get_connection() -> sqlite3.Connection:
     path = Path(settings.DATABASE_PATH)
     path.parent.mkdir(parents=True, exist_ok=True)
-    connection = sqlite3.connect(path)
+    connection = sqlite3.connect(path, timeout=30.0)
     connection.row_factory = sqlite3.Row
+    connection.execute("PRAGMA busy_timeout = 30000")
+    connection.execute("PRAGMA journal_mode = WAL")
+    connection.execute("PRAGMA synchronous = NORMAL")
     return connection
 
 
+@contextmanager
+def connection_scope() -> Iterator[sqlite3.Connection]:
+    connection = get_connection()
+    try:
+        yield connection
+    finally:
+        connection.close()
+
+
 def init_database() -> None:
-    with get_connection() as connection:
+    with connection_scope() as connection:
         connection.execute(CREATE_DECISIONS_SQL)
         connection.execute(
             "CREATE INDEX IF NOT EXISTS idx_decisions_created_at "

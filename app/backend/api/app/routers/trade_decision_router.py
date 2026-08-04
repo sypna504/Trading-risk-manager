@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import math
 from datetime import datetime, timezone
 from typing import Literal
 
@@ -21,6 +22,7 @@ logger = logging.getLogger(__name__)
 trade_router = APIRouter(prefix="/trading")
 trade_ml_client = MLGrpcClient()
 repository = DecisionRepository()
+STRATEGY_TIE_PRIORITY = {"breakout": 0, "mean_reversion": 1}
 
 
 def _download_candles(
@@ -38,6 +40,81 @@ def _download_candles(
         downloader.get_bybit_candles_dc().items
         if exchange == "bybit"
         else downloader.get_binance_candles().items
+    )
+
+
+def _validate_prediction(strategy_name: str, prediction) -> None:
+    numeric_fields = {
+        "prob_good_trade": prediction.prob_good_trade,
+        "risk_score": prediction.risk_score,
+        "threshold": prediction.threshold,
+    }
+    for field_name, value in numeric_fields.items():
+        numeric_value = float(value)
+        if not math.isfinite(numeric_value) or not 0 <= numeric_value <= 1:
+            raise ConnectionError(
+                f"ML service returned invalid {field_name} "
+                f"for {strategy_name}: {value}"
+            )
+    if not str(prediction.model_version).strip():
+        raise ConnectionError(
+            f"ML service returned an empty model_version for {strategy_name}"
+        )
+
+
+def _get_strategy_predictions(
+    *,
+    active_strategies: list[str],
+    symbol: str,
+    interval: str,
+    candles,
+):
+    predictions = []
+    failures: dict[str, str] = {}
+
+    for strategy_name in active_strategies:
+        try:
+            prediction = trade_ml_client.predict_quality(
+                symbol=symbol,
+                interval=interval,
+                strategy_name=strategy_name,
+                candles=candles,
+            )
+            _validate_prediction(strategy_name, prediction)
+            predictions.append((strategy_name, prediction))
+        except (ConnectionError, ValueError) as error:
+            failures[strategy_name] = str(error)
+
+    if not predictions:
+        details = "; ".join(
+            f"{strategy}: {message}"
+            for strategy, message in failures.items()
+        )
+        raise ConnectionError(
+            "ML service could not evaluate any active strategy"
+            + (f": {details}" if details else "")
+        )
+
+    model_versions = {
+        str(prediction.model_version)
+        for _, prediction in predictions
+    }
+    if len(model_versions) != 1:
+        raise ConnectionError(
+            "active model changed during multi-strategy evaluation; "
+            "retry the request"
+        )
+
+    return predictions, failures
+
+
+def _select_best_prediction(predictions):
+    return max(
+        predictions,
+        key=lambda item: (
+            float(item[1].prob_good_trade),
+            -STRATEGY_TIE_PRIORITY.get(item[0], 100),
+        ),
     )
 
 
@@ -161,19 +238,14 @@ def get_trade_decision(
                 entry_price=signal_result["close"],
             )
 
-        predictions = []
-        for strategy_name in signal_result["active_strategies"]:
-            prediction = trade_ml_client.predict_quality(
-                symbol=symbol,
-                interval=interval,
-                strategy_name=strategy_name,
-                candles=candles,
-            )
-            predictions.append((strategy_name, prediction))
-
-        selected_strategy, best_prediction = max(
-            predictions,
-            key=lambda item: item[1].prob_good_trade,
+        predictions, prediction_failures = _get_strategy_predictions(
+            active_strategies=signal_result["active_strategies"],
+            symbol=symbol,
+            interval=interval,
+            candles=candles,
+        )
+        selected_strategy, best_prediction = _select_best_prediction(
+            predictions
         )
 
         risk_parameters = calculate_risk_parameters(
@@ -192,6 +264,10 @@ def get_trade_decision(
             f"{signal_result['reason']}; selected {selected_strategy} "
             "by highest model probability"
         )
+        if prediction_failures:
+            failed_text = ", ".join(sorted(prediction_failures))
+            reason += f"; unavailable strategies: {failed_text}"
+
         decision_id = _store_decision(
             checked_at=checked_at,
             exchange=exchange,

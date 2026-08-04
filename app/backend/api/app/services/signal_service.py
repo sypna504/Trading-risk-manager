@@ -4,7 +4,10 @@ from typing import Any
 
 import pandas as pd
 
-from app.ml_services.app.features_builder import calculate_features
+from app.ml_services.app.features_builder import (
+    calculate_features,
+    latest_complete_feature_row,
+)
 
 from ..config import settings
 from .market_services import Candle
@@ -49,12 +52,11 @@ def detect_trading_signal(
     )
 
     features = calculate_features(candles_df)
-    valid_rows = features.dropna(subset=REQUIRED_SIGNAL_COLUMNS)
-
-    if valid_rows.empty:
-        raise ValueError("could not calculate a complete signal row")
-
-    latest = valid_rows.iloc[-1]
+    latest_frame = latest_complete_feature_row(
+        features,
+        REQUIRED_SIGNAL_COLUMNS,
+    )
+    latest = latest_frame.iloc[0]
     active_strategies: list[str] = []
 
     if int(latest["signal_breakout"]) == 1:

@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import json
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Literal
 
 from fastapi import APIRouter, HTTPException, Query
@@ -11,6 +9,7 @@ from ..config import settings
 from ..grpc_client import MLGrpcClient
 from ..schemas.ml_schemas import MLpredictresponse, ModelInfoResponse
 from ..services.market_services import GetCandles
+from ..services.model_metadata_service import read_active_model_metadata
 
 
 ml_router = APIRouter(prefix="/ml")
@@ -78,17 +77,9 @@ def prediction_quality(
 
 @ml_router.get("/model-info", response_model=ModelInfoResponse)
 def get_model_info():
-    model_path = Path(settings.MODEL_PATH)
-    config_path = Path(settings.MODEL_CONFIG_PATH)
-
-    if not config_path.exists():
-        return ModelInfoResponse(
-            model_file_exists=model_path.exists(),
-            config_file_exists=False,
-        )
-
     try:
-        config = json.loads(config_path.read_text(encoding="utf-8"))
+        metadata = read_active_model_metadata()
+        config = metadata["config"]
         feature_cols = list(config.get("feature_cols", []))
         train_end = config.get("train_end")
         model_age_days: int | None = None
@@ -107,20 +98,20 @@ def get_model_info():
             is_model_stale = model_age_days > settings.MODEL_MAX_AGE_DAYS
 
         return ModelInfoResponse(
-            model_version=config.get("model_version"),
+            model_version=metadata.get("model_version"),
             threshold=config.get("threshold"),
             train_start=config.get("train_start"),
             train_end=train_end,
             feature_count=len(feature_cols),
             feature_cols=feature_cols,
             cat_features=list(config.get("cat_features", [])),
-            model_file_exists=model_path.exists(),
-            config_file_exists=True,
+            model_file_exists=metadata["model_file_exists"],
+            config_file_exists=metadata["config_file_exists"],
             model_age_days=model_age_days,
             is_model_stale=is_model_stale,
         )
     except (OSError, ValueError, TypeError) as error:
         raise HTTPException(
             status_code=500,
-            detail=f"could not read model config: {error}",
+            detail=f"could not read model metadata: {error}",
         ) from error

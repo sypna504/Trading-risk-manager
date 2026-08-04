@@ -51,6 +51,8 @@ REQUIRED_CANDLE_COLUMNS = [
     "symbol",
 ]
 
+NUMERIC_CANDLE_COLUMNS = ["open", "high", "low", "close", "volume"]
+
 
 def normalize_symbol(symbol: str) -> str:
     return (
@@ -66,6 +68,30 @@ def rolling_zscore(series: pd.Series, window: int) -> pd.Series:
     rolling_mean = series.rolling(window).mean()
     rolling_std = series.rolling(window).std()
     return (series - rolling_mean) / rolling_std.replace(0, np.nan)
+
+
+def _validate_candle_frame(df: pd.DataFrame) -> None:
+    if df.empty:
+        raise ValueError("candle frame is empty")
+    if df["timestamp"].isna().any():
+        raise ValueError("candles contain invalid timestamps")
+    if (df["symbol"] == "").any():
+        raise ValueError("candles contain an empty symbol")
+    if df.duplicated(["symbol", "timestamp"]).any():
+        raise ValueError("candles contain duplicate symbol+timestamp rows")
+
+    values = df[NUMERIC_CANDLE_COLUMNS].to_numpy(dtype=float)
+    if np.isnan(values).any() or np.isinf(values).any():
+        raise ValueError("OHLCV values must be finite")
+    if (df[["open", "high", "low", "close"]] <= 0).any(axis=None):
+        raise ValueError("OHLC values must be positive")
+    if (df["volume"] < 0).any():
+        raise ValueError("volume must be non-negative")
+    if (
+        (df["high"] < df[["open", "close", "low"]].max(axis=1)).any()
+        or (df["low"] > df[["open", "close", "high"]].min(axis=1)).any()
+    ):
+        raise ValueError("OHLC invariants failed")
 
 
 def calculate_symbol_features(symbol_df: pd.DataFrame) -> pd.DataFrame:
@@ -127,18 +153,38 @@ def calculate_features(candles_df: pd.DataFrame) -> pd.DataFrame:
     ]
     if missing_columns:
         raise ValueError(f"missing candle columns: {missing_columns}")
+
     df = candles_df.copy()
     df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True).dt.tz_convert(None)
     df["symbol"] = df["symbol"].map(normalize_symbol)
-    numeric_columns = ["open", "high", "low", "close", "volume"]
-    for column in numeric_columns:
+    for column in NUMERIC_CANDLE_COLUMNS:
         df[column] = pd.to_numeric(df[column], errors="raise")
-    calculated_parts = []
-    for _, symbol_df in df.groupby("symbol", sort=False):
-        calculated_parts.append(calculate_symbol_features(symbol_df))
+
+    df = df.sort_values(["symbol", "timestamp"]).reset_index(drop=True)
+    _validate_candle_frame(df)
+
+    calculated_parts = [
+        calculate_symbol_features(symbol_df)
+        for _, symbol_df in df.groupby("symbol", sort=False)
+    ]
     result = pd.concat(calculated_parts, ignore_index=True)
-    result = result.replace([np.inf, -np.inf], np.nan)
-    return result
+    return result.replace([np.inf, -np.inf], np.nan)
+
+
+def latest_complete_feature_row(
+    features_df: pd.DataFrame,
+    required_columns: list[str],
+) -> pd.DataFrame:
+    if features_df.empty:
+        raise ValueError("feature frame is empty")
+    latest = features_df.sort_values("timestamp").iloc[[-1]].copy()
+    missing = [column for column in required_columns if latest[column].isna().any()]
+    if missing:
+        raise ValueError(
+            "latest candle does not have a complete feature row; "
+            f"missing features: {missing}"
+        )
+    return latest
 
 
 def build_inference_features(
@@ -152,10 +198,9 @@ def build_inference_features(
     candles_df["symbol"] = normalize_symbol(symbol)
     features_df = calculate_features(candles_df)
     features_df["strategy_name"] = strategy_name
-    valid_rows = features_df.dropna(subset=FEATURE_COLUMNS)
-    if valid_rows.empty:
-        raise ValueError("could not calculate a complete feature row")
-    result = valid_rows.iloc[[-1]][FEATURE_COLUMNS].copy()
+    result = latest_complete_feature_row(features_df, FEATURE_COLUMNS)[
+        FEATURE_COLUMNS
+    ].copy()
     for column in CAT_FEATURES:
         result[column] = result[column].astype(str)
     return result

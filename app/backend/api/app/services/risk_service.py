@@ -1,8 +1,16 @@
 from __future__ import annotations
 
+import math
 from typing import Any
 
 from ..config import settings
+
+
+def _finite(name: str, value: float) -> float:
+    result = float(value)
+    if not math.isfinite(result):
+        raise ValueError(f"{name} must be finite")
+    return result
 
 
 def calculate_risk_parameters(
@@ -17,6 +25,17 @@ def calculate_risk_parameters(
     model_trade_allowed: bool,
     signal_detected: bool = True,
 ) -> dict[str, Any]:
+    account_balance = _finite("account_balance", account_balance)
+    risk_per_trade_pct = _finite("risk_per_trade_pct", risk_per_trade_pct)
+    max_position_share_pct = _finite(
+        "max_position_share_pct",
+        max_position_share_pct,
+    )
+    entry_price = _finite("entry_price", entry_price)
+    atr_14_pct = _finite("atr_14_pct", atr_14_pct)
+    probability = _finite("probability", probability)
+    threshold = _finite("threshold", threshold)
+
     if account_balance <= 0:
         raise ValueError("account_balance must be greater than zero")
     if not 0 < risk_per_trade_pct <= 10:
@@ -33,6 +52,12 @@ def calculate_risk_parameters(
         raise ValueError("probability must be between 0 and 1")
     if not 0 <= threshold <= 1:
         raise ValueError("threshold must be between 0 and 1")
+    if settings.ATR_STOP_MULTIPLIER <= 0:
+        raise ValueError("ATR_STOP_MULTIPLIER must be greater than zero")
+    if not 0 < settings.MIN_STOP_LOSS_PCT < 100:
+        raise ValueError("MIN_STOP_LOSS_PCT must be between 0 and 100")
+    if settings.RISK_REWARD_RATIO < 1:
+        raise ValueError("RISK_REWARD_RATIO must be at least 1")
 
     risk_amount = account_balance * risk_per_trade_pct / 100
     min_stop_fraction = settings.MIN_STOP_LOSS_PCT / 100
@@ -40,14 +65,22 @@ def calculate_risk_parameters(
         atr_14_pct * settings.ATR_STOP_MULTIPLIER,
         min_stop_fraction,
     )
+    if stop_loss_fraction >= 1:
+        raise ValueError(
+            "calculated stop-loss distance must be below 100% of entry price"
+        )
+
     take_profit_fraction = (
         stop_loss_fraction * settings.RISK_REWARD_RATIO
     )
-
     stop_loss_price = entry_price * (1 - stop_loss_fraction)
     take_profit_price = entry_price * (1 + take_profit_fraction)
 
-    allowed = signal_detected and model_trade_allowed
+    allowed = (
+        signal_detected
+        and bool(model_trade_allowed)
+        and probability >= threshold
+    )
 
     raw_position_size = risk_amount / (
         entry_price * stop_loss_fraction
@@ -63,12 +96,7 @@ def calculate_risk_parameters(
         recommended_notional = 0.0
         recommended_size = 0.0
 
-    position_share_pct = (
-        recommended_notional / account_balance * 100
-        if account_balance
-        else 0.0
-    )
-
+    position_share_pct = recommended_notional / account_balance * 100
     reason = (
         "position calculated from account risk, ATR stop and notional cap"
         if allowed

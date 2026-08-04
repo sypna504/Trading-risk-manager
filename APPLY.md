@@ -1,60 +1,85 @@
-# Как применить архив
+# Applying the audit patch
 
-Архив содержит только новые и изменённые файлы относительно ветки `dev`.
+## 1. Create a safety branch
 
-1. Переключитесь на `dev` и создайте отдельную ветку:
-
-```bash
-git checkout dev
+```powershell
+git checkout feature/auto-signal-choseing
 git pull
-git checkout -b feature/mvp-completion
+git checkout -b fix/total-functional-audit
 ```
 
-2. Распакуйте содержимое архива в корень репозитория с заменой файлов.
-3. Проверьте изменения:
+## 2. Extract the archive
 
-```bash
-git status
-git diff
-```
+Extract the archive into the repository root and confirm file replacement.
 
-4. Создайте `.env`:
+## 3. Recreate dependencies
 
-```bash
-cp .env.example .env
-```
-
-Windows:
-
-```cmd
-copy .env.example .env
-```
-
-5. Запустите:
-
-```bash
-docker compose build
-docker compose up -d
-```
-
-6. Проверьте:
-
-```text
-http://127.0.0.1:8000/
-http://127.0.0.1:8000/docs
-http://127.0.0.1:8000/api/v1/health
-```
-
-7. Запустите smoke-тесты:
-
-```bash
+```powershell
+python -m pip install -r app/backend/api/requirements.txt
+python -m pip install -r app/ml_services/requirements.txt
 python -m pip install -r requirements-test.txt
-pytest
 ```
 
-8. После проверки сделайте commit:
+The grpc/protobuf versions were raised to match the checked-in generated code.
 
-```bash
+## 4. Run deterministic validation
+
+```powershell
+python -m compileall app tests
+pytest -q tests/smoke tests/audit -W error::ResourceWarning
+```
+
+## 5. Validate Docker
+
+```powershell
+docker compose down -v
+docker compose config
+docker compose build --no-cache
+docker compose up -d
+docker compose ps
+docker compose logs --tail=200 backend ml_service
+```
+
+## 6. Validate endpoints
+
+```powershell
+curl "http://127.0.0.1:8000/api/v1/health"
+curl "http://127.0.0.1:8000/api/v1/ml/model-info"
+curl "http://127.0.0.1:8000/api/v1/trading/decisions?limit=5"
+```
+
+For a live trading-decision check:
+
+```powershell
+curl "http://127.0.0.1:8000/api/v1/trading/decision?exchange=binance&symbol=BTCUSDT&interval=1h&limit=100&account_balance=1000&risk_per_trade_pct=1&max_position_share_pct=25"
+```
+
+## 7. Validate training lifecycle
+
+```powershell
+docker compose --profile training run --rm ml_trainer --status
+docker compose --profile training run --rm ml_trainer --mode manual
+```
+
+## 8. Commit
+
+```powershell
 git add .
-git commit -m "feat: complete trading risk manager MVP"
+git commit -m "fix: harden signal inference, model lifecycle and deployment"
+git push -u origin fix/total-functional-audit
+```
+
+## Rollback of patch
+
+Before commit:
+
+```powershell
+git restore .
+git clean -fd
+```
+
+After commit:
+
+```powershell
+git revert <commit-sha>
 ```
