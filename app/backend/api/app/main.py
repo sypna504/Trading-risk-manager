@@ -13,17 +13,21 @@ from .routers.health_router import health_client, healt_router
 from .routers.market_router import market_router
 from .routers.ml_service_router import ml_client, ml_router
 from .routers.trade_decision_router import trade_ml_client, trade_router
+from .services.outcome_service import OutcomeWorker
 from .storage.database import init_database
 
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
+outcome_worker = OutcomeWorker()
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     configure_logging()
     init_database()
+    outcome_worker.start()
     yield
+    outcome_worker.stop()
     health_client.close()
     ml_client.close()
     trade_ml_client.close()
@@ -31,7 +35,7 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(
     title="Trading Risk Manager",
-    version="0.1.0-mvp",
+    version="0.2.0-outcome-tracking",
     lifespan=lifespan,
 )
 app.add_middleware(RequestContextMiddleware)

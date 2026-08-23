@@ -41,6 +41,9 @@ class TradeDecisionResponse(BaseModel):
     risk_level: str | None = None
     model_version: str | None = None
     risk_parameters: RiskParameters | None = None
+    signal_timestamp: str | None = None
+    outcome_due_at: str | None = None
+    outcome_status: str | None = None
 
 
 class StoredDecisionResponse(BaseModel):
@@ -68,3 +71,38 @@ class StoredDecisionResponse(BaseModel):
     risk_per_trade_pct: float | None = None
     status: str
     reason: str
+    signal_timestamp: str | None = None
+    outcome_due_at: str | None = None
+    outcome_status: str = "pending"
+    outcome_checked_at: str | None = None
+    realized_entry_price: float | None = None
+    realized_exit_price: float | None = None
+    realized_net_return: float | None = None
+    realized_max_drawdown: float | None = None
+    actual_target: bool | None = None
+    prediction_correct: bool | None = None
+    outcome_error: str | None = None
+    target_horizon_bars: int = 3
+    target_min_net_return: float = 0.002
+    target_max_drawdown: float = -0.015
+
+
+class OutcomeEvaluationResponse(BaseModel):
+    checked: int
+    completed: int
+    retries: int
+    errors: dict[int, str]
+
+
+class OutcomeSummaryResponse(BaseModel):
+    total: int
+    completed: int
+    pending: int
+    correct: int
+    incorrect: int
+    true_positive: int
+    false_positive: int
+    false_negative: int
+    true_negative: int
+    accuracy: float | None = None
+    by_strategy: dict[str, dict]

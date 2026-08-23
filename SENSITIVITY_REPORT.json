@@ -1,0 +1,12 @@
+{
+  "status": "template_until_local_training",
+  "symbol_probability_range": null,
+  "strategy_probability_range": null,
+  "interval_probability_range": null,
+  "raw_probability_std": null,
+  "calibrated_probability_std": null,
+  "calibration_compression_ratio": null,
+  "warnings": [
+    "Run scripts/check_sensitivity.cmd after a v3 model becomes active"
+  ]
+}

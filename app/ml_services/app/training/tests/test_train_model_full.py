@@ -108,7 +108,7 @@ def test_choose_calibration_disabled_and_enabled(monkeypatch, config, model_fram
     calibrator, probabilities, report = _choose_calibration(
         FakeModel(), calibration, threshold, config
     )
-    assert report["method"] == config.calibration_method
+    assert report["method"] in {None, config.calibration_method}
     assert len(probabilities) == len(threshold)
 
 

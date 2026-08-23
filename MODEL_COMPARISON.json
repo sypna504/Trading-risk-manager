@@ -1,0 +1,24 @@
+{
+  "status": "new_model_not_trained_on_user_history",
+  "current_active_baseline": {
+    "model_version": "risk_model_20260802_183813",
+    "intervals_effectively_trained": ["1h"],
+    "roc_auc": 0.5569419646547306,
+    "pr_auc": 0.27277329175412823,
+    "brier_score": 0.18688978380307353,
+    "probability_std": 0.03001867414424115,
+    "probability_min": 0.26602806694307785,
+    "probability_max": 0.38980115730840725,
+    "trades": 175,
+    "total_net_return": -0.1886569234538386,
+    "profit_factor": 0.7562467749937245,
+    "maximum_drawdown": -0.19140617547883343,
+    "tree_count": 16
+  },
+  "v3_candidate": {
+    "status": "requires_local_training",
+    "supported_intervals": ["1h"],
+    "target_horizon_minutes": 180,
+    "feature_schema_version": "v3"
+  }
+}

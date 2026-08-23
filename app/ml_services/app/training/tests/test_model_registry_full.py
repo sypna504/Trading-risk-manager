@@ -11,9 +11,6 @@ from app.training.model_registry import (
     atomic_write_json,
     file_checksum,
     model_version_now,
-    normalize_registry_path_value,
-    registry_relative_path,
-    repair_registry_payload_paths,
     utc_now_iso,
 )
 
@@ -27,12 +24,13 @@ def _good_metrics() -> dict:
             "positive_class_rate": 0.30,
             "brier_score": 0.18,
         },
-        "probabilities": {"unique_count": 100, "std": 0.10},
+        "probabilities": {"unique_count": 100, "std": 0.10, "range": 0.50},
         "trading": {
             "trades": 100,
             "mean_net_return": 0.002,
             "total_net_return": 0.20,
             "maximum_drawdown": -0.10,
+            "profit_factor": 1.5,
             "by_symbol": {
                 "BTCUSDT": {"trades": 50},
                 "ETHUSDT": {"trades": 50},
@@ -86,6 +84,7 @@ def test_bootstrap_legacy(config):
         ),
         encoding="utf-8",
     )
+    config.allow_legacy_bootstrap = True
     registry = ModelRegistry(config)
     result = registry.bootstrap_legacy()
     assert result["active_model_version"] == "legacy_v1"
@@ -149,11 +148,13 @@ def test_promote_and_rollback(config):
     registry = ModelRegistry(config)
     _candidate(registry, "v1")
     registry.register_candidate("v1", registry.candidates_dir / "v1", _good_metrics())
+    registry.write_promotion_decision("v1", True, [])
     promoted = registry.promote("v1")
     assert promoted["active_model_version"] == "v1"
 
     _candidate(registry, "v2")
     registry.register_candidate("v2", registry.candidates_dir / "v2", _good_metrics())
+    registry.write_promotion_decision("v2", True, [])
     promoted = registry.promote("v2")
     assert promoted["active_model_version"] == "v2"
     assert promoted["rollback_available"]
@@ -172,63 +173,3 @@ def test_promote_and_rollback_errors(config):
         registry.promote("incomplete")
     with pytest.raises(RuntimeError, match="no previous model"):
         registry.rollback()
-
-
-
-def test_registry_paths_are_posix_and_old_windows_paths_are_repaired(config):
-    registry = ModelRegistry(config)
-    root = registry.root
-    artifact = root / "active" / "v1" / "model.cbm"
-    artifact.parent.mkdir(parents=True)
-    artifact.write_bytes(b"model")
-
-    assert registry_relative_path(artifact, root) == "active/v1/model.cbm"
-    assert normalize_registry_path_value(
-        r"active\v1\model.cbm"
-    ) == "active/v1/model.cbm"
-
-    payload = registry.empty_registry()
-    payload.update(
-        {
-            "active_model_version": "v1",
-            "active_model_path": r"active\v1\model.cbm",
-            "active_config_path": r"active\v1\config.json",
-            "candidate_history": [
-                {"version": "v1", "path": r"candidates\v1"}
-            ],
-        }
-    )
-    repaired, changed = repair_registry_payload_paths(payload)
-
-    assert changed
-    assert repaired["active_model_path"] == "active/v1/model.cbm"
-    assert repaired["active_config_path"] == "active/v1/config.json"
-    assert repaired["candidate_history"][0]["path"] == "candidates/v1"
-
-
-def test_registry_writes_only_posix_paths_after_promotion_and_rollback(config):
-    registry = ModelRegistry(config)
-    _candidate(registry, "v1")
-    registry.register_candidate(
-        "v1",
-        registry.candidates_dir / "v1",
-        _good_metrics(),
-    )
-    promoted_v1 = registry.promote("v1")
-
-    assert "\\" not in promoted_v1["active_model_path"]
-    assert "\\" not in promoted_v1["active_config_path"]
-    assert promoted_v1["active_model_path"] == "active/v1/model.cbm"
-
-    _candidate(registry, "v2")
-    registry.register_candidate(
-        "v2",
-        registry.candidates_dir / "v2",
-        _good_metrics(),
-    )
-    promoted_v2 = registry.promote("v2")
-    rolled_back = registry.rollback()
-
-    assert promoted_v2["active_model_path"] == "active/v2/model.cbm"
-    assert rolled_back["active_model_path"] == "active/v1/model.cbm"
-    assert "\\" not in rolled_back["active_config_path"]

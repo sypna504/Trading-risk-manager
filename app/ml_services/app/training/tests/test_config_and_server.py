@@ -11,6 +11,7 @@ from app.config import DEFAULT_MODELS_ROOT, Settings
 def test_settings_defaults_and_environment_aliases(monkeypatch, tmp_path):
     default = Settings(_env_file=None)
     assert default.ML_SERVICE_PORT == 50051
+    assert default.MIN_CANDLES == 60
     assert default.MODELS_ROOT == DEFAULT_MODELS_ROOT
 
     monkeypatch.setenv("ML_MODELS_ROOT", str(tmp_path / "models"))

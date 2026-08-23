@@ -1,14 +1,14 @@
 {
-  "active_model_version": "risk_model_v2_online",
-  "previous_model_version": null,
-  "active_model_path": "active/risk_model_v2_online/model.cbm",
-  "active_config_path": "active/risk_model_v2_online/config.json",
-  "promoted_at": "2026-08-02T17:05:47.201572+00:00",
-  "rollback_available": false,
+  "active_model_version": "risk_model_20260802_183813",
+  "previous_model_version": "risk_model_20260802_183302",
+  "active_model_path": "active/risk_model_20260802_183813/model.cbm",
+  "active_config_path": "active/risk_model_20260802_183813/config.json",
+  "promoted_at": "2026-08-02T18:40:10.208490+00:00",
+  "rollback_available": true,
   "candidate_history": [
     {
       "version": "risk_model_20260802_170632",
-      "path": "candidates\\risk_model_20260802_170632",
+      "path": "candidates/risk_model_20260802_170632",
       "created_at": "2026-08-02T17:06:32.946049+00:00",
       "decision": "rejected",
       "reasons": [
@@ -22,6 +22,109 @@
       "total_net_return": -0.6203523035144324,
       "maximum_drawdown": -0.5484975315037233,
       "decided_at": "2026-08-02T17:06:33.019279+00:00"
+    },
+    {
+      "version": "risk_model_20260802_183302",
+      "path": "candidates/risk_model_20260802_183302",
+      "created_at": "2026-08-02T18:33:02.243114+00:00",
+      "decision": "promoted",
+      "reasons": [],
+      "roc_auc": 0.5569419646547306,
+      "pr_auc": 0.27277329175412823,
+      "total_net_return": -0.1886569234538386,
+      "maximum_drawdown": -0.19140617547883343,
+      "decided_at": "2026-08-02T18:35:20.928497+00:00"
+    },
+    {
+      "version": "risk_model_20260802_183813",
+      "path": "candidates/risk_model_20260802_183813",
+      "created_at": "2026-08-02T18:38:13.969857+00:00",
+      "decision": "promoted",
+      "reasons": [],
+      "roc_auc": 0.5569419646547306,
+      "pr_auc": 0.27277329175412823,
+      "total_net_return": -0.1886569234538386,
+      "maximum_drawdown": -0.19140617547883343,
+      "decided_at": "2026-08-02T18:40:10.219878+00:00"
+    },
+    {
+      "version": "risk_model_20260804_200209",
+      "path": "candidates/risk_model_20260804_200209",
+      "created_at": "2026-08-04T20:02:09.894607+00:00",
+      "decision": "rejected",
+      "reasons": [
+        "probabilities have too few unique values",
+        "too few selected trades",
+        "mean net return is not positive",
+        "total net return is not positive",
+        "maximum drawdown exceeds limit",
+        "candidate trading return is worse than champion",
+        "candidate calibration is materially worse"
+      ],
+      "roc_auc": 0.5591736397678329,
+      "pr_auc": 0.2789791676092641,
+      "total_net_return": 0.0,
+      "maximum_drawdown": null,
+      "decided_at": "2026-08-04T20:02:09.976605+00:00"
+    },
+    {
+      "version": "risk_model_20260804_200329",
+      "path": "candidates/risk_model_20260804_200329",
+      "created_at": "2026-08-04T20:03:29.603114+00:00",
+      "decision": "rejected",
+      "reasons": [
+        "probabilities have too few unique values",
+        "too few selected trades",
+        "mean net return is not positive",
+        "total net return is not positive",
+        "maximum drawdown exceeds limit",
+        "candidate trading return is worse than champion",
+        "candidate calibration is materially worse"
+      ],
+      "roc_auc": 0.5591736397678329,
+      "pr_auc": 0.2789791676092641,
+      "total_net_return": 0.0,
+      "maximum_drawdown": null,
+      "decided_at": "2026-08-04T20:03:29.673494+00:00"
+    },
+    {
+      "version": "risk_model_20260804_201106",
+      "path": "candidates/risk_model_20260804_201106",
+      "created_at": "2026-08-04T20:11:07.059849+00:00",
+      "decision": "rejected",
+      "reasons": [
+        "mean net return is not positive",
+        "total net return is not positive",
+        "profit factor is not above minimum",
+        "maximum drawdown exceeds limit",
+        "walk-forward positive fold rate is below minimum",
+        "champion could not be evaluated on candidate test: champion uses an incompatible feature schema",
+        "candidate_only mode is enabled"
+      ],
+      "roc_auc": 0.5979479140490807,
+      "pr_auc": 0.30680620244167206,
+      "total_net_return": -1.116298882709365,
+      "maximum_drawdown": -0.6960907398287711,
+      "decided_at": "2026-08-04T20:11:07.096443+00:00"
+    },
+    {
+      "version": "risk_model_20260804_201432",
+      "path": "candidates/risk_model_20260804_201432",
+      "created_at": "2026-08-04T20:14:32.833451+00:00",
+      "decision": "rejected",
+      "reasons": [
+        "mean net return is not positive",
+        "total net return is not positive",
+        "profit factor is not above minimum",
+        "maximum drawdown exceeds limit",
+        "walk-forward positive fold rate is below minimum",
+        "champion could not be evaluated on candidate test: champion uses an incompatible feature schema"
+      ],
+      "roc_auc": 0.5979479140490807,
+      "pr_auc": 0.30680620244167206,
+      "total_net_return": -1.116298882709365,
+      "maximum_drawdown": -0.6960907398287711,
+      "decided_at": "2026-08-04T20:14:32.865000+00:00"
     }
   ]
 }

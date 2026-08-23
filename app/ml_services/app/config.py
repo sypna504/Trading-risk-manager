@@ -19,8 +19,8 @@ class Settings(BaseSettings):
     )
 
     ML_SERVICE_PORT: int = 50051
-    MODEL_VERSION: str = "legacy"
     MIN_CANDLES: int = 60
+    MODEL_VERSION: str = "legacy"
 
     MODELS_ROOT: Path = Field(
         default=DEFAULT_MODELS_ROOT,
@@ -34,6 +34,7 @@ class Settings(BaseSettings):
         ),
     )
 
+    # Legacy fallback paths remain supported.
     MODEL_PATH: Path = Field(
         default=DEFAULT_MODELS_ROOT / "risk_model_v2_online.cbm",
         validation_alias=AliasChoices("MODEL_PATH", "ML_MODEL_PATH"),

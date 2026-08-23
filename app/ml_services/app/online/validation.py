@@ -4,10 +4,9 @@ import math
 
 import grpc
 
-from ..config import settings
+from ..features_builder import MIN_CANDLES
 
-
-ALLOWED_INTERVALS = {"1m", "5m", "15m", "1h", "4h", "1d"}
+PROTOCOL_INTERVALS = {"1m", "5m", "15m", "1h", "4h", "1d"}
 ALLOWED_STRATEGIES = {"breakout", "mean_reversion"}
 
 
@@ -21,10 +20,10 @@ class Validator:
             self.context.abort(grpc.StatusCode.INVALID_ARGUMENT, "symbol is required")
 
     def validate_interval(self):
-        if self.request.interval not in ALLOWED_INTERVALS:
+        if self.request.interval not in PROTOCOL_INTERVALS:
             self.context.abort(
                 grpc.StatusCode.INVALID_ARGUMENT,
-                "interval must be one of: " + ", ".join(sorted(ALLOWED_INTERVALS)),
+                "interval must be one of: " + ", ".join(sorted(PROTOCOL_INTERVALS)),
             )
 
     def validate_strategy(self):
@@ -36,11 +35,10 @@ class Validator:
 
     def validate_candles_count(self):
         candles_count = len(self.request.candles)
-        if candles_count < settings.MIN_CANDLES:
+        if candles_count < MIN_CANDLES:
             self.context.abort(
                 grpc.StatusCode.INVALID_ARGUMENT,
-                f"at least {settings.MIN_CANDLES} candles are required, "
-                f"received {candles_count}",
+                f"at least {MIN_CANDLES} candles are required, received {candles_count}",
             )
 
     def validate_candles(self):
@@ -50,28 +48,13 @@ class Validator:
                     grpc.StatusCode.INVALID_ARGUMENT,
                     f"invalid timestamp at candle {index}",
                 )
-
-            values = (
-                candle.open,
-                candle.high,
-                candle.low,
-                candle.close,
-                candle.volume,
-            )
+            values = (candle.open, candle.high, candle.low, candle.close, candle.volume)
             if not all(math.isfinite(value) for value in values):
                 self.context.abort(
                     grpc.StatusCode.INVALID_ARGUMENT,
                     f"OHLCV values must be finite at candle {index}",
                 )
-            if any(
-                value <= 0
-                for value in (
-                    candle.open,
-                    candle.high,
-                    candle.low,
-                    candle.close,
-                )
-            ):
+            if any(value <= 0 for value in (candle.open, candle.high, candle.low, candle.close)):
                 self.context.abort(
                     grpc.StatusCode.INVALID_ARGUMENT,
                     f"OHLC values must be positive at candle {index}",
@@ -81,20 +64,12 @@ class Validator:
                     grpc.StatusCode.INVALID_ARGUMENT,
                     f"volume must be non-negative at candle {index}",
                 )
-            if candle.high < max(
-                candle.open,
-                candle.close,
-                candle.low,
-            ):
+            if candle.high < max(candle.open, candle.close, candle.low):
                 self.context.abort(
                     grpc.StatusCode.INVALID_ARGUMENT,
                     f"high is lower than another OHLC value at candle {index}",
                 )
-            if candle.low > min(
-                candle.open,
-                candle.close,
-                candle.high,
-            ):
+            if candle.low > min(candle.open, candle.close, candle.high):
                 self.context.abort(
                     grpc.StatusCode.INVALID_ARGUMENT,
                     f"low is higher than another OHLC value at candle {index}",

@@ -232,7 +232,8 @@ def run_pipeline(
                 )
 
             registry = ModelRegistry(config)
-            registry.bootstrap_legacy()
+            if config.allow_legacy_bootstrap:
+                registry.bootstrap_legacy()
             active_bundle = registry.active_bundle_dir()
             candidate = train_candidate(dataset, config=config, registry=registry)
             candidate_metrics = candidate["metrics"]
@@ -248,7 +249,17 @@ def run_pipeline(
                 except Exception as error:
                     champion_evaluation_error = str(error)
 
-            passed, reasons = registry.promotion_gate(candidate_metrics, champion_metrics)
+            try:
+                passed, reasons = registry.promotion_gate(
+                    candidate_metrics,
+                    champion_metrics,
+                    candidate["training_report"],
+                )
+            except TypeError:
+                passed, reasons = registry.promotion_gate(
+                    candidate_metrics,
+                    champion_metrics,
+                )
             if champion_evaluation_error is not None:
                 passed = False
                 reasons.append(
@@ -263,6 +274,12 @@ def run_pipeline(
             }
             report["champion_metrics"] = champion_metrics
             report["champion_evaluation_error"] = champion_evaluation_error
+            if config.candidate_only:
+                passed = False
+                reasons.append("candidate_only mode is enabled")
+            getattr(registry, "write_promotion_decision", lambda *args, **kwargs: None)(
+                candidate["version"], passed, reasons
+            )
             report["promotion"] = {"passed": passed, "reasons": reasons}
 
             if passed and config.deploy_after_training:

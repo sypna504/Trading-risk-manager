@@ -1,14 +1,5 @@
 @echo off
 setlocal
-
 cd /d "%~dp0.."
-set "PYTHONPATH=%CD%\app\ml_services"
-
-if exist "%CD%\.venv\Scripts\python.exe" (
-    set "PYTHON_EXE=%CD%\.venv\Scripts\python.exe"
-) else (
-    set "PYTHON_EXE=python"
-)
-
-"%PYTHON_EXE%" -m pytest app/ml_services/app/training/tests -q
+docker compose --profile training run --rm ml_trainer python -m pytest app/training/tests -q
 exit /b %ERRORLEVEL%

@@ -3,20 +3,19 @@ FROM python:3.11-slim
 WORKDIR /app
 
 COPY app/backend/api/requirements.txt .
-
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app/proto/ml ./proto/ml
-
-RUN mkdir -p ./ml/v1
-
-RUN python -m grpc_tools.protoc \
-    -I./proto \
-    --python_out=. \
-    --grpc_python_out=. \
-    ./proto/ml/v1/ml.proto
-
 COPY . .
+
+# Always regenerate the protobuf package after COPY. This prevents stale local
+# generated files from shadowing the current contract in either container.
+RUN rm -rf ./ml && mkdir -p ./ml/v1 && \
+    python -m grpc_tools.protoc \
+      -I./app/proto \
+      --python_out=. \
+      --grpc_python_out=. \
+      ./app/proto/ml/v1/ml.proto && \
+    python ./scripts/verify_backend_runtime.py
 
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1

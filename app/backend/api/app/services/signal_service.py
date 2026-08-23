@@ -26,15 +26,35 @@ REQUIRED_SIGNAL_COLUMNS = [
 ]
 
 
+def _infer_interval(candles: list[Candle]) -> str:
+    if len(candles) < 2:
+        return "1h"
+    delta_minutes = int(
+        round(
+            (candles[-1].timestamp - candles[-2].timestamp).total_seconds()
+            / 60
+        )
+    )
+    mapping = {1: "1m", 5: "5m", 15: "15m", 60: "1h", 240: "4h", 1440: "1d"}
+    if delta_minutes not in mapping:
+        raise ValueError(
+            f"could not infer candle interval from {delta_minutes} minute spacing"
+        )
+    return mapping[delta_minutes]
+
+
 def detect_trading_signal(
     candles: list[Candle],
     symbol: str,
+    interval: str | None = None,
 ) -> dict[str, Any]:
     if len(candles) < settings.MIN_CANDLES:
         raise ValueError(
             f"at least {settings.MIN_CANDLES} candles are required, "
             f"received {len(candles)}"
         )
+
+    resolved_interval = interval or _infer_interval(candles)
 
     candles_df = pd.DataFrame(
         [
@@ -46,6 +66,7 @@ def detect_trading_signal(
                 "close": candle.close,
                 "volume": candle.volume,
                 "symbol": symbol,
+                "interval": resolved_interval,
             }
             for candle in candles
         ]

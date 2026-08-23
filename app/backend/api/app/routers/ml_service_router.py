@@ -11,7 +11,6 @@ from ..schemas.ml_schemas import MLpredictresponse, ModelInfoResponse
 from ..services.market_services import GetCandles
 from ..services.model_metadata_service import read_active_model_metadata
 
-
 ml_router = APIRouter(prefix="/ml")
 ml_client = MLGrpcClient()
 
@@ -22,36 +21,38 @@ def prediction_quality(
     symbol: str = Query(default="BTCUSDT", min_length=3),
     interval: Literal["1m", "5m", "15m", "1h", "4h", "1d"] = "1h",
     strategy_name: Literal["breakout", "mean_reversion"] = "mean_reversion",
-    limit: int = Query(default=100, ge=60, le=5000),
+    limit: int = Query(default=500, ge=60, le=5000),
 ):
     try:
-        downloader = GetCandles(
-            symbol=symbol,
-            interval=interval,
-            limit=limit,
+        metadata = read_active_model_metadata()
+        supported_intervals = list(
+            metadata["config"].get("supported_intervals") or ["1h"]
         )
+        if interval not in supported_intervals:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"active model does not support interval {interval}; "
+                    f"supported intervals: {supported_intervals}"
+                ),
+            )
+        downloader = GetCandles(symbol=symbol, interval=interval, limit=limit)
         candles = (
             downloader.get_bybit_candles_dc().items
             if exchange == "bybit"
             else downloader.get_binance_candles().items
         )
-
         if len(candles) < settings.MIN_CANDLES:
             raise HTTPException(
                 status_code=502,
-                detail=(
-                    f"got: {len(candles)}, "
-                    f"required: {settings.MIN_CANDLES}"
-                ),
+                detail=f"got: {len(candles)}, required: {settings.MIN_CANDLES}",
             )
-
         response = ml_client.predict_quality(
             symbol=symbol,
             interval=interval,
             strategy_name=strategy_name,
             candles=candles,
         )
-
         return MLpredictresponse(
             exchange=exchange,
             symbol=symbol,
@@ -59,11 +60,15 @@ def prediction_quality(
             strategy_name=strategy_name,
             candles_count=len(candles),
             prob_good_trade=response.prob_good_trade,
+            raw_prob_good_trade=response.raw_prob_good_trade,
             risk_score=response.risk_score,
             trade_allowed=response.trade_allowed,
             threshold=response.threshold,
             risk_level=response.risk_level,
             model_version=response.model_version,
+            calibration_method=response.calibration_method,
+            probability_bin=response.probability_bin,
+            model_supported_interval=response.model_supported_interval,
         )
     except HTTPException:
         raise
@@ -84,22 +89,30 @@ def get_model_info():
         train_end = config.get("train_end")
         model_age_days: int | None = None
         is_model_stale: bool | None = None
-
         if train_end:
             parsed = datetime.fromisoformat(str(train_end))
             if parsed.tzinfo is None:
                 parsed = parsed.replace(tzinfo=timezone.utc)
             else:
                 parsed = parsed.astimezone(timezone.utc)
-            model_age_days = max(
-                0,
-                (datetime.now(timezone.utc) - parsed).days,
-            )
+            model_age_days = max(0, (datetime.now(timezone.utc) - parsed).days)
             is_model_stale = model_age_days > settings.MODEL_MAX_AGE_DAYS
+        threshold = config.get("threshold")
+        thresholds_by_strategy = dict(config.get("thresholds_by_strategy") or {})
+        if not thresholds_by_strategy and threshold is not None:
+            thresholds_by_strategy["__global__"] = float(threshold)
 
         return ModelInfoResponse(
             model_version=metadata.get("model_version"),
-            threshold=config.get("threshold"),
+            threshold=threshold,
+            thresholds_by_strategy=thresholds_by_strategy,
+            supported_intervals=list(config.get("supported_intervals") or ["1h"]),
+            supported_strategies=list(
+                config.get("supported_strategies")
+                or ["breakout", "mean_reversion"]
+            ),
+            feature_schema_version=config.get("feature_schema_version") or "legacy_v2",
+            target_horizon_minutes=config.get("target_horizon_minutes") or 180,
             train_start=config.get("train_start"),
             train_end=train_end,
             feature_count=len(feature_cols),

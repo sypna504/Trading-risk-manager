@@ -13,7 +13,9 @@ def serv():
     ml_pb2_grpc.add_MLServiceServicer_to_server(MLService(), server)
     ml_port = settings.ML_SERVICE_PORT
 
-    server.add_insecure_port(f"[::]:{ml_port}")
+    bound_port = server.add_insecure_port(f"[::]:{ml_port}")
+    if bound_port == 0:
+        raise RuntimeError(f"could not bind ML gRPC service to port {ml_port}")
     server.start()
     metadata = predictor.metadata()
     print(f"ML gRPC service started on port {ml_port}", flush=True)

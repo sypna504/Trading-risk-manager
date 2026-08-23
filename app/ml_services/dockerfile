@@ -8,14 +8,17 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app/ml_services/app ./app
 COPY app/proto/ml ./proto/ml
 
-RUN mkdir -p ./ml/v1
-RUN python -m grpc_tools.protoc \
-    -I./proto \
-    --python_out=. \
-    --grpc_python_out=. \
-    ./proto/ml/v1/ml.proto
+RUN rm -rf ./ml && mkdir -p ./ml/v1 && \
+    python -m grpc_tools.protoc \
+      -I./proto \
+      --python_out=. \
+      --grpc_python_out=. \
+      ./proto/ml/v1/ml.proto && \
+    python -m app.training.runtime_contract_check
 
 ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+
 EXPOSE 50051
 
 CMD ["python", "-m", "app.online.server"]

@@ -42,12 +42,10 @@ class MLGrpcClient:
     @staticmethod
     def _to_proto_candle(candle: Candle) -> ml_pb2.Candle:
         timestamp = candle.timestamp
-
         if timestamp.tzinfo is None:
             timestamp = timestamp.replace(tzinfo=timezone.utc)
         else:
             timestamp = timestamp.astimezone(timezone.utc)
-
         return ml_pb2.Candle(
             timestamp_ms=int(timestamp.timestamp() * 1000),
             open=float(candle.open),
@@ -73,15 +71,11 @@ class MLGrpcClient:
             )
 
         self._wait_until_ready()
-
         request = ml_pb2.PredictSignalQualityRequest(
             symbol=symbol,
             interval=interval,
             strategy_name=strategy_name,
-            candles=[
-                self._to_proto_candle(candle)
-                for candle in candles
-            ],
+            candles=[self._to_proto_candle(candle) for candle in candles],
         )
 
         try:
@@ -90,10 +84,14 @@ class MLGrpcClient:
                 timeout=timeout or settings.REQUEST_TIMEOUT,
             )
         except grpc.RpcError as error:
-            if error.code() == grpc.StatusCode.INVALID_ARGUMENT:
-                raise ValueError(error.details()) from error
+            code = error.code()
+            details = error.details() or "no details"
+            if code == grpc.StatusCode.INVALID_ARGUMENT:
+                raise ValueError(details) from error
+            if code == grpc.StatusCode.FAILED_PRECONDITION:
+                raise ConnectionError(f"ML model is not ready: {details}") from error
             raise ConnectionError(
-                f"ML service request failed: {error.details()}"
+                f"ML service request failed [{code.name}]: {details}"
             ) from error
 
     def close(self) -> None:

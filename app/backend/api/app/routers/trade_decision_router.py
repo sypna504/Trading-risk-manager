@@ -7,12 +7,16 @@ from typing import Literal
 
 from fastapi import APIRouter, HTTPException, Query
 
+from ..config import settings
 from ..grpc_client import MLGrpcClient
 from ..schemas.trade_decision_schemas import (
+    OutcomeEvaluationResponse,
+    OutcomeSummaryResponse,
     StoredDecisionResponse,
     TradeDecisionResponse,
 )
 from ..services.market_services import GetCandles
+from ..services.outcome_service import OutcomeEvaluator, outcome_due_at
 from ..services.risk_service import calculate_risk_parameters
 from ..services.signal_service import detect_trading_signal
 from ..storage.decision_repository import DecisionRepository
@@ -22,6 +26,7 @@ logger = logging.getLogger(__name__)
 trade_router = APIRouter(prefix="/trading")
 trade_ml_client = MLGrpcClient()
 repository = DecisionRepository()
+outcome_evaluator = OutcomeEvaluator(repository)
 STRATEGY_TIE_PRIORITY = {"breakout": 0, "mean_reversion": 1}
 
 
@@ -134,6 +139,18 @@ def _store_decision(
     status: str,
     reason: str,
 ) -> int:
+    signal_timestamp = signal_result.get("timestamp")
+    outcome_status = "pending" if signal_result["signal_detected"] else "not_applicable"
+    due_at = (
+        outcome_due_at(
+            signal_timestamp,
+            interval,
+            settings.OUTCOME_TARGET_HORIZON_BARS,
+        )
+        if signal_result["signal_detected"] and signal_timestamp
+        else None
+    )
+
     return repository.save(
         {
             "created_at": checked_at,
@@ -179,6 +196,12 @@ def _store_decision(
             "risk_per_trade_pct": risk_per_trade_pct,
             "status": status,
             "reason": reason,
+            "signal_timestamp": signal_timestamp,
+            "outcome_due_at": due_at,
+            "outcome_status": outcome_status,
+            "target_horizon_bars": settings.OUTCOME_TARGET_HORIZON_BARS,
+            "target_min_net_return": settings.OUTCOME_MIN_NET_RETURN,
+            "target_max_drawdown": settings.OUTCOME_MAX_DRAWDOWN,
         }
     )
 
@@ -236,6 +259,8 @@ def get_trade_decision(
                 candles_count=len(candles),
                 checked_at=checked_at,
                 entry_price=signal_result["close"],
+                signal_timestamp=signal_result.get("timestamp"),
+                outcome_status="not_applicable",
             )
 
         predictions, prediction_failures = _get_strategy_predictions(
@@ -283,16 +308,10 @@ def get_trade_decision(
             status="evaluated",
             reason=reason,
         )
-
-        logger.info(
-            "exchange=%s symbol=%s interval=%s strategy=%s "
-            "model_version=%s trade_allowed=%s",
-            exchange,
-            symbol,
+        due_at = outcome_due_at(
+            signal_result["timestamp"],
             interval,
-            selected_strategy,
-            best_prediction.model_version,
-            best_prediction.trade_allowed,
+            settings.OUTCOME_TARGET_HORIZON_BARS,
         )
 
         return TradeDecisionResponse(
@@ -316,6 +335,9 @@ def get_trade_decision(
             risk_level=best_prediction.risk_level,
             model_version=best_prediction.model_version,
             risk_parameters=risk_parameters,
+            signal_timestamp=signal_result["timestamp"],
+            outcome_due_at=due_at,
+            outcome_status="pending",
         )
     except HTTPException:
         raise
@@ -338,6 +360,9 @@ def get_decisions(
     symbol: str | None = None,
     strategy: Literal["breakout", "mean_reversion"] | None = None,
     trade_allowed: bool | None = None,
+    outcome_status: Literal[
+        "pending", "retry", "completed", "not_applicable"
+    ] | None = None,
 ):
     return repository.list(
         limit=limit,
@@ -345,7 +370,26 @@ def get_decisions(
         symbol=symbol,
         strategy=strategy,
         trade_allowed=trade_allowed,
+        outcome_status=outcome_status,
     )
+
+
+@trade_router.post(
+    "/outcomes/evaluate",
+    response_model=OutcomeEvaluationResponse,
+)
+def evaluate_due_outcomes(
+    limit: int = Query(default=100, ge=1, le=500),
+):
+    return outcome_evaluator.run_once(limit=limit)
+
+
+@trade_router.get(
+    "/outcomes/summary",
+    response_model=OutcomeSummaryResponse,
+)
+def get_outcome_summary():
+    return repository.outcome_summary()
 
 
 @trade_router.get(

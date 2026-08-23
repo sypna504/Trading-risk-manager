@@ -53,7 +53,13 @@ def test_calculate_symbol_features():
 
 def test_calculate_features_multiple_symbols_and_missing_column():
     first = _candles()
-    second = _candles().assign(symbol="ETH/USDT", close=lambda frame: frame["close"] + 10)
+    second = _candles().assign(
+        symbol="ETH/USDT",
+        open=lambda frame: frame["open"] + 10,
+        high=lambda frame: frame["high"] + 10,
+        low=lambda frame: frame["low"] + 10,
+        close=lambda frame: frame["close"] + 10,
+    )
     result = calculate_features(pd.concat([first, second], ignore_index=True))
     assert set(result["symbol"]) == {"BTCUSDT", "ETHUSDT"}
     with pytest.raises(ValueError, match="missing candle columns"):
@@ -63,7 +69,8 @@ def test_calculate_features_multiple_symbols_and_missing_column():
 def test_build_inference_features_success_and_errors():
     candles = _candles().drop(columns=["symbol"]).to_dict("records")
     result = build_inference_features(candles, "btc/usdt", "breakout")
-    assert list(result.columns) == FEATURE_COLUMNS
+    assert set(FEATURE_COLUMNS).issubset(result.columns)
+    assert {"hour", "weekday", "high_20", "signal_breakout"}.issubset(result.columns)
     assert result.iloc[0]["symbol"] == "BTCUSDT"
     assert result.iloc[0]["strategy_name"] == "breakout"
     assert all(result[column].dtype == object for column in CAT_FEATURES)
@@ -74,3 +81,13 @@ def test_build_inference_features_success_and_errors():
     flat = _candles().drop(columns=["symbol"]).assign(close=100, open=100, high=100, low=100)
     with pytest.raises(ValueError, match="complete feature row"):
         build_inference_features(flat.to_dict("records"), "BTCUSDT", "breakout")
+
+
+def test_latest_complete_feature_row_accepts_backend_contract():
+    from app.features_builder import latest_complete_feature_row
+
+    features = calculate_features(_candles())
+    required = ["timestamp", "close", "atr_14_pct", "signal_breakout"]
+    latest = latest_complete_feature_row(features, required)
+    assert len(latest) == 1
+    assert latest[required].notna().all(axis=None)

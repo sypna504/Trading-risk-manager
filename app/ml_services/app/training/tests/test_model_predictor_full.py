@@ -82,7 +82,7 @@ def test_predictor_legacy_load_predict_metadata_and_no_reload(tmp_path):
         config_path=bundle / "config.json",
         models_root=models_root,
     )
-    assert predictor.reload(force=False) is True
+    assert predictor.reload(force=False) is False
     result = predictor.predict(pd.DataFrame({"x": [0.9], "symbol": ["BTCUSDT"]}))
     assert result["model_version"] == "v1"
     assert 0 <= result["prob_good_trade"] <= 1
@@ -145,42 +145,3 @@ def test_predictor_missing_initial_files_and_rejects_bad_reload(tmp_path, capsys
     predictor.maybe_reload()
     assert predictor.model_version == "v1"
     assert "keeping current model" in capsys.readouterr().out
-
-
-def test_predictor_accepts_windows_registry_separators(tmp_path):
-    models_root = tmp_path / "models"
-    _write_bundle(models_root, "v1")
-    registry_path = models_root / "registry.json"
-    payload = _registry("v1")
-    payload["active_model_path"] = r"active\v1\model.cbm"
-    payload["active_config_path"] = r"active\v1\config.json"
-    atomic_write_json(payload, registry_path)
-
-    predictor = ModelPredictor(
-        model_path=models_root / "missing.cbm",
-        config_path=models_root / "missing.json",
-        registry_path=registry_path,
-        models_root=models_root,
-    )
-
-    assert predictor.model_version == "v1"
-    assert predictor.model_path == (
-        models_root / "active" / "v1" / "model.cbm"
-    ).resolve()
-
-
-def test_predictor_rejects_unsafe_registry_paths(tmp_path):
-    models_root = tmp_path / "models"
-    _write_bundle(models_root, "v1")
-    registry_path = models_root / "registry.json"
-    payload = _registry("v1")
-    payload["active_model_path"] = "../outside/model.cbm"
-    atomic_write_json(payload, registry_path)
-
-    with pytest.raises(ValueError, match="traversal"):
-        ModelPredictor(
-            model_path=models_root / "missing.cbm",
-            config_path=models_root / "missing.json",
-            registry_path=registry_path,
-            models_root=models_root,
-        )

@@ -55,10 +55,12 @@ def test_failed_gate_does_not_promote(config):
 def test_promotion_and_rollback(config):
     registry = ModelRegistry(config)
     _candidate(registry, "v1")
+    registry.write_promotion_decision("v1", True, [])
     registry.promote("v1")
     assert registry.read()["active_model_version"] == "v1"
 
     _candidate(registry, "v2")
+    registry.write_promotion_decision("v2", True, [])
     registry.promote("v2")
     assert registry.read()["active_model_version"] == "v2"
     assert registry.read()["rollback_available"]

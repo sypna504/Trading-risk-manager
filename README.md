@@ -1,251 +1,136 @@
 # Trading Risk Manager
 
-Демонстрационная рекомендательная система для оценки криптовалютных торговых сигналов и расчёта параметров риска.
+Демонстрационная система оценки криптовалютных торговых сигналов и расчёта параметров риска.
 
-Система получает свечи Binance или Bybit, автоматически проверяет сигналы `breakout` и `mean_reversion`, передаёт активный сигнал в CatBoost через gRPC, рассчитывает размер позиции, stop-loss и take-profit, а затем сохраняет решение в SQLite.
+Система получает OHLCV Binance или Bybit, определяет `breakout` и `mean_reversion`, передаёт сигнал в CatBoost через gRPC, рассчитывает риск и сохраняет решение в SQLite.
 
-> Проект не исполняет реальные сделки, не использует API-ключи биржи и не является финансовой рекомендацией.
+> Проект не исполняет реальные сделки и не является финансовой рекомендацией.
 
-## Что входит в MVP
+## ML contract v3
 
-- FastAPI backend;
-- получение OHLCV через `ccxt`;
-- автоматическое определение сигнала;
-- Python gRPC ML-сервис;
-- CatBoost inference;
-- deterministic risk engine;
-- история решений в SQLite;
-- информация о версии и возрасте модели;
-- безопасный pipeline обновления и переобучения;
-- минимальный HTML/CSS/JS интерфейс;
-- Docker Compose;
-- smoke-тесты.
+Новая production schema устраняет применение одной `1h`-модели к несовместимым таймфреймам.
 
-## Архитектура
+Для безопасного MVP:
 
 ```text
-Browser
-   |
-   | HTTP
-   v
-FastAPI backend
-   |-- market service -> Binance / Bybit
-   |-- signal service -> feature builder
-   |-- risk service
-   |-- SQLite history
-   |
-   | gRPC
-   v
-ML service -> CatBoost model
+supported_intervals = ["1h"]
+target_horizon_minutes = 180
+feature_schema_version = "v3"
 ```
 
-Подробности: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+`interval` входит в CatBoost features как категориальный признак, а модель дополнительно использует interval-aware признаки:
 
-## Быстрый запуск через Docker
+- `ret_1h`, `ret_3h`, `ret_12h`, `ret_24h`;
+- return и volatility, нормализованные по времени;
+- trend и volatility regimes;
+- EMA distances и slope;
+- Bollinger position;
+- downside volatility;
+- volume trend;
+- rolling drawdown.
 
-```bash
-cp .env.example .env
-docker compose build
-docker compose up -d
+Запросы `1m`, `5m`, `15m`, `4h` и `1d` отклоняются, пока для них не обучены отдельные совместимые bundles.
+
+## Вероятности
+
+API возвращает:
+
+```json
+{
+  "prob_good_trade": 0.42,
+  "raw_prob_good_trade": 0.47,
+  "calibration_method": "platt",
+  "probability_bin": "40-50%",
+  "model_supported_interval": "1h"
+}
 ```
 
-Windows CMD:
+Calibration выбирается только на validation между:
 
-```cmd
-copy .env.example .env
-docker compose build
-docker compose up -d
-```
+- без calibration;
+- Platt scaling;
+- isotonic regression.
 
-После запуска:
+Калибратор отклоняется, если он слишком сильно сжимает распределение probabilities.
 
-- интерфейс: `http://127.0.0.1:8000/`;
-- Swagger: `http://127.0.0.1:8000/docs`;
-- health: `http://127.0.0.1:8000/api/v1/health`.
+## Promotion gate
 
-## Основные endpoints
+Модель не становится active при отрицательном trading result, слабом probability spread, низком profit factor, нестабильном walk-forward или отсутствии sensitivity.
 
-### Свечи
+Даже прямой вызов `ModelRegistry.promote()` требует валидный:
 
 ```text
-GET /api/v1/market/candles
+promotion_decision.json
 ```
 
-### Ручная оценка конкретной стратегии
+## Docker
 
-Существующий endpoint сохранён:
+```powershell
+docker compose build --no-cache ml_service backend ml_trainer
+docker compose up -d ml_service backend
+```
+
+Swagger:
 
 ```text
-GET /api/v1/ml/prediction-quality
-```
-
-### Автоматическое торговое решение
-
-```text
-GET /api/v1/trading/decision
-```
-
-Параметры:
-
-- `exchange`;
-- `symbol`;
-- `interval`;
-- `limit`;
-- `account_balance`;
-- `risk_per_trade_pct`;
-- `max_position_share_pct`.
-
-Пример:
-
-```text
-/api/v1/trading/decision?exchange=binance&symbol=BTCUSDT&interval=1h&limit=100&account_balance=1000&risk_per_trade_pct=1&max_position_share_pct=25
-```
-
-### История
-
-```text
-GET /api/v1/trading/decisions
-GET /api/v1/trading/decisions/{decision_id}
-```
-
-### Модель
-
-```text
-GET /api/v1/ml/model-info
-```
-
-Полное API: [docs/API.md](docs/API.md).
-
-## Risk engine
-
-Для разрешённого long-сигнала система рассчитывает:
-
-- допустимую денежную сумму риска;
-- ATR-based stop-loss;
-- take-profit с risk/reward не ниже `1:2`;
-- размер позиции;
-- ограничение позиции максимальной долей баланса.
-
-При `trade_allowed=false` или при отсутствии сигнала размер позиции равен нулю.
-
-## SQLite
-
-По умолчанию база находится в контейнере по пути:
-
-```text
-/app/data/trading_risk.db
-```
-
-Docker volume `backend_data` сохраняет историю после пересоздания контейнера.
-
-## Обновление данных и переобучение
-
-Windows:
-
-```cmd
-scripts\retrain_model.cmd
-```
-
-Linux/macOS:
-
-```bash
-./scripts/retrain_model.sh
-```
-
-Pipeline:
-
-```text
-update history
--> build dataset
--> backup current model
--> train candidate
--> evaluate on untouched test
--> promote or restore previous model
--> save JSON report
-```
-
-Версия модели формируется как день и месяц:
-
-```text
-risk_model_0208
-```
-
-После обновления model-файлов ML-сервис нужно пересобрать или перезапустить:
-
-```bash
-docker compose up -d --build --force-recreate ml_service
-```
-
-Подробнее: [docs/ML_PIPELINE.md](docs/ML_PIPELINE.md).
-
-## Запуск без Docker
-
-Установите зависимости backend и ML-сервиса, а также сгенерируйте protobuf-классы согласно текущей структуре проекта.
-
-Backend:
-
-```bash
-uvicorn app.backend.api.app.main:app --host 0.0.0.0 --port 8000
-```
-
-ML service:
-
-```bash
-python -m app.ml_services.app.online.server
-```
-
-Для локального запуска задайте:
-
-```text
-ML_SERVICE_ADDRESS=127.0.0.1:50051
-DATABASE_PATH=./data/trading_risk.db
-MODEL_PATH=app/ml_services/app/models/risk_model_v2_online.cbm
-MODEL_CONFIG_PATH=app/ml_services/app/models/risk_model_v2_online_config.json
+http://localhost:8000/docs
 ```
 
 ## Тесты
 
-```bash
-python -m pip install -r requirements-test.txt
-pytest
+`.venv` не требуется:
+
+```powershell
+scripts\run_ml_tests.cmd
 ```
 
-В тестах внешние запросы к биржам подменяются.
+## Обучение
 
-## Структура добавленной функциональности
+Сначала candidate-only:
+
+```powershell
+scripts\retrain_v3_candidate_only.cmd
+```
+
+Затем обучение с возможной автоматической публикацией:
+
+```powershell
+scripts\retrain_v3.cmd
+```
+
+Candidate публикуется только при прохождении promotion gates.
+
+## Проверка active-модели
+
+```powershell
+scripts\model_status.cmd
+scripts\check_sensitivity.cmd
+```
+
+## Rollback
+
+```powershell
+scripts\rollback_model.cmd
+```
+
+## Основные endpoints
 
 ```text
-app/backend/api/app/
-├── routers/trade_decision_router.py
-├── services/signal_service.py
-├── services/risk_service.py
-├── storage/
-├── static/
-├── logging_config.py
-└── middleware.py
-
-app/ml_services/app/training/
-├── update_history.py
-├── evaluate_model.py
-└── retrain_pipeline.py
+GET /api/v1/market/candles
+GET /api/v1/ml/prediction-quality
+GET /api/v1/ml/model-info
+GET /api/v1/trading/decision
+GET /api/v1/trading/decisions
 ```
 
-## Ограничения MVP
+## Важное ограничение
 
-- поддерживаются только long-сценарии;
-- нет реального исполнения ордеров;
-- нет плеча;
-- нет авторизации и нескольких пользователей;
-- качество решения ограничено качеством текущей модели и обучающих данных;
-- простой SQLite рассчитан на локальное MVP-использование.
+Код pipeline прошёл synthetic-тесты, но новый model artifact не включён. Качество v3 должно быть подтверждено локальным обучением на `history_data.parquet`, независимым test и walk-forward отчётом.
 
-Подробнее: [docs/MVP_LIMITATIONS.md](docs/MVP_LIMITATIONS.md).
+Подробности:
 
-## Следующие шаги
-
-- paper trading;
-- мониторинг drift и качества модели;
-- раздельные модели по режимам рынка;
-- portfolio-level ограничения;
-- PostgreSQL для многопользовательской версии;
-- CI/CD и расширенное тестирование.
+- [APPLY.md](APPLY.md)
+- [MODEL_AUDIT.md](MODEL_AUDIT.md)
+- [LEAKAGE_AUDIT.md](LEAKAGE_AUDIT.md)
+- [PROMOTION_VALIDATION.md](PROMOTION_VALIDATION.md)
+- [TEST_REPORT.md](TEST_REPORT.md)

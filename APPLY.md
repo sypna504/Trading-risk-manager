@@ -1,85 +1,64 @@
-# Applying the audit patch
+# Apply runtime fix v6
 
-## 1. Create a safety branch
+Extract the ZIP directly into the repository root and replace existing files.
+Do not extract it into an extra nested directory.
 
-```powershell
-git checkout feature/auto-signal-choseing
-git pull
-git checkout -b fix/total-functional-audit
-```
-
-## 2. Extract the archive
-
-Extract the archive into the repository root and confirm file replacement.
-
-## 3. Recreate dependencies
+## 1. Preserve the registry
 
 ```powershell
-python -m pip install -r app/backend/api/requirements.txt
-python -m pip install -r app/ml_services/requirements.txt
-python -m pip install -r requirements-test.txt
+Copy-Item `
+  .\app\ml_services\app\models\registry.json `
+  .\app\ml_services\app\models\registry.json.bak
 ```
 
-The grpc/protobuf versions were raised to match the checked-in generated code.
+The archive itself does not contain or overwrite `registry.json`, active model
+files, candidates, history parquet or the SQLite database.
 
-## 4. Run deterministic validation
+## 2. Rebuild and verify
 
 ```powershell
-python -m compileall app tests
-pytest -q tests/smoke tests/audit -W error::ResourceWarning
+powershell -ExecutionPolicy Bypass -File .\VERIFY_AND_REBUILD.ps1
 ```
 
-## 5. Validate Docker
+This command rebuilds all three images and runs a direct synthetic prediction
+through the active model. It does not require exchange connectivity.
+
+## 3. Test API endpoints
 
 ```powershell
-docker compose down -v
-docker compose config
-docker compose build --no-cache
-docker compose up -d
-docker compose ps
-docker compose logs --tail=200 backend ml_service
+powershell -ExecutionPolicy Bypass -File .\scripts\runtime_smoke_test.ps1
 ```
 
-## 6. Validate endpoints
+The public prediction endpoints do require Binance connectivity.
+
+## 4. Collect diagnostics after any failure
 
 ```powershell
-curl "http://127.0.0.1:8000/api/v1/health"
-curl "http://127.0.0.1:8000/api/v1/ml/model-info"
-curl "http://127.0.0.1:8000/api/v1/trading/decisions?limit=5"
+powershell -ExecutionPolicy Bypass -File .\scripts\diagnose_runtime.ps1
 ```
 
-For a live trading-decision check:
+The report is saved under `scripts/runtime_diagnostics/`.
+
+## 5. Train a v3 candidate
 
 ```powershell
-curl "http://127.0.0.1:8000/api/v1/trading/decision?exchange=binance&symbol=BTCUSDT&interval=1h&limit=100&account_balance=1000&risk_per_trade_pct=1&max_position_share_pct=25"
+scripts\retrain_v3_candidate_only.cmd
 ```
 
-## 7. Validate training lifecycle
+Only after checking its metrics:
 
 ```powershell
-docker compose --profile training run --rm ml_trainer --status
-docker compose --profile training run --rm ml_trainer --mode manual
+scripts\retrain_v3.cmd
 ```
 
-## 8. Commit
+## Expected runtime state
 
-```powershell
-git add .
-git commit -m "fix: harden signal inference, model lifecycle and deployment"
-git push -u origin fix/total-functional-audit
+The old model may still appear as:
+
+```text
+risk_model_20260802_183813
+feature_schema_version=legacy_v2
 ```
 
-## Rollback of patch
-
-Before commit:
-
-```powershell
-git restore .
-git clean -fd
-```
-
-After commit:
-
-```powershell
-git revert <commit-sha>
-```
+That is expected until a v3 candidate passes promotion. Runtime compatibility
+with the old model does not mean that its trading quality has improved.
