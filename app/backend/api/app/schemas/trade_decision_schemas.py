@@ -20,6 +20,34 @@ class RiskParameters(BaseModel):
     calculation_reason: str
 
 
+class NewsTopEventResponse(BaseModel):
+    id: str
+    title: str
+    published_at: str
+    event_type: str
+    sentiment: str
+    impact_direction: str
+    impact_probability: float = Field(ge=0, le=1)
+    crypto_relevance: float = Field(ge=0, le=1)
+    affected_assets: list[str] = Field(default_factory=list)
+    url: str | None = None
+
+
+class NewsContextResponse(BaseModel):
+    symbol: str
+    window_hours: int = Field(ge=1)
+    news_count: int = Field(ge=0)
+    sentiment_score: float = Field(ge=-1, le=1)
+    positive_count: int = Field(ge=0)
+    negative_count: int = Field(ge=0)
+    high_impact_count: int = Field(ge=0)
+    geopolitical_risk_score: float = Field(ge=0, le=1)
+    regulatory_risk_score: float = Field(ge=0, le=1)
+    macro_risk_score: float = Field(ge=0, le=1)
+    risk_level: Literal["low", "medium", "high"]
+    top_events: list[NewsTopEventResponse] = Field(default_factory=list)
+
+
 class TradeDecisionResponse(BaseModel):
     id: int | None = None
     status: Literal["no_signal", "evaluated"]
@@ -54,6 +82,7 @@ class TradeDecisionResponse(BaseModel):
     calibration_method: str | None = None
     model_warnings: list[str] = Field(default_factory=list)
     risk_parameters: RiskParameters | None = None
+    news_context: NewsContextResponse | None = None
     signal_timestamp: str | None = None
     outcome_due_at: str | None = None
     outcome_status: str | None = None
@@ -93,6 +122,10 @@ class StoredDecisionResponse(BaseModel):
     risk_per_trade_pct: float | None = None
     status: str
     reason: str
+    news_context_available: bool = False
+    news_risk_level: str | None = None
+    news_count: int = 0
+    high_impact_news_count: int = 0
     signal_timestamp: str | None = None
     outcome_due_at: str | None = None
     outcome_status: str = "pending"

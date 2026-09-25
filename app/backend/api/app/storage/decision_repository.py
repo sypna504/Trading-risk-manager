@@ -43,6 +43,10 @@ class DecisionRepository:
         "risk_per_trade_pct",
         "status",
         "reason",
+        "news_context_available",
+        "news_risk_level",
+        "news_count",
+        "high_impact_news_count",
         "signal_timestamp",
         "outcome_due_at",
         "outcome_status",
@@ -64,6 +68,13 @@ class DecisionRepository:
         signal_detected = bool(result.get("signal_detected", False))
         result["signal_detected"] = int(signal_detected)
         result["trade_allowed"] = int(bool(result.get("trade_allowed", False)))
+        result["news_context_available"] = int(
+            bool(result.get("news_context_available", False))
+        )
+        result["news_count"] = int(result.get("news_count") or 0)
+        result["high_impact_news_count"] = int(
+            result.get("high_impact_news_count") or 0
+        )
         result["active_strategies"] = json.dumps(
             result.get("active_strategies", []),
             ensure_ascii=False,
@@ -98,6 +109,9 @@ class DecisionRepository:
         result = dict(row)
         result["signal_detected"] = bool(result["signal_detected"])
         result["trade_allowed"] = bool(result["trade_allowed"])
+        result["news_context_available"] = bool(
+            result.get("news_context_available", 0)
+        )
         result["active_strategies"] = json.loads(result["active_strategies"] or "[]")
         if result.get("actual_target") is not None:
             result["actual_target"] = bool(result["actual_target"])
@@ -371,6 +385,7 @@ class DecisionRepository:
         ]
 
         now = datetime.now(timezone.utc)
+
         def window(days: int) -> dict[str, Any]:
             cutoff = now - timedelta(days=days)
             part = []

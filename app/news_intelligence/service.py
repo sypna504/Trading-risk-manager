@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 
 from .analysis import NewsAnalyzer, RuleBasedNewsAnalyzer, build_news_analyzer_from_env
+from .context import MarketNewsContextService
 from .deduplication import NewsDeduplicator
 from .ingestion.base import BaseNewsSource
 from .models import NewsItem
@@ -51,3 +52,6 @@ class NewsIntelligenceService:
 
     def ingest(self, source: BaseNewsSource) -> list[NewsItem]:
         return [self.process(item) for item in source.fetch()]
+
+    def get_market_news_context(self, symbol: str, now) -> dict[str, object]:
+        return MarketNewsContextService(self.repository).get_market_news_context(symbol, now)

@@ -7,6 +7,10 @@ from typing import Literal
 
 from fastapi import APIRouter, HTTPException, Query
 
+from app.news_intelligence.service import NewsIntelligenceService
+from app.news_intelligence.storage import NewsRepository
+
+from ..config import settings
 from ..grpc_client import (
     MLGrpcClient,
     MLModelUnavailableError,
@@ -39,6 +43,11 @@ repository = DecisionRepository()
 outcome_evaluator = OutcomeEvaluator(repository)
 # Backward-compatible private alias used by older audit callers.
 _select_best_prediction = select_best_prediction
+
+
+NEWS_INFORMATIONAL_DISCLAIMER = (
+    "news layer is informational and does not alter the ML trading gate"
+)
 
 
 def _download_candles(
@@ -116,6 +125,42 @@ def _get_strategy_predictions(
     return predictions, failures
 
 
+def _load_news_context(symbol: str, decision_time: datetime) -> dict | None:
+    """Best-effort news context. Failures never fail the trading decision."""
+    if not settings.NEWS_CONTEXT_ENABLED:
+        return None
+    try:
+        news_repository = NewsRepository(settings.DATABASE_PATH)
+        news_service = NewsIntelligenceService(news_repository)
+        return news_service.get_market_news_context(symbol, decision_time)
+    except Exception as error:
+        logger.warning("news context unavailable for %s: %s", symbol, error)
+        return None
+
+
+def _news_reason(base_reason: str, news_context: dict | None) -> str:
+    if news_context is None:
+        return base_reason
+
+    count = int(news_context.get("news_count", 0))
+    if count == 0:
+        summary = "no recent relevant news"
+    else:
+        regulatory = float(news_context.get("regulatory_risk_score", 0.0))
+        geopolitical = float(news_context.get("geopolitical_risk_score", 0.0))
+        macro = float(news_context.get("macro_risk_score", 0.0))
+        risk_level = str(news_context.get("risk_level", "low"))
+        category = max(
+            ((regulatory, "regulatory"), (geopolitical, "geopolitical"), (macro, "macro")),
+            key=lambda pair: pair[0],
+        )
+        if risk_level == "high" and category[0] > 0:
+            summary = f"high {category[1]} activity"
+        else:
+            summary = f"{risk_level} risk across {count} relevant event(s)"
+
+    return f"{base_reason}; news context: {summary}; {NEWS_INFORMATIONAL_DISCLAIMER}"
+
 
 def _store_decision(
     *,
@@ -133,6 +178,7 @@ def _store_decision(
     status: str,
     reason: str,
     compatibility: CompatibilityResult,
+    news_context: dict | None = None,
 ) -> int:
     signal_timestamp = signal_result.get("timestamp")
     target = target_contract_snapshot(compatibility)
@@ -207,6 +253,18 @@ def _store_decision(
             "risk_per_trade_pct": risk_per_trade_pct,
             "status": status,
             "reason": reason,
+            "news_context_available": news_context is not None,
+            "news_risk_level": (
+                str(news_context.get("risk_level")) if news_context is not None else None
+            ),
+            "news_count": (
+                int(news_context.get("news_count", 0)) if news_context is not None else 0
+            ),
+            "high_impact_news_count": (
+                int(news_context.get("high_impact_count", 0))
+                if news_context is not None
+                else 0
+            ),
             "signal_timestamp": signal_timestamp,
             "outcome_due_at": due_at,
             "outcome_status": outcome_status,
@@ -250,7 +308,8 @@ def get_trade_decision(
     risk_per_trade_pct: float = Query(default=1.0, gt=0, le=10),
     max_position_share_pct: float = Query(default=25.0, ge=1, le=100),
 ):
-    checked_at = datetime.now(timezone.utc).isoformat()
+    decision_time = datetime.now(timezone.utc)
+    checked_at = decision_time.isoformat()
     compatibility = _compatibility_or_http(
         exchange=exchange,
         symbol=symbol,
@@ -264,6 +323,8 @@ def get_trade_decision(
         warnings = list(compatibility.warnings)
 
         if not signal_result["signal_detected"]:
+            news_context = _load_news_context(symbol, decision_time)
+            reason = _news_reason(signal_result["reason"], news_context)
             decision_id = _store_decision(
                 checked_at=checked_at,
                 exchange=exchange,
@@ -277,8 +338,9 @@ def get_trade_decision(
                 account_balance=account_balance,
                 risk_per_trade_pct=risk_per_trade_pct,
                 status="no_signal",
-                reason=signal_result["reason"],
+                reason=reason,
                 compatibility=compatibility,
+                news_context=news_context,
             )
             return TradeDecisionResponse(
                 id=decision_id,
@@ -288,7 +350,7 @@ def get_trade_decision(
                 active_strategies=[],
                 selected_strategy=None,
                 strategy_name=None,
-                reason=signal_result["reason"],
+                reason=reason,
                 exchange=exchange,
                 symbol=symbol.upper(),
                 interval=interval,
@@ -303,6 +365,7 @@ def get_trade_decision(
                 model_status=target["model_status"],
                 calibration_method=target["calibration_method"],
                 model_warnings=warnings,
+                news_context=news_context,
                 signal_timestamp=signal_result.get("timestamp"),
                 outcome_status="not_applicable",
             )
@@ -354,6 +417,12 @@ def get_trade_decision(
                 sorted(prediction_failures)
             )
 
+        # News is intentionally loaded only after the ML prediction and risk
+        # calculation. It cannot influence strategy selection, probability,
+        # threshold, trade_allowed, stop loss or position sizing.
+        news_context = _load_news_context(symbol, decision_time)
+        reason = _news_reason(reason, news_context)
+
         decision_id = _store_decision(
             checked_at=checked_at,
             exchange=exchange,
@@ -369,6 +438,7 @@ def get_trade_decision(
             status="evaluated",
             reason=reason,
             compatibility=compatibility,
+            news_context=news_context,
         )
         due_at = outcome_due_at(
             signal_result["timestamp"],
@@ -417,6 +487,7 @@ def get_trade_decision(
             calibration_method=getattr(best_prediction, "calibration_method", target["calibration_method"]),
             model_warnings=warnings,
             risk_parameters=risk_parameters,
+            news_context=news_context,
             signal_timestamp=signal_result["timestamp"],
             outcome_due_at=due_at,
             outcome_status="pending",

@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     MIN_STOP_LOSS_PCT: float = Field(default=0.5, gt=0, le=50)
     RISK_REWARD_RATIO: float = Field(default=2.0, gt=0, le=20)
 
+    # News context is informational only. Disabling it must not change the ML gate.
+    NEWS_CONTEXT_ENABLED: bool = True
+
     # Outcome tracking defaults are only legacy fallbacks. New decisions store
     # the model target contract as an immutable per-decision snapshot.
     OUTCOME_TARGET_HORIZON_BARS: int = Field(default=3, ge=1, le=1000)

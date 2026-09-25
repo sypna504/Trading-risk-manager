@@ -20,6 +20,7 @@ services:
       NEWS_LLM_URL: ${NEWS_LLM_URL:-http://ollama:11434}
       NEWS_LLM_MODEL: ${NEWS_LLM_MODEL:-}
       NEWS_LLM_TIMEOUT_SECONDS: ${NEWS_LLM_TIMEOUT_SECONDS:-8}
+      NEWS_CONTEXT_ENABLED: ${NEWS_CONTEXT_ENABLED:-true}
     depends_on:
       ml_service:
         condition: service_healthy

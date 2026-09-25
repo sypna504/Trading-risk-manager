@@ -206,6 +206,36 @@ class NewsRepository:
             ).fetchone()
         return self._row_to_item(row) if row else None
 
+    def list_published_between(
+        self,
+        *,
+        start: datetime,
+        end: datetime,
+        limit: int = 2000,
+    ) -> list[NewsItem]:
+        """Return news inside [start, end], including no rows after decision time."""
+        if start.tzinfo is None:
+            start = start.replace(tzinfo=timezone.utc)
+        if end.tzinfo is None:
+            end = end.replace(tzinfo=timezone.utc)
+        start = start.astimezone(timezone.utc)
+        end = end.astimezone(timezone.utc)
+        if end < start:
+            return []
+        limit = max(1, min(int(limit), 5000))
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT * FROM news_items
+                WHERE julianday(published_at) >= julianday(?)
+                  AND julianday(published_at) <= julianday(?)
+                ORDER BY julianday(published_at) DESC, received_at DESC
+                LIMIT ?
+                """,
+                (start.isoformat(), end.isoformat(), limit),
+            ).fetchall()
+        return [self._row_to_item(row) for row in rows]
+
     def latest_for_symbol(self, symbol: str, *, limit: int = 50) -> list[NewsItem]:
         target = symbol.strip().upper()
         if not target:
