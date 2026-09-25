@@ -12,6 +12,7 @@ from .middleware import RequestContextMiddleware
 from .routers.health_router import health_client, healt_router
 from .routers.market_router import market_router
 from .routers.ml_service_router import ml_client, ml_router
+from .routers.news_router import news_router
 from .routers.trade_decision_router import trade_ml_client, trade_router
 from .services.outcome_service import OutcomeWorker
 from .storage.database import init_database
@@ -45,6 +46,7 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 app.include_router(healt_router, prefix="/api/v1")
 app.include_router(market_router, prefix="/api/v1")
 app.include_router(ml_router, prefix="/api/v1")
+app.include_router(news_router, prefix="/api/v1")
 app.include_router(trade_router, prefix="/api/v1")
 
 
