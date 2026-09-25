@@ -1,36 +1,18 @@
-# Current State
+# Current State — MVP-5 feature freeze
 
-- **Date:** 2026-08-25
-- **Base state:** `feature/auto-signal-choseing + research-mvp-final-v9 overlay + frozen research finalization v10`
-- **Commit:** NOT CAPTURED in packaging workspace (no .git directory); capture locally with `git rev-parse HEAD` before applying overlay
-- **Real Binance research:** NOT RUN
-- **Production promotion:** NO
+Date: 2026-09-25
 
-## Status
+- Feature development: **FROZEN**.
+- Quant model logic changed: **NO**.
+- News changes trading gate: **NO**.
+- Price+news training: **NOT STARTED**.
+- Current branch inspected: `feature/news-agent-full-mvp`, commit `1588a49f35c9282aa8f8df6957ffe062b0502125`.
+- Existing GitHub CI compile: **PASS**.
+- Existing GitHub CI Docker build: **PASS**.
+- Existing GitHub CI backend integration smoke: **PASS**.
+- Existing ML CI: **FAIL** due to pandas categorical dtype regression (2 tests) and one CI import-path issue in the combined regression job.
+- Local MVP news + frontend suite: **49/49 PASS**.
+- Docker runtime in this sandbox: **NOT RUN** because Docker CLI is unavailable.
+- GitHub CI update from this sandbox: **NOT APPLIED** because the connected GitHub integration is read-only for repository contents.
 
-- Research implementation: **PASS** for static/unit/regression/synthetic validation.
-- Regression tests: **15 passed / 0 failed**.
-- ML/training tests: **117 passed / 0 failed**.
-- Integration tests: **1 skipped / 0 failed** because environment-dependent runtime integration is not available in the packaging sandbox.
-- Protobuf source contract: **PASS**.
-- Generated protobuf strict check: **NOT RUN** because `grpcio-tools` is not installed in the packaging Python runtime; it is pinned in project requirements and generated during Docker build.
-- Synthetic research: **PASS**, `17` experiments, result `NO ROBUST EDGE FOUND`.
-- Docker build/runtime: **NOT RUN** because Docker CLI is unavailable in this environment.
-- Real `history_data.parquet` research: **NOT RUN**.
-- Real v3 improvement: **NOT PROVEN**.
-
-The package is an overlay and deliberately does not ship real training data, active model binaries, registry state or SQLite data.
-
-## Reproduction
-
-```powershell
-python scripts\test_all.py
-scripts\research_synthetic.cmd
-scripts\research_full.cmd
-scripts\research_results.cmd
-scripts\research_candidate.cmd
-```
-
-## Package verification
-
-A clean extraction of the packaged overlay was able to run the official suite and deterministic synthetic research without manual path edits. Final delivery is re-zipped and retested after report/manifest updates.
+MVP-5 package includes the regression patch, proposed CI workflow, synthetic offline E2E and updated docs.

@@ -19,11 +19,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+      - run: python -m pip install PyYAML pydantic pydantic-settings
       - run: python -m compileall -q app tests scripts
       - run: python scripts/check_dependency_contract.py
       - run: python scripts/check_settings_contract.py
+      - run: python scripts/check_patch_consistency.py
 
-  unit-regression:
+  regression:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -34,23 +36,9 @@ jobs:
       - run: python -m pip install --upgrade pip
       - run: python -m pip install -r requirements-test.txt
       - run: python scripts/generate_proto.py --output .
-      - run: python scripts/check_proto_contract.py --strict-generated
-      - run: python -m pytest -q tests/regression app/ml_services/app/training/tests
+      - run: python scripts/test_all.py
 
-  backend-smoke:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: pip
-      - run: python -m pip install --upgrade pip
-      - run: python -m pip install -r requirements-test.txt
-      - run: python scripts/generate_proto.py --output .
-      - run: python -m pytest -q tests/integration
-
-  ml-synthetic:
+  ml:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -62,17 +50,66 @@ jobs:
       - run: python -m pip install -r requirements-test.txt
       - run: PYTHONPATH=app/ml_services python -m pytest -q app/ml_services/app/training/tests
 
+  news:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -r requirements-test.txt
+      - run: python scripts/generate_proto.py --output .
+      - run: python -m pytest -q tests/news tests/frontend tests/smoke/test_trade_decision_news_context.py tests/integration/test_synthetic_e2e.py
+
   docker-build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - run: cp .env.example .env
       - run: docker compose config --quiet
-      - run: docker compose build --no-cache backend ml_service ml_trainer
+      - run: docker compose build backend ml_service
+      - run: docker compose up -d backend ml_service
+      - name: Wait for backend health
+        shell: bash
+        run: |
+          for attempt in {1..24}; do
+            if curl --fail --silent http://127.0.0.1:8000/api/v1/health > /tmp/health.json; then
+              cat /tmp/health.json
+              exit 0
+            fi
+            sleep 5
+          done
+          docker compose ps
+          docker compose logs backend ml_service
+          exit 1
+      - if: always()
+        run: docker compose down -v
 
-  integration:
+  package:
     runs-on: ubuntu-latest
-    needs: [unit-regression, docker-build]
+    needs: [compile, regression, ml, news, docker-build]
     steps:
       - uses: actions/checkout@v4
-      - shell: bash
-        run: ./scripts/docker_validate.sh
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -r requirements-test.txt
+      - run: git archive --format=zip --output Trading-risk-manager-MVP5.zip HEAD
+      - run: unzip -t Trading-risk-manager-MVP5.zip
+      - run: mkdir unpacked && unzip -q Trading-risk-manager-MVP5.zip -d unpacked
+      - run: python -m compileall -q unpacked/app unpacked/tests unpacked/scripts
+      - working-directory: unpacked
+        run: python scripts/check_patch_consistency.py
+      - working-directory: unpacked
+        run: python scripts/generate_proto.py --output .
+      - working-directory: unpacked
+        run: python -m pytest -q tests/frontend tests/news/test_market_context.py tests/news/test_source_config.py tests/integration/test_synthetic_e2e.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Trading-risk-manager-MVP5
+          path: Trading-risk-manager-MVP5.zip
+          if-no-files-found: error

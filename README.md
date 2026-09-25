@@ -1,105 +1,110 @@
-# Trading Risk Manager
+# Trading Risk Manager — MVP
 
-Research / paper-trading MVP для криптовалютных сигналов, ML meta-labeling, risk planning, outcome monitoring и leakage-safe quant research.
+Research / paper-trading dashboard: market signal → ML quality gate → risk sizing → decision snapshot, with an informational news-intelligence layer. **News never changes `trade_allowed`, probability, threshold, stop-loss/take-profit or position sizing.**
 
-> Проект не исполняет реальные сделки и не является финансовой рекомендацией.
+## Quick start
 
-## Current contract
-
-- Active legacy v2 is supported only as `legacy_experimental` fallback.
-- Validated v3 runtime is Binance Spot, `1h`, closed candles only.
-- Training/inference share the same production feature contract.
-- Default v3 trade semantics: signal closes → next-bar open → ATR/minimum stop → R-multiple TP → first touch TP/SL → timeout → fees/slippage.
-- Promotion requires predictive, economic, portfolio, cost-stress and walk-forward evidence. AUC alone is insufficient.
-
-## Frozen research implementation
-
-The research implementation is under:
-
-```text
-app/ml_services/app/research/
+```bash
+cp .env.example .env
+docker compose build
+docker compose up -d
 ```
 
-It performs target comparison, feature ablation, architecture/class-weight/CatBoost selection, calibration and threshold selection, walk-forward evaluation, event-driven portfolio backtesting, cost stress, concentration analysis, block bootstrap confidence intervals and final deployable refit only after OOS gates pass.
-
-The final holdout is not used to choose target, features, hyperparameters, calibration or threshold. If the frozen configuration does not demonstrate robust edge, the run completes as:
-
-```text
-NO ROBUST EDGE FOUND
-```
-
-and no production promotion occurs.
-
-## Quick validation
+Windows PowerShell:
 
 ```powershell
-python scripts\test_all.py
-powershell -ExecutionPolicy Bypass -File .\VERIFY_AND_REBUILD.ps1
-scripts\research_synthetic.cmd
+Copy-Item .env.example .env
+docker compose build
+docker compose up -d
 ```
 
-## Full real-data research
+Open: `http://localhost:8000/`
 
-```powershell
-docker compose --profile training run --rm `
-  ml_trainer `
-  python -m app.research.runner --mode full --update-history
-```
+## URLs
 
-The trainer has read/write access to `app/ml_services/app/training/data` and persists research artifacts through `./runtime:/app/runtime`.
-
-View results:
-
-```powershell
-scripts\research_results.cmd
-scripts\research_candidate.cmd
-```
-
-## Promotion
-
-Check current model:
-
-```powershell
-scripts\model_status.cmd
-```
-
-Promote only a research candidate that already reports `promotion_ready=true`:
-
-```powershell
-scripts\research_promote.cmd MODEL_VERSION
-```
-
-Legacy v2 → v3 requires explicit schema migration authorization:
-
-```powershell
-scripts\research_promote.cmd MODEL_VERSION --allow-schema-migration
-```
-
-Rollback:
-
-```powershell
-scripts\rollback_model.cmd
-```
-
-## Runtime
-
-```powershell
-docker compose up -d ml_service backend
-```
-
-- UI: `http://localhost:8000/`
+- Dashboard: `http://localhost:8000/`
 - Swagger: `http://localhost:8000/docs`
 - Health: `http://localhost:8000/api/v1/health`
 - Model info: `http://localhost:8000/api/v1/ml/model-info`
+- Trading decision: `http://localhost:8000/api/v1/trading/decision`
+- Decision history: `http://localhost:8000/api/v1/trading/decisions`
+- News: `http://localhost:8000/api/v1/news`
+- News summary: `http://localhost:8000/api/v1/news/summary`
 
-Live Binance runtime smoke:
+## Tests
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\runtime_smoke_test.ps1
+Official entrypoint:
+
+```bash
+python scripts/test_all.py
 ```
 
-## Reports
+Focused suites:
 
-Root reports describe the package validation state. A real local research run creates detailed run-specific reports under `runtime/research/reports/` and per-experiment JSON under `runtime/research/experiments/`.
+```bash
+python -m pytest -q tests/regression
+PYTHONPATH=app/ml_services python -m pytest -q app/ml_services/app/training/tests
+python -m pytest -q tests/news tests/frontend
+python -m pytest -q tests/integration/test_synthetic_e2e.py
+```
 
-See `APPLY.md` for the complete application, validation, research, promotion and rollback procedure.
+## Docker validation
+
+```bash
+docker compose config
+docker compose build backend ml_service
+docker compose up -d backend ml_service
+docker compose ps
+```
+
+The default stack does **not** require Ollama or Telegram.
+
+## News
+
+News is normalized, analyzed, deduplicated and persisted separately from the Quant ML gate. The trading API receives a decision-time-safe 24h context snapshot. Only `published_at <= decision_time` is used.
+
+### Optional Telegram
+
+Set locally in `.env`:
+
+```text
+TELEGRAM_API_ID=...
+TELEGRAM_API_HASH=...
+TELEGRAM_SESSION_PATH=/app/data/telegram.session
+```
+
+Do not commit credentials. Without credentials Telegram is skipped and the news service continues to work.
+
+### Optional Ollama
+
+Set:
+
+```text
+NEWS_LLM_PROVIDER=ollama
+NEWS_LLM_MODEL=<local-model-name>
+NEWS_LLM_URL=http://ollama:11434
+```
+
+Start the optional service:
+
+```bash
+docker compose --profile llm up -d
+```
+
+If Ollama is unavailable, times out or returns invalid JSON, the analyzer falls back to the rule-based implementation.
+
+## Health states
+
+The dashboard reports Backend, ML Service, News Service and LLM as `ready`, `degraded` or `optional unavailable`. LLM unavailability is not fatal in the default configuration.
+
+## Security
+
+External news text is rendered with DOM `textContent`; the dashboard does not use unsafe `innerHTML` for news. External links are restricted to HTTP/HTTPS.
+
+## Limitations
+
+- paper/research trading only; no order execution;
+- live Binance, live Telegram and live Ollama are optional environment checks and are not required by offline CI;
+- news is informational only and is deliberately isolated from the trading gate;
+- model quality still depends on the active validated model bundle and its data contract;
+- no price+news joint training is included in this MVP.
