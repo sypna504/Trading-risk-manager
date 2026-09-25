@@ -28,6 +28,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 from ..features_builder import CAT_FEATURES, FEATURE_COLUMNS
+from ..backtesting.simulator import run_portfolio_backtest
 from .evaluate_model import (
     compute_permutation_importance,
     evaluate_predictions,
@@ -37,7 +38,9 @@ from .evaluate_model import (
 )
 from .model_registry import ModelRegistry, atomic_write_json, file_checksum, model_version_now
 from .prediction_sensitivity import build_sensitivity_report
+from .statistical_validation import block_bootstrap_report
 from .time_split import global_time_split, walk_forward_time_splits
+from .target_config import physical_purge
 from .training_config import TrainingConfig
 
 
@@ -57,7 +60,7 @@ def _pool(frame: pd.DataFrame, with_label: bool = True) -> Pool:
 
 
 def _physical_purge(config: TrainingConfig) -> pd.Timedelta:
-    return pd.Timedelta(minutes=config.purge_minutes)
+    return physical_purge(config.target_horizon_minutes, config.embargo_minutes)
 
 
 def _partition_by_time(
@@ -227,7 +230,9 @@ def choose_calibration(
     calibration: pd.DataFrame,
     selection: pd.DataFrame,
     config: TrainingConfig,
+    apply_frame: pd.DataFrame | None = None,
 ) -> tuple[Any | None, str, np.ndarray, dict[str, Any]]:
+    """Fit calibration on one block, select it on another, apply to a third."""
     selection_raw = model.predict_proba(_pool(selection, with_label=False))[:, 1]
     y_selection = selection["target_good_trade"].to_numpy(dtype=int)
     raw_metrics = _calibration_metrics(y_selection, selection_raw)
@@ -291,6 +296,9 @@ def choose_calibration(
     improvement = raw_metrics["brier_score"] - best["metrics"]["brier_score"]
     if best["method"] != "none" and improvement < config.minimum_calibration_brier_improvement:
         best = candidates[0]
+    apply_target = selection if apply_frame is None else apply_frame
+    apply_raw = model.predict_proba(_pool(apply_target, with_label=False))[:, 1]
+    apply_probabilities = apply_calibrator(best["calibrator"], apply_raw)
     report = {
         "selected_method": best["method"],
         "raw_metrics": raw_metrics,
@@ -306,7 +314,7 @@ def choose_calibration(
         "brier_improvement": raw_metrics["brier_score"]
         - best["metrics"]["brier_score"],
     }
-    return best["calibrator"], best["method"], best["probabilities"], report
+    return best["calibrator"], best["method"], apply_probabilities, report
 
 
 def _choose_calibration(
@@ -527,6 +535,7 @@ def _walk_forward_report(
     dataset: pd.DataFrame,
     *args,
 ) -> dict[str, Any]:
+    """Reproduce the production model/calibration/threshold sequence per OOS fold."""
     config = next(
         (item for item in reversed(args) if isinstance(item, TrainingConfig)),
         TrainingConfig(),
@@ -543,8 +552,8 @@ def _walk_forward_report(
             results.append({"fold": index, "error": "train or validation has one class"})
             continue
         try:
-            model_selection, threshold_frame = _partition_by_time(
-                validation, (0.60,), _physical_purge(config)
+            model_selection, calibration_fit, calibration_selection, threshold_frame = _partition_by_time(
+                validation, (0.40, 0.65, 0.82), _physical_purge(config)
             )
             best_model: CatBoostClassifier | None = None
             best_report: dict[str, Any] | None = None
@@ -555,16 +564,34 @@ def _walk_forward_report(
                 if best_report is None or report["score"] > best_report["score"]:
                     best_model, best_report, best_parameters = model, report, parameters
             assert best_model is not None and best_parameters is not None
-            validation_probabilities = best_model.predict_proba(
-                _pool(threshold_frame, with_label=False)
-            )[:, 1]
-            thresholds, _ = select_strategy_thresholds(
-                threshold_frame, validation_probabilities, config
+
+            calibrator, calibration_method, threshold_probabilities, calibration_report = choose_calibration(
+                best_model,
+                calibration_fit,
+                calibration_selection,
+                config,
+                apply_frame=threshold_frame,
             )
-            test_probabilities = best_model.predict_proba(
-                _pool(test, with_label=False)
-            )[:, 1]
+            thresholds, _ = select_strategy_thresholds(
+                threshold_frame, threshold_probabilities, config
+            )
+            raw_test = best_model.predict_proba(_pool(test, with_label=False))[:, 1]
+            test_probabilities = apply_calibrator(calibrator, raw_test)
             metrics = evaluate_predictions(test, test_probabilities, thresholds)
+            fold_portfolio = run_portfolio_backtest(
+                test,
+                test_probabilities,
+                thresholds,
+                interval=config.interval,
+                starting_capital=config.backtest_starting_capital,
+                risk_per_trade_pct=config.backtest_risk_per_trade_pct,
+                max_position_share_pct=config.backtest_max_position_share_pct,
+                max_concurrent_positions=config.backtest_max_concurrent_positions,
+                max_portfolio_risk_pct=config.backtest_max_portfolio_risk_pct,
+                max_gross_exposure_pct=config.backtest_max_gross_exposure_pct,
+                base_round_trip_cost=2 * (config.fee + config.slippage),
+            )
+            metrics["portfolio_backtest"] = fold_portfolio
             results.append(
                 {
                     "fold": index,
@@ -576,23 +603,26 @@ def _walk_forward_report(
                     "test_end": str(test["timestamp"].max()),
                     "thresholds": thresholds,
                     "selected_parameters": best_parameters,
+                    "calibration_method": calibration_method,
+                    "calibration": calibration_report,
                     "metrics": metrics,
                 }
             )
         except Exception as error:
             results.append({"fold": index, "error": str(error)})
+
     valid = [item for item in results if "metrics" in item]
     positive = [
         item
         for item in valid
-        if float(item["metrics"]["trading"].get("total_net_return") or 0.0) > 0
+        if float(item["metrics"].get("portfolio_backtest", {}).get("portfolio_return") or 0.0) > 0
     ]
     return {
+        "pipeline_parity": True,
         "folds": results,
         "completed_folds": len(valid),
         "positive_return_fold_rate": len(positive) / len(valid) if valid else None,
     }
-
 
 def train_candidate(
     dataset: pd.DataFrame,
@@ -611,8 +641,8 @@ def train_candidate(
         purge_timedelta=_physical_purge(config),
     )
     train, validation, test = split.train, split.validation, split.test
-    model_validation, calibration, threshold_frame = _partition_by_time(
-        validation, (0.50, 0.75), _physical_purge(config)
+    model_validation, calibration_fit, calibration_selection, threshold_frame = _partition_by_time(
+        validation, (0.40, 0.65, 0.82), _physical_purge(config)
     )
     if train["target_good_trade"].nunique() < 2:
         raise ValueError("train contains one class")
@@ -632,7 +662,11 @@ def train_candidate(
     assert best_model is not None and best_parameters is not None and best_report is not None
 
     calibrator, calibration_method, threshold_probabilities, calibration_report = choose_calibration(
-        best_model, calibration, threshold_frame, config
+        best_model,
+        calibration_fit,
+        calibration_selection,
+        config,
+        apply_frame=threshold_frame,
     )
     thresholds, threshold_report = select_strategy_thresholds(
         threshold_frame, threshold_probabilities, config
@@ -657,6 +691,50 @@ def train_candidate(
             config.random_seed,
         )
     baseline_metrics = _baseline_reports(train, threshold_frame, test, config)
+    backtest_kwargs = {
+        "interval": config.interval,
+        "starting_capital": config.backtest_starting_capital,
+        "risk_per_trade_pct": config.backtest_risk_per_trade_pct,
+        "max_position_share_pct": config.backtest_max_position_share_pct,
+        "max_concurrent_positions": config.backtest_max_concurrent_positions,
+        "max_portfolio_risk_pct": config.backtest_max_portfolio_risk_pct,
+        "max_gross_exposure_pct": config.backtest_max_gross_exposure_pct,
+        "base_round_trip_cost": 2 * (config.fee + config.slippage),
+    }
+    portfolio_backtest = {
+        "filtered": run_portfolio_backtest(
+            test, test_probabilities, thresholds, **backtest_kwargs
+        ),
+        "all_signal_baseline": run_portfolio_backtest(
+            test, None, thresholds, trade_all_signals=True, **backtest_kwargs
+        ),
+        "cost_stress_1_5x": run_portfolio_backtest(
+            test, test_probabilities, thresholds, cost_multiplier=1.5, **backtest_kwargs
+        ),
+        "cost_stress_2x": run_portfolio_backtest(
+            test, test_probabilities, thresholds, cost_multiplier=2.0, **backtest_kwargs
+        ),
+    }
+    metrics["portfolio_backtest"] = portfolio_backtest
+    confidence_intervals = block_bootstrap_report(
+        test,
+        test_probabilities,
+        thresholds,
+        interval=config.interval,
+        base_round_trip_cost=2 * (config.fee + config.slippage),
+        iterations=config.bootstrap_iterations,
+        block_size=config.bootstrap_block_size,
+        random_seed=config.random_seed,
+        backtest_kwargs={
+            "starting_capital": config.backtest_starting_capital,
+            "risk_per_trade_pct": config.backtest_risk_per_trade_pct,
+            "max_position_share_pct": config.backtest_max_position_share_pct,
+            "max_concurrent_positions": config.backtest_max_concurrent_positions,
+            "max_portfolio_risk_pct": config.backtest_max_portfolio_risk_pct,
+            "max_gross_exposure_pct": config.backtest_max_gross_exposure_pct,
+        },
+    )
+    metrics["confidence_intervals"] = confidence_intervals
     walk_forward = _walk_forward_report(dataset, config)
     sensitivity_report = build_sensitivity_report(
         model=best_model,
@@ -688,22 +766,39 @@ def train_candidate(
         "allow_unseen_symbols": False,
         "supported_strategies": list(config.supported_strategies),
         "supported_intervals": list(config.supported_intervals),
+        "supported_exchanges": [config.exchange],
+        "model_status": "experimental",
         "target_horizon_minutes": config.target_horizon_minutes,
+        "target_horizon_bars": config.target_horizon_bars,
         "target_horizon_bars_by_interval": {
             config.interval: config.target_horizon_bars
         },
+        "target_definition": config.target_definition,
         "minimum_net_return": config.minimum_net_return,
         "maximum_target_drawdown": config.maximum_target_drawdown,
         "fee": config.fee,
         "slippage": config.slippage,
+        "risk_atr_stop_multiplier": config.risk_atr_stop_multiplier,
+        "risk_min_stop_loss_pct": config.risk_min_stop_loss_pct,
+        "risk_reward_ratio": config.risk_reward_ratio,
+        "intrabar_priority": config.intrabar_priority,
         "entry_convention": "next_bar_open",
-        "exit_convention": "horizon_bar_close",
+        "exit_convention": (
+            "first_touch_tp_sl_then_timeout"
+            if config.target_definition == "first_touch_atr_rr"
+            else "horizon_bar_close"
+        ),
         "train_start": str(train["timestamp"].min()),
         "train_end": str(train["timestamp"].max()),
+        "evaluation_train_end": str(train["timestamp"].max()),
         "validation_start": str(validation["timestamp"].min()),
         "validation_end": str(validation["timestamp"].max()),
         "test_start": str(test["timestamp"].min()),
         "test_end": str(test["timestamp"].max()),
+        "evaluation_test_end": str(test["timestamp"].max()),
+        # Until a validated final-refit procedure is enabled, deployment uses
+        # this exact independently evaluated artifact. Never imply fresher training.
+        "production_train_end": str(train["timestamp"].max()),
         "parameters": best_parameters,
         "calibrator": calibrator_filename,
         "calibration_method": calibration_method,
@@ -747,6 +842,8 @@ def train_candidate(
         "raw_test_metrics": raw_metrics,
         "test_metrics": metrics,
         "baseline_metrics": baseline_metrics,
+        "portfolio_backtest": portfolio_backtest,
+        "confidence_intervals": confidence_intervals,
         "walk_forward": walk_forward,
         "sensitivity": sensitivity_report,
         "training_config": config.to_dict(),

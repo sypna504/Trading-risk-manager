@@ -1,0 +1,78 @@
+name: research-mvp-ci
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - run: python -m compileall -q app tests scripts
+      - run: python scripts/check_dependency_contract.py
+      - run: python scripts/check_settings_contract.py
+
+  unit-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -r requirements-test.txt
+      - run: python scripts/generate_proto.py --output .
+      - run: python scripts/check_proto_contract.py --strict-generated
+      - run: python -m pytest -q tests/regression app/ml_services/app/training/tests
+
+  backend-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -r requirements-test.txt
+      - run: python scripts/generate_proto.py --output .
+      - run: python -m pytest -q tests/integration
+
+  ml-synthetic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -r requirements-test.txt
+      - run: PYTHONPATH=app/ml_services python -m pytest -q app/ml_services/app/training/tests
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose config --quiet
+      - run: docker compose build --no-cache backend ml_service ml_trainer
+
+  integration:
+    runs-on: ubuntu-latest
+    needs: [unit-regression, docker-build]
+    steps:
+      - uses: actions/checkout@v4
+      - shell: bash
+        run: ./scripts/docker_validate.sh

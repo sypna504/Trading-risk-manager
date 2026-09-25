@@ -1,136 +1,105 @@
 # Trading Risk Manager
 
-Демонстрационная система оценки криптовалютных торговых сигналов и расчёта параметров риска.
-
-Система получает OHLCV Binance или Bybit, определяет `breakout` и `mean_reversion`, передаёт сигнал в CatBoost через gRPC, рассчитывает риск и сохраняет решение в SQLite.
+Research / paper-trading MVP для криптовалютных сигналов, ML meta-labeling, risk planning, outcome monitoring и leakage-safe quant research.
 
 > Проект не исполняет реальные сделки и не является финансовой рекомендацией.
 
-## ML contract v3
+## Current contract
 
-Новая production schema устраняет применение одной `1h`-модели к несовместимым таймфреймам.
+- Active legacy v2 is supported only as `legacy_experimental` fallback.
+- Validated v3 runtime is Binance Spot, `1h`, closed candles only.
+- Training/inference share the same production feature contract.
+- Default v3 trade semantics: signal closes → next-bar open → ATR/minimum stop → R-multiple TP → first touch TP/SL → timeout → fees/slippage.
+- Promotion requires predictive, economic, portfolio, cost-stress and walk-forward evidence. AUC alone is insufficient.
 
-Для безопасного MVP:
+## Frozen research implementation
 
-```text
-supported_intervals = ["1h"]
-target_horizon_minutes = 180
-feature_schema_version = "v3"
-```
-
-`interval` входит в CatBoost features как категориальный признак, а модель дополнительно использует interval-aware признаки:
-
-- `ret_1h`, `ret_3h`, `ret_12h`, `ret_24h`;
-- return и volatility, нормализованные по времени;
-- trend и volatility regimes;
-- EMA distances и slope;
-- Bollinger position;
-- downside volatility;
-- volume trend;
-- rolling drawdown.
-
-Запросы `1m`, `5m`, `15m`, `4h` и `1d` отклоняются, пока для них не обучены отдельные совместимые bundles.
-
-## Вероятности
-
-API возвращает:
-
-```json
-{
-  "prob_good_trade": 0.42,
-  "raw_prob_good_trade": 0.47,
-  "calibration_method": "platt",
-  "probability_bin": "40-50%",
-  "model_supported_interval": "1h"
-}
-```
-
-Calibration выбирается только на validation между:
-
-- без calibration;
-- Platt scaling;
-- isotonic regression.
-
-Калибратор отклоняется, если он слишком сильно сжимает распределение probabilities.
-
-## Promotion gate
-
-Модель не становится active при отрицательном trading result, слабом probability spread, низком profit factor, нестабильном walk-forward или отсутствии sensitivity.
-
-Даже прямой вызов `ModelRegistry.promote()` требует валидный:
+The research implementation is under:
 
 ```text
-promotion_decision.json
+app/ml_services/app/research/
 ```
 
-## Docker
+It performs target comparison, feature ablation, architecture/class-weight/CatBoost selection, calibration and threshold selection, walk-forward evaluation, event-driven portfolio backtesting, cost stress, concentration analysis, block bootstrap confidence intervals and final deployable refit only after OOS gates pass.
 
-```powershell
-docker compose build --no-cache ml_service backend ml_trainer
-docker compose up -d ml_service backend
-```
-
-Swagger:
+The final holdout is not used to choose target, features, hyperparameters, calibration or threshold. If the frozen configuration does not demonstrate robust edge, the run completes as:
 
 ```text
-http://localhost:8000/docs
+NO ROBUST EDGE FOUND
 ```
 
-## Тесты
+and no production promotion occurs.
 
-`.venv` не требуется:
+## Quick validation
 
 ```powershell
-scripts\run_ml_tests.cmd
+python scripts\test_all.py
+powershell -ExecutionPolicy Bypass -File .\VERIFY_AND_REBUILD.ps1
+scripts\research_synthetic.cmd
 ```
 
-## Обучение
-
-Сначала candidate-only:
+## Full real-data research
 
 ```powershell
-scripts\retrain_v3_candidate_only.cmd
+docker compose --profile training run --rm `
+  ml_trainer `
+  python -m app.research.runner --mode full --update-history
 ```
 
-Затем обучение с возможной автоматической публикацией:
+The trainer has read/write access to `app/ml_services/app/training/data` and persists research artifacts through `./runtime:/app/runtime`.
+
+View results:
 
 ```powershell
-scripts\retrain_v3.cmd
+scripts\research_results.cmd
+scripts\research_candidate.cmd
 ```
 
-Candidate публикуется только при прохождении promotion gates.
+## Promotion
 
-## Проверка active-модели
+Check current model:
 
 ```powershell
 scripts\model_status.cmd
-scripts\check_sensitivity.cmd
 ```
 
-## Rollback
+Promote only a research candidate that already reports `promotion_ready=true`:
+
+```powershell
+scripts\research_promote.cmd MODEL_VERSION
+```
+
+Legacy v2 → v3 requires explicit schema migration authorization:
+
+```powershell
+scripts\research_promote.cmd MODEL_VERSION --allow-schema-migration
+```
+
+Rollback:
 
 ```powershell
 scripts\rollback_model.cmd
 ```
 
-## Основные endpoints
+## Runtime
 
-```text
-GET /api/v1/market/candles
-GET /api/v1/ml/prediction-quality
-GET /api/v1/ml/model-info
-GET /api/v1/trading/decision
-GET /api/v1/trading/decisions
+```powershell
+docker compose up -d ml_service backend
 ```
 
-## Важное ограничение
+- UI: `http://localhost:8000/`
+- Swagger: `http://localhost:8000/docs`
+- Health: `http://localhost:8000/api/v1/health`
+- Model info: `http://localhost:8000/api/v1/ml/model-info`
 
-Код pipeline прошёл synthetic-тесты, но новый model artifact не включён. Качество v3 должно быть подтверждено локальным обучением на `history_data.parquet`, независимым test и walk-forward отчётом.
+Live Binance runtime smoke:
 
-Подробности:
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\runtime_smoke_test.ps1
+```
 
-- [APPLY.md](APPLY.md)
-- [MODEL_AUDIT.md](MODEL_AUDIT.md)
-- [LEAKAGE_AUDIT.md](LEAKAGE_AUDIT.md)
-- [PROMOTION_VALIDATION.md](PROMOTION_VALIDATION.md)
-- [TEST_REPORT.md](TEST_REPORT.md)
+## Reports
+
+Root reports describe the package validation state. A real local research run creates detailed run-specific reports under `runtime/research/reports/` and per-experiment JSON under `runtime/research/experiments/`.
+
+See `APPLY.md` for the complete application, validation, research, promotion and rollback procedure.

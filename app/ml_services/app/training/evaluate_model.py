@@ -170,6 +170,8 @@ def trading_metrics(
             "by_symbol": {},
             "by_strategy": {},
             "by_interval": {},
+            "by_trend_regime": {},
+            "by_volatility_regime": {},
         }
 
     selected["timestamp"] = pd.to_datetime(selected["timestamp"])
@@ -186,10 +188,10 @@ def trading_metrics(
         if average_win is not None and average_loss not in (None, 0.0)
         else None
     )
-    std = float(per_timestamp.std()) if len(per_timestamp) > 1 else 0.0
-    sharpe_like = (
-        float(per_timestamp.mean() / std * np.sqrt(365 * 24)) if std > 0 else None
-    )
+    # Do not annualize irregular trade timestamps as if they were hourly bars.
+    # Portfolio-aware Sharpe/Sortino are computed on a regular return series in
+    # backtesting.simulator. This diagnostic field is intentionally disabled.
+    sharpe_like = None
     monthly = (
         selected.assign(month=selected["timestamp"].dt.to_period("M").astype(str))
         .groupby("month")["net_return"]
@@ -221,6 +223,12 @@ def trading_metrics(
         "by_symbol": _group_stability(selected, "symbol"),
         "by_strategy": _group_stability(selected, "strategy_name"),
         "by_interval": _group_stability(selected, "interval"),
+        "by_trend_regime": _group_stability(selected, "trend_regime"),
+        "by_volatility_regime": _group_stability(selected, "volatility_regime"),
+        "diagnostic_note": (
+            "trade-level aggregates are diagnostics, not a portfolio backtest; "
+            "use portfolio_backtest for Sharpe, drawdown and portfolio return"
+        ),
     }
 
 

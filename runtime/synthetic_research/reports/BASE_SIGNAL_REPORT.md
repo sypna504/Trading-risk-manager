@@ -1,0 +1,349 @@
+# Base Signal Report
+
+- **generated_at:** 2026-08-26T20:03:13.730736+00:00
+- **source_ref:** feature/auto-signal-choseing + research patch
+- **git_sha:** NOT CAPTURED
+- **history_sha256:** 1b31deeb587a7a087008478e8b0a8a73a9ea5b24b145022c6273706df91ba453
+- **history_period:** 2026-01-01 00:00:00+00:00 → 2026-03-01 23:00:00+00:00
+- **mode:** quick
+
+{
+  "all": {
+    "starting_capital": 10000.0,
+    "ending_capital": 10200.725113450186,
+    "portfolio_return": 0.02007251134501864,
+    "trades": 41,
+    "skipped_capacity": 4,
+    "win_rate": 0.5609756097560976,
+    "mean_trade_pnl": 4.895734474394621,
+    "profit_factor": 1.411050611428741,
+    "maximum_drawdown": -0.015310418371682677,
+    "sharpe": 7.642653505132361,
+    "sortino": 6.914249076360552,
+    "calmar": 248.1330972276934,
+    "cagr": 3.7990215304174013,
+    "turnover": 10.031109989024335,
+    "exposure": 0.24331962622363928,
+    "average_holding_bars": 2.7560975609756095,
+    "cost_multiplier": 1.0,
+    "base_round_trip_cost": 0.003,
+    "max_concurrent_positions": 5,
+    "max_portfolio_risk_pct": 5.0,
+    "max_gross_exposure_pct": 100.0
+  },
+  "by_strategy": {
+    "breakout": {
+      "starting_capital": 10000.0,
+      "ending_capital": 9913.727015036826,
+      "portfolio_return": -0.008627298496317382,
+      "trades": 6,
+      "skipped_capacity": 0,
+      "win_rate": 0.3333333333333333,
+      "mean_trade_pnl": -14.378830827195694,
+      "profit_factor": 0.44683241321118194,
+      "maximum_drawdown": -0.008627298496317382,
+      "sharpe": -12.368643063873904,
+      "sortino": -5.078920171263854,
+      "calmar": -76.71826704903688,
+      "cagr": -0.6618713899522313,
+      "turnover": 1.4981347350528655,
+      "exposure": 0.25,
+      "average_holding_bars": 2.5,
+      "cost_multiplier": 1.0,
+      "base_round_trip_cost": 0.003,
+      "max_concurrent_positions": 5,
+      "max_portfolio_risk_pct": 5.0,
+      "max_gross_exposure_pct": 100.0
+    },
+    "mean_reversion": {
+      "starting_capital": 10000.0,
+      "ending_capital": 10289.495663919373,
+      "portfolio_return": 0.028949566391937243,
+      "trades": 35,
+      "skipped_capacity": 4,
+      "win_rate": 0.6,
+      "mean_trade_pnl": 8.27130468341073,
+      "profit_factor": 1.8736055648747834,
+      "maximum_drawdown": -0.015310418371682677,
+      "sharpe": 11.625407851880672,
+      "sortino": 9.272910288921585,
+      "calmar": 555.7556484387424,
+      "cagr": 8.50885149002294,
+      "turnover": 8.54029474957086,
+      "exposure": 0.24229142178018898,
+      "average_holding_bars": 2.8,
+      "cost_multiplier": 1.0,
+      "base_round_trip_cost": 0.003,
+      "max_concurrent_positions": 5,
+      "max_portfolio_risk_pct": 5.0,
+      "max_gross_exposure_pct": 100.0
+    }
+  },
+  "model_baselines": {
+    "constant": {
+      "classification": {
+        "positive_class_rate": 0.26666666666666666,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "confusion_matrix": [
+          [
+            33,
+            0
+          ],
+          [
+            12,
+            0
+          ]
+        ],
+        "roc_auc": 0.5,
+        "pr_auc": 0.26666666666666666,
+        "log_loss": 0.5887076873275956,
+        "brier_score": 0.19865762253200164,
+        "single_class_test": false
+      },
+      "probabilities": {
+        "count": 45,
+        "unique_count": 1,
+        "min": 0.2109704641350211,
+        "max": 0.2109704641350211,
+        "mean": 0.21097046413502116,
+        "std": 5.551115123125783e-17,
+        "range": 0.0,
+        "q05": 0.2109704641350211,
+        "q25": 0.2109704641350211,
+        "median": 0.2109704641350211,
+        "q75": 0.2109704641350211,
+        "q95": 0.2109704641350211,
+        "expected_calibration_error": 0.055696202531645506,
+        "calibration_curve": [
+          {
+            "left": 0.2,
+            "right": 0.30000000000000004,
+            "count": 45,
+            "mean_probability": 0.21097046413502116,
+            "positive_rate": 0.26666666666666666
+          }
+        ]
+      },
+      "trading": {
+        "threshold": {
+          "__global__": 0.22000000000000003,
+          "breakout": 0.22000000000000003,
+          "mean_reversion": 0.22000000000000003
+        },
+        "trades": 0,
+        "selected_rate": 0.0,
+        "win_rate": null,
+        "mean_net_return": null,
+        "median_net_return": null,
+        "total_net_return": 0.0,
+        "cumulative_return": 0.0,
+        "maximum_drawdown": null,
+        "profit_factor": null,
+        "average_win": null,
+        "average_loss": null,
+        "payoff_ratio": null,
+        "sharpe_like": null,
+        "by_month": {},
+        "by_symbol": {},
+        "by_strategy": {},
+        "by_interval": {},
+        "by_trend_regime": {},
+        "by_volatility_regime": {}
+      },
+      "model": {}
+    },
+    "logistic_regression": {
+      "classification": {
+        "positive_class_rate": 0.26666666666666666,
+        "precision": 0.1111111111111111,
+        "recall": 0.08333333333333333,
+        "f1": 0.09523809523809523,
+        "confusion_matrix": [
+          [
+            25,
+            8
+          ],
+          [
+            11,
+            1
+          ]
+        ],
+        "roc_auc": 0.30808080808080807,
+        "pr_auc": 0.20478451058483702,
+        "log_loss": 1.0677631358710542,
+        "brier_score": 0.369443523608498,
+        "single_class_test": false
+      },
+      "probabilities": {
+        "count": 45,
+        "unique_count": 45,
+        "min": 0.02397764195200019,
+        "max": 0.9092271959383301,
+        "mean": 0.39698245932343046,
+        "std": 0.2876140670495355,
+        "range": 0.88524955398633,
+        "q05": 0.05045641238320475,
+        "q25": 0.12073294887398296,
+        "median": 0.33235160108570144,
+        "q75": 0.6235678567213694,
+        "q95": 0.8899272669325247,
+        "expected_calibration_error": 0.38286788639641645,
+        "calibration_curve": [
+          {
+            "left": 0.0,
+            "right": 0.1,
+            "count": 11,
+            "mean_probability": 0.06775715437225864,
+            "positive_rate": 0.36363636363636365
+          },
+          {
+            "left": 0.1,
+            "right": 0.2,
+            "count": 4,
+            "mean_probability": 0.14306229819074157,
+            "positive_rate": 0.75
+          },
+          {
+            "left": 0.2,
+            "right": 0.30000000000000004,
+            "count": 2,
+            "mean_probability": 0.20578660535122,
+            "positive_rate": 0.0
+          },
+          {
+            "left": 0.30000000000000004,
+            "right": 0.4,
+            "count": 9,
+            "mean_probability": 0.3327125789610046,
+            "positive_rate": 0.2222222222222222
+          },
+          {
+            "left": 0.4,
+            "right": 0.5,
+            "count": 3,
+            "mean_probability": 0.4686210332650471,
+            "positive_rate": 0.3333333333333333
+          },
+          {
+            "left": 0.5,
+            "right": 0.6000000000000001,
+            "count": 3,
+            "mean_probability": 0.5070838081550271,
+            "positive_rate": 0.3333333333333333
+          },
+          {
+            "left": 0.6000000000000001,
+            "right": 0.7000000000000001,
+            "count": 3,
+            "mean_probability": 0.6375862753579834,
+            "positive_rate": 0.0
+          },
+          {
+            "left": 0.7000000000000001,
+            "right": 0.8,
+            "count": 2,
+            "mean_probability": 0.7257339058214465,
+            "positive_rate": 0.0
+          },
+          {
+            "left": 0.8,
+            "right": 0.9,
+            "count": 7,
+            "mean_probability": 0.8485825713470968,
+            "positive_rate": 0.14285714285714285
+          },
+          {
+            "left": 0.9,
+            "right": 1.0,
+            "count": 1,
+            "mean_probability": 0.9092271959383301,
+            "positive_rate": 0.0
+          }
+        ]
+      },
+      "trading": {
+        "threshold": {
+          "__global__": 0.7400000000000004,
+          "breakout": 0.7400000000000004,
+          "mean_reversion": 0.7400000000000004
+        },
+        "trades": 9,
+        "selected_rate": 0.2,
+        "win_rate": 0.3333333333333333,
+        "mean_net_return": -0.007122320291918588,
+        "median_net_return": -0.009602945565729933,
+        "total_net_return": -0.06410088262726729,
+        "cumulative_return": -0.06295391149227436,
+        "maximum_drawdown": -0.05998226737957146,
+        "profit_factor": 0.28203225800309223,
+        "average_win": 0.008393374618325237,
+        "average_loss": -0.0148801677470405,
+        "payoff_ratio": 0.5640645160061845,
+        "sharpe_like": null,
+        "by_month": {
+          "2026-02": {
+            "trades": 9,
+            "mean_net_return": -0.007122320291918588,
+            "total_net_return": -0.06410088262726729
+          }
+        },
+        "by_symbol": {
+          "BTCUSDT": {
+            "trades": 8,
+            "win_rate": 0.375,
+            "mean_net_return": -0.005954047274691867,
+            "total_net_return": -0.047632378197534936
+          },
+          "SOLUSDT": {
+            "trades": 1,
+            "win_rate": 0.0,
+            "mean_net_return": -0.016468504429732352,
+            "total_net_return": -0.016468504429732352
+          }
+        },
+        "by_strategy": {
+          "mean_reversion": {
+            "trades": 9,
+            "win_rate": 0.3333333333333333,
+            "mean_net_return": -0.007122320291918588,
+            "total_net_return": -0.06410088262726729
+          }
+        },
+        "by_interval": {
+          "1h": {
+            "trades": 9,
+            "win_rate": 0.3333333333333333,
+            "mean_net_return": -0.007122320291918588,
+            "total_net_return": -0.06410088262726729
+          }
+        },
+        "by_trend_regime": {
+          "down": {
+            "trades": 9,
+            "win_rate": 0.3333333333333333,
+            "mean_net_return": -0.007122320291918588,
+            "total_net_return": -0.06410088262726729
+          }
+        },
+        "by_volatility_regime": {
+          "high": {
+            "trades": 2,
+            "win_rate": 0.5,
+            "mean_net_return": -0.008108072816356556,
+            "total_net_return": -0.016216145632713112
+          },
+          "low": {
+            "trades": 7,
+            "win_rate": 0.2857142857142857,
+            "mean_net_return": -0.006840676713507741,
+            "total_net_return": -0.047884736994554186
+          }
+        },
+        "diagnostic_note": "trade-level aggregates are diagnostics, not a portfolio backtest; use portfolio_backtest for Sharpe, drawdown and portfolio return"
+      },
+      "model": {}
+    }
+  }
+}

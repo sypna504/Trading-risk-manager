@@ -54,3 +54,14 @@ class TargetConfig:
         result = asdict(self)
         result["target_horizon_bars"] = self.target_horizon_bars
         return result
+
+
+def physical_purge(target_horizon_minutes: int, embargo_minutes: int = 0):
+    """Return the physical purge/embargo duration used by every time split."""
+    if target_horizon_minutes <= 0:
+        raise ValueError("target_horizon_minutes must be positive")
+    if embargo_minutes < 0:
+        raise ValueError("embargo_minutes must not be negative")
+    import pandas as pd
+
+    return pd.Timedelta(minutes=target_horizon_minutes + embargo_minutes)

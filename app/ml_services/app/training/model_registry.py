@@ -248,6 +248,7 @@ class ModelRegistry:
         trading = candidate_metrics.get("trading", {})
         training_report = training_report or {}
         walk_forward = training_report.get("walk_forward", {})
+        portfolio = training_report.get("portfolio_backtest", {})
 
         if classification.get("single_class_test"):
             reasons.append("test contains one class")
@@ -280,6 +281,29 @@ class ModelRegistry:
             reasons.append("maximum drawdown exceeds limit")
 
         if training_report:
+            filtered_portfolio = portfolio.get("filtered", {})
+            base_portfolio = portfolio.get("all_signal_baseline", {})
+            stress_15 = portfolio.get("cost_stress_1_5x", {})
+            stress_20 = portfolio.get("cost_stress_2x", {})
+            if not filtered_portfolio:
+                reasons.append("portfolio-aware backtest is missing")
+            else:
+                if float(filtered_portfolio.get("portfolio_return") or 0.0) <= 0:
+                    reasons.append("portfolio backtest return is not positive")
+                pf = filtered_portfolio.get("profit_factor")
+                if pf is None or float(pf) <= self.config.minimum_profit_factor:
+                    reasons.append("portfolio backtest profit factor is not above minimum")
+                if float(stress_15.get("portfolio_return") or 0.0) <= 0:
+                    reasons.append("portfolio return is not positive at 1.5x costs")
+                if float(stress_20.get("portfolio_return") or 0.0) <= 0:
+                    reasons.append("portfolio return is not positive at 2x costs")
+                if base_portfolio:
+                    improvement = float(filtered_portfolio.get("portfolio_return") or 0.0) - float(
+                        base_portfolio.get("portfolio_return") or 0.0
+                    )
+                    if improvement <= self.config.minimum_portfolio_improvement:
+                        reasons.append("ML filter does not improve the all-signal portfolio baseline")
+
             completed_folds = int(walk_forward.get("completed_folds") or 0)
             positive_fold_rate = walk_forward.get("positive_return_fold_rate")
             if completed_folds < self.config.minimum_completed_walk_forward_folds:
@@ -298,6 +322,25 @@ class ModelRegistry:
             share = max(int(item.get("trades", 0)) for item in by_strategy.values()) / total_trades
             if share > self.config.maximum_strategy_trade_share:
                 reasons.append("result is concentrated in one strategy")
+        by_month = trading.get("by_month", {})
+        # Full production promotion always passes training_report and therefore
+        # requires temporal/regime robustness evidence. Standalone metric
+        # diagnostics can still call the gate without a report.
+        if training_report:
+            if len(by_month) < self.config.minimum_test_months:
+                reasons.append("OOS trading sample spans too few calendar months")
+            else:
+                month_share = max(int(item.get("trades", 0)) for item in by_month.values()) / total_trades
+                if month_share > self.config.maximum_month_trade_share:
+                    reasons.append("result is concentrated in one month")
+            for key in ("by_trend_regime", "by_volatility_regime"):
+                grouped = trading.get(key, {})
+                if not grouped:
+                    reasons.append(f"{key.replace('by_', '')} robustness breakdown is missing")
+                    continue
+                regime_share = max(int(item.get("trades", 0)) for item in grouped.values()) / total_trades
+                if regime_share > self.config.maximum_regime_trade_share:
+                    reasons.append(f"result is concentrated in one {key.replace('by_', '')}")
 
         sensitivity = training_report.get("sensitivity", {})
         sensitivity_warnings = sensitivity.get("warnings", [])
@@ -325,11 +368,52 @@ class ModelRegistry:
                     reasons.append("candidate calibration is materially worse")
         return not reasons, reasons
 
+    def validate_candidate_artifacts(self, version: str) -> dict[str, Any]:
+        candidate = self.candidates_dir / version
+        if not candidate.exists():
+            raise FileNotFoundError(f"candidate not found: {candidate}")
+        for required in (
+            "model.cbm",
+            "config.json",
+            "metrics.json",
+            "training_report.json",
+            "sensitivity_report.json",
+            "dataset_report.json",
+        ):
+            if not (candidate / required).exists():
+                raise FileNotFoundError(f"candidate artifact missing: {required}")
+        config = json.loads((candidate / "config.json").read_text(encoding="utf-8"))
+        if config.get("feature_schema_version") != "v3":
+            raise ValueError("candidate feature schema must be v3")
+        if not config.get("supported_intervals"):
+            raise ValueError("candidate supported_intervals is empty")
+        if not config.get("supported_strategies"):
+            raise ValueError("candidate supported_strategies is empty")
+        if not config.get("supported_symbols"):
+            raise ValueError("candidate supported_symbols is empty")
+        if not config.get("supported_exchanges"):
+            raise ValueError("candidate supported_exchanges is empty")
+        if config.get("allow_unseen_symbols") is not False:
+            raise ValueError("candidate must reject unseen symbols")
+        if int(config.get("target_horizon_minutes") or 0) <= 0:
+            raise ValueError("candidate target_horizon_minutes is invalid")
+        if config.get("entry_convention") != "next_bar_open":
+            raise ValueError("candidate entry convention is incompatible")
+        expected_checksum = config.get("model_checksum")
+        if not expected_checksum or file_checksum(candidate / "model.cbm") != expected_checksum:
+            raise ValueError("candidate model checksum is invalid")
+        return config
+
     def write_promotion_decision(
         self,
         version: str,
         passed: bool,
         reasons: list[str],
+        *,
+        mode: str = "same_schema",
+        active_schema: str | None = None,
+        candidate_schema: str | None = None,
+        schema_migration_authorized: bool = False,
     ) -> Path:
         candidate = self.candidates_dir / version
         if not candidate.exists():
@@ -340,6 +424,10 @@ class ModelRegistry:
                 "version": version,
                 "passed": bool(passed),
                 "reasons": list(reasons),
+                "mode": mode,
+                "active_schema": active_schema,
+                "candidate_schema": candidate_schema,
+                "schema_migration_authorized": bool(schema_migration_authorized),
                 "decided_at": utc_now_iso(),
             },
             path,
@@ -350,9 +438,8 @@ class ModelRegistry:
         candidate = self.candidates_dir / version
         if not candidate.exists():
             raise FileNotFoundError(f"candidate not found: {candidate}")
-        for required in ("model.cbm", "config.json", "metrics.json"):
-            if not (candidate / required).exists():
-                raise FileNotFoundError(f"candidate artifact missing: {required}")
+        # Authorization is checked before artifact validation so an unapproved
+        # bundle cannot cross the promotion boundary.
         decision_path = candidate / "promotion_decision.json"
         if not force:
             if not decision_path.exists():
@@ -360,6 +447,11 @@ class ModelRegistry:
             decision = json.loads(decision_path.read_text(encoding="utf-8"))
             if decision.get("version") != version or decision.get("passed") is not True:
                 raise RuntimeError("candidate did not pass promotion validation")
+            if decision.get("mode") == "schema_upgrade" and not decision.get(
+                "schema_migration_authorized"
+            ):
+                raise RuntimeError("schema upgrade promotion was not explicitly authorized")
+        self.validate_candidate_artifacts(version)
 
         registry = self.read()
         previous_version = registry.get("active_model_version")
@@ -372,6 +464,11 @@ class ModelRegistry:
             shutil.rmtree(final_active)
         shutil.copytree(candidate, temporary_active)
         os.replace(temporary_active, final_active)
+        final_config_path = final_active / "config.json"
+        final_config = json.loads(final_config_path.read_text(encoding="utf-8"))
+        final_config["model_status"] = "validated"
+        final_config["promoted_at"] = utc_now_iso()
+        atomic_write_json(final_config, final_config_path)
 
         rollback_ready = False
         if previous_path and previous_path.exists():

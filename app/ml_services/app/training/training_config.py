@@ -72,10 +72,15 @@ class TrainingConfig:
     auto_select_training_window: bool = False
     target_horizon_minutes: int = 180
     target_horizon: int = 3
+    target_definition: str = "first_touch_atr_rr"
     minimum_net_return: float = 0.002
     maximum_target_drawdown: float = -0.015
     fee: float = 0.001
     slippage: float = 0.0005
+    risk_atr_stop_multiplier: float = 1.5
+    risk_min_stop_loss_pct: float = 0.5
+    risk_reward_ratio: float = 2.0
+    intrabar_priority: str = "stop_loss"
 
     train_ratio: float = 0.70
     validation_ratio: float = 0.15
@@ -98,9 +103,25 @@ class TrainingConfig:
     minimum_completed_walk_forward_folds: int = 2
     maximum_symbol_trade_share: float = 0.50
     maximum_strategy_trade_share: float = 0.90
+    maximum_regime_trade_share: float = 0.85
+    maximum_month_trade_share: float = 0.85
+    minimum_test_months: int = 2
+    backtest_starting_capital: float = 10000.0
+    backtest_risk_per_trade_pct: float = 1.0
+    backtest_max_position_share_pct: float = 25.0
+    backtest_max_concurrent_positions: int = 5
+    backtest_max_portfolio_risk_pct: float = 5.0
+    backtest_max_gross_exposure_pct: float = 100.0
+    minimum_portfolio_improvement: float = 0.0
+    bootstrap_iterations: int = 100
+    bootstrap_block_size: int = 24
 
-    minimum_new_candles: int = 24
+    # Retrain guards are measured in unique time bars, not rows summed across symbols.
+    minimum_new_unique_timestamps: int = 24
+    minimum_new_candles: int = 24  # deprecated compatibility alias
     minimum_hours_between_retrains: int = 20
+    minimum_symbol_coverage: float = 0.95
+    required_symbols: list[str] = field(default_factory=lambda: ["BTCUSDT", "ETHUSDT"])
     force_retrain: bool = False
     retrain_on_data_change_only: bool = True
 
@@ -122,6 +143,7 @@ class TrainingConfig:
     deploy_after_training: bool = True
     candidate_only: bool = False
     allow_legacy_bootstrap: bool = False
+    allow_schema_migration: bool = False
     restart_service_after_promotion: bool = False
     docker_compose_service: str = "ml_service"
     inference_version_url: str = ""
@@ -164,11 +186,38 @@ class TrainingConfig:
         horizon_bars(self.target_horizon_minutes, self.interval)
         if self.embargo_minutes < 0:
             raise ValueError("embargo_minutes must not be negative")
+        if self.target_definition not in {"first_touch_atr_rr", "horizon_return_drawdown"}:
+            raise ValueError("unsupported target_definition")
+        if self.risk_atr_stop_multiplier <= 0:
+            raise ValueError("risk_atr_stop_multiplier must be positive")
+        if not 0 < self.risk_min_stop_loss_pct < 100:
+            raise ValueError("risk_min_stop_loss_pct must be between 0 and 100")
+        if self.risk_reward_ratio < 1:
+            raise ValueError("risk_reward_ratio must be at least 1")
+        if self.intrabar_priority not in {"stop_loss"}:
+            raise ValueError("only conservative stop_loss intrabar priority is supported")
         if not self.symbols:
             raise ValueError("at least one symbol is required")
         self.symbols = list(
             dict.fromkeys(symbol.upper().replace("/", "").replace("-", "") for symbol in self.symbols)
         )
+        self.required_symbols = list(
+            dict.fromkeys(symbol.upper().replace("/", "").replace("-", "") for symbol in self.required_symbols)
+        )
+        if not 0 < self.minimum_symbol_coverage <= 1:
+            raise ValueError("minimum_symbol_coverage must be in (0, 1]")
+        if self.minimum_new_unique_timestamps < 1:
+            raise ValueError("minimum_new_unique_timestamps must be positive")
+        if self.backtest_starting_capital <= 0:
+            raise ValueError("backtest_starting_capital must be positive")
+        if not 0 < self.backtest_risk_per_trade_pct <= 10:
+            raise ValueError("backtest_risk_per_trade_pct must be in (0, 10]")
+        if self.backtest_max_concurrent_positions < 1:
+            raise ValueError("backtest_max_concurrent_positions must be positive")
+        if self.bootstrap_iterations < 0 or self.bootstrap_block_size < 1:
+            raise ValueError("bootstrap configuration is invalid")
+        if not 0 < self.backtest_max_portfolio_risk_pct <= 100:
+            raise ValueError("backtest_max_portfolio_risk_pct must be in (0, 100]")
         if self.history_symbol_policy not in {"error", "extend", "filter"}:
             raise ValueError("history_symbol_policy must be one of: error, extend, filter")
         allowed_calibration = {"none", "platt", "isotonic"}
@@ -204,10 +253,15 @@ class TrainingConfig:
             auto_select_training_window=_env_bool("ML_AUTO_SELECT_TRAINING_WINDOW", False),
             target_horizon_minutes=_env_int("ML_TARGET_HORIZON_MINUTES", 180),
             target_horizon=_env_int("ML_TARGET_HORIZON", 3),
+            target_definition=os.getenv("ML_TARGET_DEFINITION", "first_touch_atr_rr").strip().lower(),
             minimum_net_return=_env_float("ML_MINIMUM_NET_RETURN", 0.002),
             maximum_target_drawdown=_env_float("ML_MAXIMUM_TARGET_DRAWDOWN", -0.015),
             fee=_env_float("ML_FEE", 0.001),
             slippage=_env_float("ML_SLIPPAGE", 0.0005),
+            risk_atr_stop_multiplier=_env_float("ML_RISK_ATR_STOP_MULTIPLIER", 1.5),
+            risk_min_stop_loss_pct=_env_float("ML_RISK_MIN_STOP_LOSS_PCT", 0.5),
+            risk_reward_ratio=_env_float("ML_RISK_REWARD_RATIO", 2.0),
+            intrabar_priority=os.getenv("ML_INTRABAR_PRIORITY", "stop_loss").strip().lower(),
             train_ratio=_env_float("ML_TRAIN_RATIO", 0.70),
             validation_ratio=_env_float("ML_VALIDATION_RATIO", 0.15),
             test_ratio=_env_float("ML_TEST_RATIO", 0.15),
@@ -228,8 +282,23 @@ class TrainingConfig:
             minimum_completed_walk_forward_folds=_env_int("ML_MINIMUM_COMPLETED_WALK_FORWARD_FOLDS", 2),
             maximum_symbol_trade_share=_env_float("ML_MAXIMUM_SYMBOL_TRADE_SHARE", 0.50),
             maximum_strategy_trade_share=_env_float("ML_MAXIMUM_STRATEGY_TRADE_SHARE", 0.90),
+            maximum_regime_trade_share=_env_float("ML_MAXIMUM_REGIME_TRADE_SHARE", 0.85),
+            maximum_month_trade_share=_env_float("ML_MAXIMUM_MONTH_TRADE_SHARE", 0.85),
+            minimum_test_months=_env_int("ML_MINIMUM_TEST_MONTHS", 2),
+            backtest_starting_capital=_env_float("ML_BACKTEST_STARTING_CAPITAL", 10000.0),
+            backtest_risk_per_trade_pct=_env_float("ML_BACKTEST_RISK_PER_TRADE_PCT", 1.0),
+            backtest_max_position_share_pct=_env_float("ML_BACKTEST_MAX_POSITION_SHARE_PCT", 25.0),
+            backtest_max_concurrent_positions=_env_int("ML_BACKTEST_MAX_CONCURRENT_POSITIONS", 5),
+            backtest_max_portfolio_risk_pct=_env_float("ML_BACKTEST_MAX_PORTFOLIO_RISK_PCT", 5.0),
+            backtest_max_gross_exposure_pct=_env_float("ML_BACKTEST_MAX_GROSS_EXPOSURE_PCT", 100.0),
+            minimum_portfolio_improvement=_env_float("ML_MINIMUM_PORTFOLIO_IMPROVEMENT", 0.0),
+            bootstrap_iterations=_env_int("ML_BOOTSTRAP_ITERATIONS", 100),
+            bootstrap_block_size=_env_int("ML_BOOTSTRAP_BLOCK_SIZE", 24),
+            minimum_new_unique_timestamps=_env_int("MIN_NEW_UNIQUE_TIMESTAMPS_FOR_RETRAIN", 24),
             minimum_new_candles=_env_int("MIN_NEW_CANDLES_FOR_RETRAIN", 24),
             minimum_hours_between_retrains=_env_int("MIN_HOURS_BETWEEN_RETRAINS", 20),
+            minimum_symbol_coverage=_env_float("ML_MINIMUM_SYMBOL_COVERAGE", 0.95),
+            required_symbols=_env_list("ML_REQUIRED_SYMBOLS", ["BTCUSDT", "ETHUSDT"], upper=True),
             force_retrain=_env_bool("FORCE_RETRAIN", False),
             retrain_on_data_change_only=_env_bool("RETRAIN_ON_DATA_CHANGE_ONLY", True),
             threshold_min=_env_float("ML_THRESHOLD_MIN", 0.20),
@@ -248,6 +317,7 @@ class TrainingConfig:
             deploy_after_training=_env_bool("ML_DEPLOY_AFTER_TRAINING", True),
             candidate_only=_env_bool("ML_CANDIDATE_ONLY", False),
             allow_legacy_bootstrap=_env_bool("ML_ALLOW_LEGACY_BOOTSTRAP", False),
+            allow_schema_migration=_env_bool("ML_ALLOW_SCHEMA_MIGRATION", False),
             restart_service_after_promotion=_env_bool("ML_RESTART_SERVICE_AFTER_PROMOTION", False),
             docker_compose_service=os.getenv("ML_DOCKER_SERVICE", "ml_service"),
             inference_version_url=os.getenv("ML_INFERENCE_VERSION_URL", ""),

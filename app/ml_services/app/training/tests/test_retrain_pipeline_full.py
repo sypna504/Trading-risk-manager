@@ -105,6 +105,19 @@ def test_run_pipeline_success(monkeypatch, config, model_frame):
     monkeypatch.setattr(module, "_read_last_run", lambda cfg: {})
     monkeypatch.setattr(
         module,
+        "_history_guard_stats",
+        lambda cfg, last: {
+            "new_unique_timestamps_since_training": 10,
+            "expected_symbols": list(cfg.symbols),
+            "available_symbols": list(cfg.symbols),
+            "missing_symbols": [],
+            "missing_required_symbols": [],
+            "symbol_coverage_rate": 1.0,
+            "rows_per_symbol": {symbol: cfg.minimum_history_rows for symbol in cfg.symbols},
+        },
+    )
+    monkeypatch.setattr(
+        module,
         "update_history",
         lambda cfg: {
             "added_unique_rows": 10,
@@ -134,8 +147,14 @@ def test_run_pipeline_success(monkeypatch, config, model_frame):
         def active_bundle_dir(self):
             return None
 
-        def promotion_gate(self, candidate, champion):
+        def promotion_gate(self, candidate, champion, training_report=None):
             return True, []
+
+        def validate_candidate_artifacts(self, version):
+            return {}
+
+        def write_promotion_decision(self, *args, **kwargs):
+            return None
 
         def promote(self, version):
             return {"active_model_version": version}

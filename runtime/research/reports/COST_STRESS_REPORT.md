@@ -1,0 +1,103 @@
+# Cost Stress Report
+
+- **generated_at:** 2026-08-26T20:33:44.632613+00:00
+- **source_ref:** feature/auto-signal-choseing + research patch
+- **git_sha:** NOT CAPTURED
+- **history_sha256:** bca733e890c181bd22c00649c34b49ebf85d1ffce353069401e83d26845505c2
+- **history_period:** 2025-12-09 18:00:00+00:00 → 2026-08-26 19:00:00+00:00
+- **mode:** full
+
+{
+  "cost_1x": {
+    "starting_capital": 10000.0,
+    "ending_capital": 7906.9752513290805,
+    "portfolio_return": -0.20930247486709197,
+    "trades": 290,
+    "skipped_capacity": 891,
+    "win_rate": 0.3758620689655172,
+    "mean_trade_pnl": -7.217326719554887,
+    "profit_factor": 0.6837329398437583,
+    "maximum_drawdown": -0.30610940812043663,
+    "sharpe": -5.342725829913207,
+    "sortino": -4.526360286446472,
+    "calmar": -2.7805395267787483,
+    "cagr": -0.8511493087977217,
+    "turnover": 55.01343723071654,
+    "exposure": 0.22661684866546697,
+    "average_holding_bars": 12.0,
+    "cost_multiplier": 1.0,
+    "base_round_trip_cost": 0.003,
+    "max_concurrent_positions": 5,
+    "max_portfolio_risk_pct": 5.0,
+    "max_gross_exposure_pct": 100.0
+  },
+  "cost_1_5x": {
+    "starting_capital": 10000.0,
+    "ending_capital": 7166.606239146736,
+    "portfolio_return": -0.28333937608532644,
+    "trades": 289,
+    "skipped_capacity": 892,
+    "win_rate": 0.35986159169550175,
+    "mean_trade_pnl": -9.804130660391904,
+    "profit_factor": 0.5870577454878085,
+    "maximum_drawdown": -0.361657877123746,
+    "sharpe": -7.594600853266389,
+    "sortino": -6.293325171846136,
+    "calmar": -2.5796337340102555,
+    "cagr": -0.932944859998951,
+    "turnover": 52.5545756757373,
+    "exposure": 0.227406454575336,
+    "average_holding_bars": 12.0,
+    "cost_multiplier": 1.5,
+    "base_round_trip_cost": 0.003,
+    "max_concurrent_positions": 5,
+    "max_portfolio_risk_pct": 5.0,
+    "max_gross_exposure_pct": 100.0
+  },
+  "cost_2x": {
+    "starting_capital": 10000.0,
+    "ending_capital": 6493.092586083679,
+    "portfolio_return": -0.35069074139163214,
+    "trades": 288,
+    "skipped_capacity": 893,
+    "win_rate": 0.34375,
+    "mean_trade_pnl": -12.176761853876155,
+    "profit_factor": 0.5055555440313251,
+    "maximum_drawdown": -0.41281173580853503,
+    "sharpe": -9.797805107415286,
+    "sortino": -7.958242632458879,
+    "calmar": -2.3494623022340306,
+    "cagr": -0.9698856112019472,
+    "turnover": 50.24045362589625,
+    "exposure": 0.22838271881834132,
+    "average_holding_bars": 12.0,
+    "cost_multiplier": 2.0,
+    "base_round_trip_cost": 0.003,
+    "max_concurrent_positions": 5,
+    "max_portfolio_risk_pct": 5.0,
+    "max_gross_exposure_pct": 100.0
+  },
+  "cost_3x": {
+    "starting_capital": 10000.0,
+    "ending_capital": 5327.683459512005,
+    "portfolio_return": -0.4672316540487995,
+    "trades": 287,
+    "skipped_capacity": 894,
+    "win_rate": 0.30313588850174217,
+    "mean_trade_pnl": -16.279848573128913,
+    "profit_factor": 0.37908066331702955,
+    "maximum_drawdown": -0.5033536624213285,
+    "sharpe": -13.985066642149091,
+    "sortino": -11.070638720425242,
+    "calmar": -1.9746507137400038,
+    "cagr": -0.9939476687639213,
+    "turnover": 46.01602249754699,
+    "exposure": 0.22942923810787091,
+    "average_holding_bars": 12.0,
+    "cost_multiplier": 3.0,
+    "base_round_trip_cost": 0.003,
+    "max_concurrent_positions": 5,
+    "max_portfolio_risk_pct": 5.0,
+    "max_gross_exposure_pct": 100.0
+  }
+}

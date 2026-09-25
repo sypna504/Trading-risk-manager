@@ -1,0 +1,85 @@
+{
+  "experiment_id": "exp_0012",
+  "phase": "target",
+  "target": "ft_atr200_r30_24h",
+  "feature_set": "production_full",
+  "architecture": "pooled",
+  "class_weight": "balanced",
+  "parameters": "d4_lr04",
+  "seed": 42,
+  "roc_auc": 0.6318743324858463,
+  "pr_auc": 0.06602888612532722,
+  "pr_baseline": 0.04344170403587444,
+  "brier": 0.042818772111411135,
+  "trades": 409,
+  "profit_factor": 0.8891497222507667,
+  "portfolio_return": -0.03055762450188848,
+  "max_drawdown": -0.12554454142844884,
+  "cost_1_5x": -0.06573046817274353,
+  "cost_2x": -0.09966897341847103,
+  "score": -0.6904844293707494,
+  "error": null,
+  "git_sha": "NOT CAPTURED",
+  "history_sha256": "bca733e890c181bd22c00649c34b49ebf85d1ffce353069401e83d26845505c2",
+  "history_max_timestamp": "2026-08-26 19:00:00+00:00",
+  "dataset_hash": "77674c7c09196cf543d85a5f2a90f5067428868e4c6bfff67763bc7b9599a7da",
+  "target_config": {
+    "name": "ft_atr200_r30_24h",
+    "definition": "first_touch_atr_rr",
+    "horizon_minutes": 1440,
+    "atr_stop_multiplier": 2.0,
+    "reward_ratio": 3.0,
+    "minimum_net_return": 0.002,
+    "maximum_drawdown": -0.015
+  },
+  "feature_groups": [
+    "production_full"
+  ],
+  "model_config": {
+    "architecture": "pooled",
+    "class_weight": "balanced",
+    "parameters": "d4_lr04",
+    "seed": 42
+  },
+  "periods": {
+    "holdout_start": "2026-07-11 19:00:00",
+    "purge": "1 days 01:00:00",
+    "parts": {
+      "train": {
+        "rows": 23937,
+        "start": "2025-12-11 20:00:00",
+        "end": "2026-04-08 04:00:00"
+      },
+      "model_selection": {
+        "rows": 4356,
+        "start": "2026-04-09 08:00:00",
+        "end": "2026-05-02 13:00:00"
+      },
+      "calibration_fit": {
+        "rows": 3232,
+        "start": "2026-05-03 15:00:00",
+        "end": "2026-05-18 13:00:00"
+      },
+      "calibration_selection": {
+        "rows": 2846,
+        "start": "2026-05-19 15:00:00",
+        "end": "2026-06-02 00:00:00"
+      },
+      "threshold_selection": {
+        "rows": 2790,
+        "start": "2026-06-03 02:00:00",
+        "end": "2026-06-18 22:00:00"
+      },
+      "development_oos": {
+        "rows": 3568,
+        "start": "2026-06-20 00:00:00",
+        "end": "2026-07-10 16:00:00"
+      }
+    },
+    "final_holdout": {
+      "rows": 8079,
+      "start": "2026-07-11 19:00:00",
+      "end": "2026-08-25 19:00:00"
+    }
+  }
+}

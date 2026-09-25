@@ -1,55 +1,35 @@
-# Docker validation
+# Docker Validation
 
-## Static validation performed
+- **Date:** 2026-08-25
+- **Base state:** `feature/auto-signal-choseing + research-mvp-final-v9 overlay + frozen research finalization v10`
+- **Commit:** NOT CAPTURED in packaging workspace (no .git directory); capture locally with `git rev-parse HEAD` before applying overlay
+- **Real Binance research:** NOT RUN
+- **Production promotion:** NO
 
-`docker-compose.yml` was parsed successfully as YAML. The following contracts were checked:
+## Static Docker/Compose validation
 
-- services: `backend`, `ml_service`, `ml_trainer`;
-- backend depends on healthy `ml_service`;
-- backend address is `ml_service:50051`, not localhost;
-- backend has persistent `backend_data:/app/data`;
-- backend mounts model registry/model artifacts read-only;
-- ML service and trainer share model and training-data bind mounts;
-- expected ports are exposed;
-- trainer is behind the `training` profile.
+- `docker-compose.yml` parsed during `check_patch_consistency.py`: **PASS**.
+- Services `backend`, `ml_service`, `ml_trainer`: **PASS**.
+- application-aware ML healthcheck contract: **PASS**.
+- persistent SQLite named volume: **PASS**.
+- trainer data/model mounts: **PASS**.
+- research output mount `./runtime:/app/runtime`: **PASS**.
+- `ML_RESEARCH_ROOT=/app/runtime/research`: **PASS**.
+- Docker build: **NOT RUN**; Docker CLI is unavailable in packaging environment.
+- Docker runtime: **NOT RUN**.
 
-## Runtime validation status
-
-Actual Docker commands were **not executed**, because the audit runtime has no `docker` executable.
-
-Run after applying the patch:
-
-```powershell
-docker compose down -v
-docker compose config
-docker compose build --no-cache
-docker compose up -d
-docker compose ps
-docker compose logs --tail=200 backend ml_service
-```
-
-Expected:
-
-- `ml_service` becomes healthy;
-- backend starts after ML health;
-- `GET http://127.0.0.1:8000/api/v1/health` returns 200;
-- response reports actual active `model_version`;
-- SQLite file is located in the `backend_data` volume;
-- restart does not remove decision history.
-
-Persistence check:
+Build/runtime command:
 
 ```powershell
-curl "http://127.0.0.1:8000/api/v1/trading/decisions?limit=5"
-docker compose restart backend
-curl "http://127.0.0.1:8000/api/v1/trading/decisions?limit=5"
+powershell -ExecutionPolicy Bypass -File .\VERIFY_AND_REBUILD.ps1
 ```
 
-Model/trainer check:
+## Reproduction
 
 ```powershell
-docker compose --profile training run --rm ml_trainer --status
-docker compose --profile training run --rm ml_trainer --mode manual
+python scripts\test_all.py
+scripts\research_synthetic.cmd
+scripts\research_full.cmd
+scripts\research_results.cmd
+scripts\research_candidate.cmd
 ```
-
-Do not merge until these commands pass on the target machine.

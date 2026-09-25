@@ -1,33 +1,287 @@
-# Patch manifest v6
+# Patch Manifest
 
-## Runtime fixes
+- **Patch:** `research-final-v10`
+- **Date:** 2026-08-25
+- **Base:** `feature/auto-signal-choseing` + `research-mvp-final-v9` overlay
+- **Commit:** NOT CAPTURED in packaging workspace; capture locally with `git rev-parse HEAD` before apply
+- **Package type:** repository-root overlay; no wrapper directory
+- **Real Binance research:** NOT RUN
+- **Real v3 improvement:** NOT PROVEN
+- **Production promotion:** NO
 
-- `app/ml_services/app/config.py`
-- `app/ml_services/app/online/validation.py`
-- `app/ml_services/app/online/model_predictor.py`
-- `app/ml_services/app/online/server.py`
-- `app/ml_services/app/training/runtime_contract_check.py`
-- `app/ml_services/app/training/train_model.py`
+## Validation before packaging
+
+- `python scripts/test_all.py`: PASS
+- regression: **15 passed / 0 failed**
+- ML/training: **117 passed / 0 failed**
+- integration: **1 skipped / 0 failed**
+- standalone research regression: **9 passed / 0 failed**
+- deterministic synthetic research: **PASS, 17 experiments, `NO ROBUST EDGE FOUND`**
+- compose YAML/research mount assertions: PASS
+- shipped shell syntax (`bash -n`): PASS
+- Docker build/runtime: NOT RUN (Docker unavailable in packaging environment)
+
+## Clean-extraction retest performed before final delivery
+
+- unpacked `python scripts/test_all.py`: PASS
+- unpacked regression: **15 passed / 0 failed**
+- unpacked ML/training: **117 passed / 0 failed**
+- unpacked standalone research regression: **9 passed / 0 failed**
+- unpacked synthetic research: **PASS, 17 experiments, `NO ROBUST EDGE FOUND`**
+- unpacked compose/scripts/reports assertions: PASS
+
+## Added files relative to v9
+
+- `EXPERIMENT_RESULTS.md`
+- `RESEARCH_REPORT.md`
+- `app/ml_services/app/research/__init__.py`
+- `app/ml_services/app/research/candidate.py`
+- `app/ml_services/app/research/config.py`
+- `app/ml_services/app/research/data.py`
+- `app/ml_services/app/research/features.py`
+- `app/ml_services/app/research/fixtures/synthetic_history.csv`
+- `app/ml_services/app/research/modeling.py`
+- `app/ml_services/app/research/promotion.py`
+- `app/ml_services/app/research/regression.py`
+- `app/ml_services/app/research/reports.py`
+- `app/ml_services/app/research/runner.py`
+- `app/ml_services/app/research/splits.py`
+- `app/ml_services/app/research/synthetic_runner.py`
+- `app/ml_services/app/training/tests/test_research_pipeline.py`
+- `scripts/research_candidate.cmd`
+- `scripts/research_candidate.sh`
+- `scripts/research_full.cmd`
+- `scripts/research_full.sh`
+- `scripts/research_promote.cmd`
+- `scripts/research_promote.sh`
+- `scripts/research_results.cmd`
+- `scripts/research_results.sh`
+- `scripts/research_status.py`
+- `scripts/research_synthetic.cmd`
+- `scripts/research_synthetic.sh`
+
+## Modified files relative to v9
+
+- `APPLY.md`
+- `BACKTEST_REPORT.md`
+- `BUGS_FIXED.md`
+- `CALIBRATION_REPORT.md`
+- `CURRENT_STATE.md`
+- `DATA_AUDIT.md`
+- `DOCKER_VALIDATION.md`
+- `KNOWN_LIMITATIONS.md`
+- `LEAKAGE_AUDIT.md`
+- `MODEL_COMPARISON.md`
+- `OUTCOME_MONITORING_REPORT.md`
+- `PATCH_VERSION.txt`
+- `PROMOTION_REPORT.md`
+- `README.md`
+- `RUNTIME_VALIDATION.md`
+- `SENSITIVITY_REPORT.json`
+- `TARGET_AUDIT.md`
+- `TEST_REPORT.md`
+- `WALK_FORWARD_REPORT.md`
+- `app/ml_services/app/backtesting/simulator.py`
+- `app/ml_services/app/training/build_dataset.py`
+- `docker-compose.yml`
+- `scripts/check_patch_consistency.py`
+- `scripts/cleanup_stale_reports.ps1`
+- `scripts/cleanup_stale_reports.sh`
+
+## Files intentionally not shipped / runtime-generated
+
+- `runtime/` research output — generated locally
+- `__pycache__`, `.pytest_cache`, `.pyc`
+- real `history_data.parquet`, `ml_dataset_v3.parquet`
+- active/candidate model binaries and local registry state
+- SQLite runtime data
+- obsolete legacy reports removed by `scripts/cleanup_stale_reports.*`
+
+## v9 files intentionally omitted from this overlay
+
+- `RUNTIME_FAILURE_MATRIX.md`
+
+## Full shipped file list
+
+- `.env.example`
+- `.env.training.example`
+- `.github/workflows/ci.yml`
+- `APPLY.md`
+- `BACKTEST_REPORT.md`
+- `BUGS_FIXED.md`
+- `CALIBRATION_REPORT.md`
+- `CURRENT_STATE.md`
+- `DATA_AUDIT.md`
+- `DOCKER_VALIDATION.md`
+- `EXPERIMENT_RESULTS.md`
+- `KNOWN_LIMITATIONS.md`
+- `LEAKAGE_AUDIT.md`
+- `MODEL_COMPARISON.md`
+- `OUTCOME_MONITORING_REPORT.md`
+- `PATCH_MANIFEST.md`
+- `PATCH_VERSION.txt`
+- `PROMOTION_REPORT.md`
+- `README.md`
+- `RESEARCH_REPORT.md`
+- `RUNTIME_VALIDATION.md`
+- `SENSITIVITY_REPORT.json`
+- `TARGET_AUDIT.md`
+- `TEST_REPORT.md`
+- `VERIFY_AND_REBUILD.ps1`
+- `WALK_FORWARD_REPORT.md`
 - `app/backend/api/app/config.py`
 - `app/backend/api/app/grpc_client.py`
+- `app/backend/api/app/main.py`
+- `app/backend/api/app/middleware.py`
+- `app/backend/api/app/request_context.py`
+- `app/backend/api/app/routers/health_router.py`
 - `app/backend/api/app/routers/ml_service_router.py`
+- `app/backend/api/app/routers/trade_decision_router.py`
 - `app/backend/api/app/schemas/ml_schemas.py`
+- `app/backend/api/app/schemas/trade_decision_schemas.py`
+- `app/backend/api/app/services/market_services.py`
+- `app/backend/api/app/services/model_compatibility.py`
+- `app/backend/api/app/services/model_metadata_service.py`
+- `app/backend/api/app/services/outcome_service.py`
+- `app/backend/api/app/services/risk_service.py`
 - `app/backend/api/app/services/signal_service.py`
-
-## Docker and verification
-
-- `docker-compose.yml`
-- `app/ml_services/dockerfile`
+- `app/backend/api/app/services/strategy_selection.py`
+- `app/backend/api/app/static/app.js`
+- `app/backend/api/app/static/index.html`
+- `app/backend/api/app/storage/database.py`
+- `app/backend/api/app/storage/decision_repository.py`
 - `app/backend/api/dockerfile`
-- `VERIFY_AND_REBUILD.ps1`
-- `scripts/verify_backend_runtime.py`
-- `scripts/grpc_runtime_probe.py`
-- `scripts/runtime_smoke_test.ps1`
-- `scripts/diagnose_runtime.ps1`
-
-## Tests
-
+- `app/backend/api/requirements.txt`
+- `app/ml_services/app/backtesting/__init__.py`
+- `app/ml_services/app/backtesting/simulator.py`
+- `app/ml_services/app/config.py`
+- `app/ml_services/app/features_builder.py`
+- `app/ml_services/app/models/active/.gitkeep`
+- `app/ml_services/app/models/archive/.gitkeep`
+- `app/ml_services/app/models/candidates/.gitkeep`
+- `app/ml_services/app/models/reports/.gitkeep`
+- `app/ml_services/app/online/healthcheck.py`
+- `app/ml_services/app/online/ml_inference.py`
+- `app/ml_services/app/online/model_predictor.py`
+- `app/ml_services/app/online/server.py`
+- `app/ml_services/app/online/service.py`
+- `app/ml_services/app/online/validation.py`
+- `app/ml_services/app/research/__init__.py`
+- `app/ml_services/app/research/candidate.py`
+- `app/ml_services/app/research/config.py`
+- `app/ml_services/app/research/data.py`
+- `app/ml_services/app/research/features.py`
+- `app/ml_services/app/research/fixtures/synthetic_history.csv`
+- `app/ml_services/app/research/modeling.py`
+- `app/ml_services/app/research/promotion.py`
+- `app/ml_services/app/research/regression.py`
+- `app/ml_services/app/research/reports.py`
+- `app/ml_services/app/research/runner.py`
+- `app/ml_services/app/research/splits.py`
+- `app/ml_services/app/research/synthetic_runner.py`
+- `app/ml_services/app/training/__init__.py`
+- `app/ml_services/app/training/build_dataset.py`
+- `app/ml_services/app/training/data_validation.py`
+- `app/ml_services/app/training/drift_report.py`
+- `app/ml_services/app/training/evaluate_model.py`
+- `app/ml_services/app/training/model_registry.py`
+- `app/ml_services/app/training/pipeline_lock.py`
+- `app/ml_services/app/training/prediction_sensitivity.py`
+- `app/ml_services/app/training/retrain_pipeline.py`
+- `app/ml_services/app/training/runtime_contract_check.py`
+- `app/ml_services/app/training/statistical_validation.py`
+- `app/ml_services/app/training/target_config.py`
+- `app/ml_services/app/training/tests/conftest.py`
+- `app/ml_services/app/training/tests/test_build_dataset_full.py`
+- `app/ml_services/app/training/tests/test_config_and_server.py`
+- `app/ml_services/app/training/tests/test_data_update.py`
+- `app/ml_services/app/training/tests/test_data_validation_full.py`
+- `app/ml_services/app/training/tests/test_docker_build_contract_v7.py`
+- `app/ml_services/app/training/tests/test_drift_report_full.py`
+- `app/ml_services/app/training/tests/test_evaluate_model_full.py`
+- `app/ml_services/app/training/tests/test_features_builder_full.py`
+- `app/ml_services/app/training/tests/test_inference_reload.py`
+- `app/ml_services/app/training/tests/test_model_predictor_full.py`
+- `app/ml_services/app/training/tests/test_model_registry_full.py`
+- `app/ml_services/app/training/tests/test_pipeline_lock.py`
+- `app/ml_services/app/training/tests/test_registry.py`
+- `app/ml_services/app/training/tests/test_research_pipeline.py`
+- `app/ml_services/app/training/tests/test_retrain_pipeline_full.py`
 - `app/ml_services/app/training/tests/test_runtime_failures_v6.py`
-- updated `test_config_and_server.py`
+- `app/ml_services/app/training/tests/test_sensitivity_v3.py`
+- `app/ml_services/app/training/tests/test_time_split.py`
+- `app/ml_services/app/training/tests/test_time_split_full.py`
+- `app/ml_services/app/training/tests/test_train_model_full.py`
+- `app/ml_services/app/training/tests/test_training_config.py`
+- `app/ml_services/app/training/tests/test_update_history_full.py`
+- `app/ml_services/app/training/tests/test_v3_contract.py`
+- `app/ml_services/app/training/tests/test_window_selection_full.py`
+- `app/ml_services/app/training/time_split.py`
+- `app/ml_services/app/training/train_model.py`
+- `app/ml_services/app/training/training_config.py`
+- `app/ml_services/app/training/update_history.py`
+- `app/ml_services/app/training/window_selection.py`
+- `app/ml_services/dockerfile`
+- `app/ml_services/requirements.txt`
+- `app/proto/ml/v1/ml.proto`
+- `docker-compose.yml`
+- `docs/examples/registry.example.json`
+- `docs/examples/training_report.example.json`
+- `requirements-test.txt`
+- `scripts/check_dependency_contract.py`
+- `scripts/check_fresh_install.ps1`
+- `scripts/check_fresh_install.sh`
+- `scripts/check_patch_consistency.py`
+- `scripts/check_proto_contract.cmd`
+- `scripts/check_proto_contract.py`
+- `scripts/check_proto_contract.sh`
+- `scripts/check_sensitivity.cmd`
+- `scripts/check_settings_contract.py`
+- `scripts/cleanup_stale_reports.ps1`
+- `scripts/cleanup_stale_reports.sh`
+- `scripts/diagnose_runtime.ps1`
+- `scripts/docker_validate.ps1`
+- `scripts/docker_validate.sh`
+- `scripts/generate_proto.cmd`
+- `scripts/generate_proto.py`
+- `scripts/generate_proto.sh`
+- `scripts/grpc_runtime_probe.py`
+- `scripts/model_status.cmd`
+- `scripts/model_status.sh`
+- `scripts/research_candidate.cmd`
+- `scripts/research_candidate.sh`
+- `scripts/research_full.cmd`
+- `scripts/research_full.sh`
+- `scripts/research_promote.cmd`
+- `scripts/research_promote.sh`
+- `scripts/research_results.cmd`
+- `scripts/research_results.sh`
+- `scripts/research_status.py`
+- `scripts/research_synthetic.cmd`
+- `scripts/research_synthetic.sh`
+- `scripts/retrain_and_deploy.cmd`
+- `scripts/retrain_and_deploy.sh`
+- `scripts/retrain_v3.cmd`
+- `scripts/retrain_v3_candidate_only.cmd`
+- `scripts/retrain_v3_schema_upgrade.cmd`
+- `scripts/retrain_v3_schema_upgrade.sh`
+- `scripts/rollback_model.cmd`
+- `scripts/rollback_model.sh`
+- `scripts/run_ml_tests.cmd`
+- `scripts/run_ml_tests.sh`
+- `scripts/runtime_smoke_test.ps1`
+- `scripts/sqlite_persistence_probe.py`
+- `scripts/test_all.cmd`
+- `scripts/test_all.py`
+- `scripts/test_all.sh`
+- `scripts/test_integration.cmd`
+- `scripts/test_regression.cmd`
+- `scripts/test_unit.cmd`
+- `scripts/verify_backend_runtime.py`
+- `scripts/verify_v3_install.cmd`
+- `scripts/verify_v3_runtime.py`
+- `tests/integration/test_backend_lifespan.py`
+- `tests/regression/test_contracts.py`
+- `tests/regression/test_outcome_anchoring.py`
 
-The rest of the v3 quant pipeline from v5 remains included.
+Total shipped files: **180**

@@ -28,6 +28,7 @@ def test_server_serv_starts_registers_and_waits(monkeypatch):
     class FakeServer:
         def add_insecure_port(self, address):
             state["address"] = address
+            return 50051
 
         def start(self):
             state["started"] = True
@@ -37,6 +38,25 @@ def test_server_serv_starts_registers_and_waits(monkeypatch):
 
     fake_grpc.server = lambda executor: FakeServer()
     monkeypatch.setitem(sys.modules, "grpc", fake_grpc)
+
+    grpc_health = ModuleType("grpc_health")
+    grpc_health_v1 = ModuleType("grpc_health.v1")
+    health = ModuleType("grpc_health.v1.health")
+    health_pb2 = ModuleType("grpc_health.v1.health_pb2")
+    health_pb2_grpc = ModuleType("grpc_health.v1.health_pb2_grpc")
+
+    class FakeHealthServicer:
+        def set(self, service, status):
+            state.setdefault("health", {})[service] = status
+
+    health.HealthServicer = FakeHealthServicer
+    health_pb2.HealthCheckResponse = SimpleNamespace(NOT_SERVING=0, SERVING=1)
+    health_pb2_grpc.add_HealthServicer_to_server = lambda servicer, server: None
+    monkeypatch.setitem(sys.modules, "grpc_health", grpc_health)
+    monkeypatch.setitem(sys.modules, "grpc_health.v1", grpc_health_v1)
+    monkeypatch.setitem(sys.modules, "grpc_health.v1.health", health)
+    monkeypatch.setitem(sys.modules, "grpc_health.v1.health_pb2", health_pb2)
+    monkeypatch.setitem(sys.modules, "grpc_health.v1.health_pb2_grpc", health_pb2_grpc)
 
     ml_module = ModuleType("ml")
     ml_v1_module = ModuleType("ml.v1")

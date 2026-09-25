@@ -7,6 +7,8 @@ from uuid import uuid4
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
+from .request_context import request_id_var
+
 
 logger = logging.getLogger(__name__)
 
@@ -15,8 +17,8 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         request_id = request.headers.get("X-Request-ID") or str(uuid4())
         request.state.request_id = request_id
+        token = request_id_var.set(request_id)
         started = time.perf_counter()
-
         try:
             response = await call_next(request)
             elapsed_ms = round((time.perf_counter() - started) * 1000, 2)
@@ -40,3 +42,5 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
                 elapsed_ms,
             )
             raise
+        finally:
+            request_id_var.reset(token)

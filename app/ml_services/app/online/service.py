@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 class MLService(ml_pb2_grpc.MLServiceServicer):
     def PredictSignalQuality(self, request, context):
         started = time.perf_counter()
+        metadata = dict(context.invocation_metadata() or ())
+        request_id = metadata.get("x-request-id", "-")
         Validator(context, request).validate()
         try:
             candles = []
@@ -45,9 +47,10 @@ class MLService(ml_pb2_grpc.MLServiceServicer):
             prediction = predictor.predict(features)
             elapsed_ms = round((time.perf_counter() - started) * 1000, 2)
             logger.info(
-                "symbol=%s interval=%s strategy=%s model_version=%s "
+                "request_id=%s symbol=%s interval=%s strategy=%s model_version=%s "
                 "raw_probability=%.6f calibrated_probability=%.6f "
                 "trade_allowed=%s elapsed_ms=%s",
+                request_id,
                 request.symbol,
                 request.interval,
                 request.strategy_name,
@@ -75,7 +78,8 @@ class MLService(ml_pb2_grpc.MLServiceServicer):
             context.abort(grpc.StatusCode.FAILED_PRECONDITION, str(error))
         except Exception as error:
             logger.exception(
-                "prediction failed symbol=%s interval=%s strategy=%s",
+                "request_id=%s prediction failed symbol=%s interval=%s strategy=%s",
+                request_id,
                 request.symbol,
                 request.interval,
                 request.strategy_name,

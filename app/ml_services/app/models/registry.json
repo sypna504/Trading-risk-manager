@@ -125,6 +125,100 @@
       "total_net_return": -1.116298882709365,
       "maximum_drawdown": -0.6960907398287711,
       "decided_at": "2026-08-04T20:14:32.865000+00:00"
+    },
+    {
+      "version": "risk_model_20260823_123353",
+      "path": "candidates/risk_model_20260823_123353",
+      "created_at": "2026-08-23T12:33:53.859219+00:00",
+      "decision": "rejected",
+      "reasons": [
+        "mean net return is not positive",
+        "total net return is not positive",
+        "profit factor is not above minimum",
+        "maximum drawdown exceeds limit",
+        "portfolio backtest return is not positive",
+        "portfolio backtest profit factor is not above minimum",
+        "portfolio return is not positive at 1.5x costs",
+        "portfolio return is not positive at 2x costs",
+        "walk-forward positive fold rate is below minimum",
+        "result is concentrated in one strategy",
+        "feature schema migration requires explicit --allow-schema-migration",
+        "candidate_only mode is enabled"
+      ],
+      "roc_auc": 0.7675462724199186,
+      "pr_auc": 0.12587620182523918,
+      "total_net_return": -1.8909544058641847,
+      "maximum_drawdown": -0.8697910148558134,
+      "decided_at": "2026-08-23T12:33:53.895017+00:00"
+    },
+    {
+      "version": "risk_model_20260823_124101",
+      "path": "candidates/risk_model_20260823_124101",
+      "created_at": "2026-08-23T12:41:01.513925+00:00",
+      "decision": "rejected",
+      "reasons": [
+        "mean net return is not positive",
+        "total net return is not positive",
+        "profit factor is not above minimum",
+        "maximum drawdown exceeds limit",
+        "portfolio backtest return is not positive",
+        "portfolio backtest profit factor is not above minimum",
+        "portfolio return is not positive at 1.5x costs",
+        "portfolio return is not positive at 2x costs",
+        "walk-forward positive fold rate is below minimum",
+        "result is concentrated in one strategy"
+      ],
+      "roc_auc": 0.7675462724199186,
+      "pr_auc": 0.12587620182523918,
+      "total_net_return": -1.8909544058641847,
+      "maximum_drawdown": -0.8697910148558134,
+      "decided_at": "2026-08-23T12:41:01.547776+00:00"
+    },
+    {
+      "version": "risk_model_20260823_124705",
+      "path": "candidates/risk_model_20260823_124705",
+      "created_at": "2026-08-23T12:47:05.540800+00:00",
+      "decision": "rejected",
+      "reasons": [
+        "mean net return is not positive",
+        "total net return is not positive",
+        "profit factor is not above minimum",
+        "maximum drawdown exceeds limit",
+        "portfolio backtest return is not positive",
+        "portfolio backtest profit factor is not above minimum",
+        "portfolio return is not positive at 1.5x costs",
+        "portfolio return is not positive at 2x costs",
+        "walk-forward positive fold rate is below minimum",
+        "result is concentrated in one strategy",
+        "feature schema migration requires explicit --allow-schema-migration"
+      ],
+      "roc_auc": 0.7675462724199186,
+      "pr_auc": 0.12587620182523918,
+      "total_net_return": -1.8909544058641847,
+      "maximum_drawdown": -0.8697910148558134,
+      "decided_at": "2026-08-23T12:47:05.570356+00:00"
+    },
+    {
+      "version": "risk_model_20260823_130655",
+      "path": "candidates/risk_model_20260823_130655",
+      "created_at": "2026-08-23T13:06:55.888578+00:00",
+      "decision": "rejected",
+      "reasons": [
+        "mean net return is not positive",
+        "total net return is not positive",
+        "profit factor is not above minimum",
+        "maximum drawdown exceeds limit",
+        "portfolio backtest return is not positive",
+        "portfolio backtest profit factor is not above minimum",
+        "portfolio return is not positive at 1.5x costs",
+        "portfolio return is not positive at 2x costs",
+        "walk-forward positive fold rate is below minimum"
+      ],
+      "roc_auc": 0.7580630629855153,
+      "pr_auc": 0.13116213325945597,
+      "total_net_return": -2.4131871914195218,
+      "maximum_drawdown": -0.9346742150172088,
+      "decided_at": "2026-08-23T13:06:55.922988+00:00"
     }
   ]
 }

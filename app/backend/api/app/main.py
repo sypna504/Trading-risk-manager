@@ -26,21 +26,22 @@ async def lifespan(_: FastAPI):
     configure_logging()
     init_database()
     outcome_worker.start()
-    yield
-    outcome_worker.stop()
-    health_client.close()
-    ml_client.close()
-    trade_ml_client.close()
+    try:
+        yield
+    finally:
+        outcome_worker.stop()
+        health_client.close()
+        ml_client.close()
+        trade_ml_client.close()
 
 
 app = FastAPI(
     title="Trading Risk Manager",
-    version="0.2.0-outcome-tracking",
+    version="0.3.0-research-mvp",
     lifespan=lifespan,
 )
 app.add_middleware(RequestContextMiddleware)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-
 app.include_router(healt_router, prefix="/api/v1")
 app.include_router(market_router, prefix="/api/v1")
 app.include_router(ml_router, prefix="/api/v1")

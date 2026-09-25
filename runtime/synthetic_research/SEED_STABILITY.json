@@ -1,0 +1,16 @@
+{
+  "seeds": [
+    42
+  ],
+  "portfolio_returns": [
+    0.00272768777100163
+  ],
+  "scores": [
+    -0.014446535121950509
+  ],
+  "positive_portfolio_return_rate": 1.0,
+  "median_portfolio_return": 0.00272768777100163,
+  "worst_portfolio_return": 0.00272768777100163,
+  "score_std": 0.0,
+  "selected_median_seed": 42
+}

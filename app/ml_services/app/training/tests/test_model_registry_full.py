@@ -45,9 +45,24 @@ def _good_metrics() -> dict:
 
 def _candidate(registry: ModelRegistry, version: str, metrics=None) -> Path:
     path = registry.create_candidate_dir(version)
-    (path / "model.cbm").write_bytes(b"model")
-    (path / "config.json").write_text(json.dumps({"model_version": version}), encoding="utf-8")
+    model_path = path / "model.cbm"
+    model_path.write_bytes(b"model")
+    config = {
+        "model_version": version,
+        "feature_schema_version": "v3",
+        "supported_intervals": ["1h"],
+        "supported_strategies": ["breakout", "mean_reversion"],
+        "supported_symbols": ["BTCUSDT", "ETHUSDT"],
+        "supported_exchanges": ["binance"],
+        "allow_unseen_symbols": False,
+        "target_horizon_minutes": 180,
+        "entry_convention": "next_bar_open",
+        "model_checksum": file_checksum(model_path),
+    }
+    (path / "config.json").write_text(json.dumps(config), encoding="utf-8")
     (path / "metrics.json").write_text(json.dumps(metrics or _good_metrics()), encoding="utf-8")
+    for name in ("training_report.json", "sensitivity_report.json", "dataset_report.json"):
+        (path / name).write_text("{}", encoding="utf-8")
     return path
 
 
@@ -169,6 +184,9 @@ def test_promote_and_rollback_errors(config):
         registry.promote("missing")
     incomplete = registry.create_candidate_dir("incomplete")
     (incomplete / "model.cbm").write_bytes(b"x")
+    with pytest.raises(RuntimeError, match="promotion decision"):
+        registry.promote("incomplete")
+    registry.write_promotion_decision("incomplete", True, [])
     with pytest.raises(FileNotFoundError, match="artifact missing"):
         registry.promote("incomplete")
     with pytest.raises(RuntimeError, match="no previous model"):

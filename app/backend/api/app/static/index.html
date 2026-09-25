@@ -9,34 +9,29 @@
 <body>
   <main class="container">
     <section class="hero">
-      <p class="eyebrow">MVP · рекомендательная система</p>
+      <p class="eyebrow">Research / paper-trading MVP</p>
       <h1>Trading Risk Manager</h1>
-      <p>Проверка торгового сигнала, оценка CatBoost и расчёт риска без исполнения сделок.</p>
+      <p>Сигнал, ML-фильтр, риск и outcome monitoring. Реальные ордера не исполняются.</p>
+    </section>
+
+    <section class="panel" aria-live="polite">
+      <h2>Активная модель</h2>
+      <div id="model-info">Загрузка информации о модели...</div>
     </section>
 
     <section class="panel">
       <form id="decision-form" class="form-grid">
         <label>Биржа
-          <select id="exchange">
-            <option value="binance">Binance</option>
-            <option value="bybit">Bybit</option>
-          </select>
+          <select id="exchange"></select>
         </label>
         <label>Торговая пара
           <input id="symbol" value="BTCUSDT" required>
         </label>
         <label>Интервал
-          <select id="interval">
-            <option value="1m">1m</option>
-            <option value="5m">5m</option>
-            <option value="15m">15m</option>
-            <option value="1h" selected>1h</option>
-            <option value="4h">4h</option>
-            <option value="1d">1d</option>
-          </select>
+          <select id="interval"></select>
         </label>
         <label>Количество свечей
-          <input id="limit" type="number" value="100" min="60" max="5000">
+          <input id="limit" type="number" value="500" min="60" max="5000">
         </label>
         <label>Баланс
           <input id="account-balance" type="number" value="1000" min="1" step="0.01">
@@ -62,9 +57,7 @@
       <div id="history" class="history"></div>
     </section>
 
-    <footer>
-      Система не является финансовой рекомендацией и не исполняет реальные сделки.
-    </footer>
+    <footer>Только research/paper-trading. Не является финансовой рекомендацией.</footer>
   </main>
   <script src="/static/app.js"></script>
 </body>

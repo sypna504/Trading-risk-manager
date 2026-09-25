@@ -7,8 +7,11 @@ from typing import Literal
 
 from fastapi import APIRouter, HTTPException, Query
 
-from ..config import settings
-from ..grpc_client import MLGrpcClient
+from ..grpc_client import (
+    MLGrpcClient,
+    MLModelUnavailableError,
+    MLUpstreamError,
+)
 from ..schemas.trade_decision_schemas import (
     OutcomeEvaluationResponse,
     OutcomeSummaryResponse,
@@ -16,9 +19,16 @@ from ..schemas.trade_decision_schemas import (
     TradeDecisionResponse,
 )
 from ..services.market_services import GetCandles
+from ..services.model_compatibility import (
+    CompatibilityResult,
+    ModelCompatibilityError,
+    check_model_compatibility,
+    target_contract_snapshot,
+)
 from ..services.outcome_service import OutcomeEvaluator, outcome_due_at
 from ..services.risk_service import calculate_risk_parameters
 from ..services.signal_service import detect_trading_signal
+from ..services.strategy_selection import prediction_margin, select_best_prediction
 from ..storage.decision_repository import DecisionRepository
 
 
@@ -27,7 +37,8 @@ trade_router = APIRouter(prefix="/trading")
 trade_ml_client = MLGrpcClient()
 repository = DecisionRepository()
 outcome_evaluator = OutcomeEvaluator(repository)
-STRATEGY_TIE_PRIORITY = {"breakout": 0, "mean_reversion": 1}
+# Backward-compatible private alias used by older audit callers.
+_select_best_prediction = select_best_prediction
 
 
 def _download_candles(
@@ -36,11 +47,7 @@ def _download_candles(
     interval: str,
     limit: int,
 ):
-    downloader = GetCandles(
-        symbol=symbol,
-        interval=interval,
-        limit=limit,
-    )
+    downloader = GetCandles(symbol=symbol, interval=interval, limit=limit)
     return (
         downloader.get_bybit_candles_dc().items
         if exchange == "bybit"
@@ -51,18 +58,21 @@ def _download_candles(
 def _validate_prediction(strategy_name: str, prediction) -> None:
     numeric_fields = {
         "prob_good_trade": prediction.prob_good_trade,
+        "raw_prob_good_trade": getattr(
+            prediction, "raw_prob_good_trade", prediction.prob_good_trade
+        ),
         "risk_score": prediction.risk_score,
         "threshold": prediction.threshold,
     }
     for field_name, value in numeric_fields.items():
         numeric_value = float(value)
         if not math.isfinite(numeric_value) or not 0 <= numeric_value <= 1:
-            raise ConnectionError(
-                f"ML service returned invalid {field_name} "
-                f"for {strategy_name}: {value}"
+            raise MLUpstreamError(
+                f"ML service returned invalid {field_name} for "
+                f"{strategy_name}: {value}"
             )
     if not str(prediction.model_version).strip():
-        raise ConnectionError(
+        raise MLUpstreamError(
             f"ML service returned an empty model_version for {strategy_name}"
         )
 
@@ -76,7 +86,6 @@ def _get_strategy_predictions(
 ):
     predictions = []
     failures: dict[str, str] = {}
-
     for strategy_name in active_strategies:
         try:
             prediction = trade_ml_client.predict_quality(
@@ -87,40 +96,25 @@ def _get_strategy_predictions(
             )
             _validate_prediction(strategy_name, prediction)
             predictions.append((strategy_name, prediction))
-        except (ConnectionError, ValueError) as error:
+        except (MLUpstreamError, MLModelUnavailableError, ConnectionError, ValueError) as error:
             failures[strategy_name] = str(error)
-
     if not predictions:
         details = "; ".join(
-            f"{strategy}: {message}"
-            for strategy, message in failures.items()
+            f"{strategy}: {message}" for strategy, message in failures.items()
         )
-        raise ConnectionError(
+        raise MLUpstreamError(
             "ML service could not evaluate any active strategy"
             + (f": {details}" if details else "")
         )
-
     model_versions = {
-        str(prediction.model_version)
-        for _, prediction in predictions
+        str(prediction.model_version) for _, prediction in predictions
     }
     if len(model_versions) != 1:
-        raise ConnectionError(
-            "active model changed during multi-strategy evaluation; "
-            "retry the request"
+        raise MLUpstreamError(
+            "active model changed during multi-strategy evaluation; retry the request"
         )
-
     return predictions, failures
 
-
-def _select_best_prediction(predictions):
-    return max(
-        predictions,
-        key=lambda item: (
-            float(item[1].prob_good_trade),
-            -STRATEGY_TIE_PRIORITY.get(item[0], 100),
-        ),
-    )
 
 
 def _store_decision(
@@ -138,19 +132,24 @@ def _store_decision(
     risk_per_trade_pct: float,
     status: str,
     reason: str,
+    compatibility: CompatibilityResult,
 ) -> int:
     signal_timestamp = signal_result.get("timestamp")
-    outcome_status = "pending" if signal_result["signal_detected"] else "not_applicable"
+    target = target_contract_snapshot(compatibility)
+    outcome_status = (
+        "pending" if signal_result["signal_detected"] else "not_applicable"
+    )
     due_at = (
         outcome_due_at(
             signal_timestamp,
             interval,
-            settings.OUTCOME_TARGET_HORIZON_BARS,
+            int(target["target_horizon_bars"]),
         )
         if signal_result["signal_detected"] and signal_timestamp
         else None
     )
-
+    signal_close = signal_result.get("close")
+    planned_entry = signal_close if signal_result["signal_detected"] else None
     return repository.save(
         {
             "created_at": checked_at,
@@ -164,23 +163,35 @@ def _store_decision(
             "probability": (
                 float(prediction.prob_good_trade) if prediction else None
             ),
+            "raw_probability": (
+                float(getattr(prediction, "raw_prob_good_trade", prediction.prob_good_trade)) if prediction else None
+            ),
             "threshold": float(prediction.threshold) if prediction else None,
             "risk_score": float(prediction.risk_score) if prediction else None,
             "risk_level": prediction.risk_level if prediction else None,
             "trade_allowed": (
                 bool(prediction.trade_allowed) if prediction else False
             ),
-            "model_version": prediction.model_version if prediction else None,
-            "entry_price": signal_result.get("close"),
+            "model_version": target["model_version"],
+            "feature_schema_version": target["feature_schema_version"],
+            "model_status": target["model_status"],
+            "calibration_method": (
+                getattr(prediction, "calibration_method", target["calibration_method"])
+                if prediction
+                else target["calibration_method"]
+            ),
+            "market_regime": signal_result.get("market_regime"),
+            # Compatibility alias only; not a fill price.
+            "entry_price": None,
+            "signal_close_price": signal_close,
+            "planned_entry_price": planned_entry,
+            "entry_convention": target["entry_convention"],
+            "exit_convention": target["exit_convention"],
             "stop_loss_price": (
-                risk_parameters.get("stop_loss_price")
-                if risk_parameters
-                else None
+                risk_parameters.get("stop_loss_price") if risk_parameters else None
             ),
             "take_profit_price": (
-                risk_parameters.get("take_profit_price")
-                if risk_parameters
-                else None
+                risk_parameters.get("take_profit_price") if risk_parameters else None
             ),
             "position_size": (
                 risk_parameters.get("recommended_position_size")
@@ -199,33 +210,58 @@ def _store_decision(
             "signal_timestamp": signal_timestamp,
             "outcome_due_at": due_at,
             "outcome_status": outcome_status,
-            "target_horizon_bars": settings.OUTCOME_TARGET_HORIZON_BARS,
-            "target_min_net_return": settings.OUTCOME_MIN_NET_RETURN,
-            "target_max_drawdown": settings.OUTCOME_MAX_DRAWDOWN,
+            **{
+                key: target[key]
+                for key in (
+                    "target_definition",
+                    "target_horizon_minutes",
+                    "target_horizon_bars",
+                    "target_min_net_return",
+                    "target_max_drawdown",
+                    "target_fee",
+                    "target_slippage",
+                )
+            },
+            "target_stop_loss_fraction": (
+                float(risk_parameters.get("stop_loss_pct")) / 100.0
+                if risk_parameters
+                else None
+            ),
+            "target_risk_reward_ratio": float(target.get("risk_reward_ratio", 2.0)),
+            "target_intrabar_priority": str(target.get("intrabar_priority", "stop_loss")),
         }
     )
+
+
+def _compatibility_or_http(**kwargs) -> CompatibilityResult:
+    try:
+        return check_model_compatibility(**kwargs)
+    except ModelCompatibilityError as error:
+        raise HTTPException(status_code=error.status_code, detail=str(error)) from error
 
 
 @trade_router.get("/decision", response_model=TradeDecisionResponse)
 def get_trade_decision(
     exchange: Literal["binance", "bybit"] = "binance",
     symbol: str = Query(default="BTCUSDT", min_length=3),
-    interval: Literal["1m", "5m", "15m", "1h", "4h", "1d"] = "1h",
-    limit: int = Query(default=100, ge=60, le=5000),
+    interval: str = Query(default="1h", min_length=2, max_length=8),
+    limit: int = Query(default=500, ge=60, le=5000),
     account_balance: float = Query(default=1000.0, gt=0),
     risk_per_trade_pct: float = Query(default=1.0, gt=0, le=10),
     max_position_share_pct: float = Query(default=25.0, ge=1, le=100),
 ):
     checked_at = datetime.now(timezone.utc).isoformat()
-
+    compatibility = _compatibility_or_http(
+        exchange=exchange,
+        symbol=symbol,
+        interval=interval,
+        require_trade_ready=True,
+    )
     try:
-        candles = _download_candles(
-            exchange,
-            symbol,
-            interval,
-            limit,
-        )
-        signal_result = detect_trading_signal(candles, symbol)
+        candles = _download_candles(exchange, symbol, interval, limit)
+        signal_result = detect_trading_signal(candles, symbol, interval)
+        target = target_contract_snapshot(compatibility)
+        warnings = list(compatibility.warnings)
 
         if not signal_result["signal_detected"]:
             decision_id = _store_decision(
@@ -242,8 +278,8 @@ def get_trade_decision(
                 risk_per_trade_pct=risk_per_trade_pct,
                 status="no_signal",
                 reason=signal_result["reason"],
+                compatibility=compatibility,
             )
-
             return TradeDecisionResponse(
                 id=decision_id,
                 status="no_signal",
@@ -258,9 +294,27 @@ def get_trade_decision(
                 interval=interval,
                 candles_count=len(candles),
                 checked_at=checked_at,
-                entry_price=signal_result["close"],
+                entry_price=None,
+                signal_close_price=signal_result["close"],
+                planned_entry_price=None,
+                entry_convention=target["entry_convention"],
+                model_version=target["model_version"],
+                feature_schema_version=target["feature_schema_version"],
+                model_status=target["model_status"],
+                calibration_method=target["calibration_method"],
+                model_warnings=warnings,
                 signal_timestamp=signal_result.get("timestamp"),
                 outcome_status="not_applicable",
+            )
+
+        # Use the same compatibility checker for each model-bound strategy.
+        for strategy_name in signal_result["active_strategies"]:
+            _compatibility_or_http(
+                exchange=exchange,
+                symbol=symbol,
+                interval=interval,
+                strategy=strategy_name,
+                require_trade_ready=True,
             )
 
         predictions, prediction_failures = _get_strategy_predictions(
@@ -269,29 +323,36 @@ def get_trade_decision(
             interval=interval,
             candles=candles,
         )
-        selected_strategy, best_prediction = _select_best_prediction(
-            predictions
-        )
+        selected_strategy, best_prediction = select_best_prediction(predictions)
 
+        # The true target entry is next_bar_open and is not known yet. The risk
+        # engine uses signal close only as a planning estimate.
+        planned_entry_price = float(signal_result["close"])
         risk_parameters = calculate_risk_parameters(
             account_balance=account_balance,
             risk_per_trade_pct=risk_per_trade_pct,
             max_position_share_pct=max_position_share_pct,
-            entry_price=signal_result["close"],
+            entry_price=planned_entry_price,
             atr_14_pct=signal_result["atr_14_pct"],
             probability=best_prediction.prob_good_trade,
             threshold=best_prediction.threshold,
             model_trade_allowed=best_prediction.trade_allowed,
             signal_detected=True,
+            atr_stop_multiplier=float(target["risk_atr_stop_multiplier"]),
+            min_stop_loss_pct=float(target["risk_min_stop_loss_pct"]),
+            risk_reward_ratio=float(target["risk_reward_ratio"]),
         )
 
         reason = (
-            f"{signal_result['reason']}; selected {selected_strategy} "
-            "by highest model probability"
+            f"{signal_result['reason']}; selected {selected_strategy} by "
+            "trade_allowed first, then probability-threshold margin"
         )
+        if target["entry_convention"] == "next_bar_open":
+            reason += "; risk levels use signal close as an estimate of next-bar-open entry"
         if prediction_failures:
-            failed_text = ", ".join(sorted(prediction_failures))
-            reason += f"; unavailable strategies: {failed_text}"
+            reason += "; unavailable strategies: " + ", ".join(
+                sorted(prediction_failures)
+            )
 
         decision_id = _store_decision(
             checked_at=checked_at,
@@ -307,13 +368,26 @@ def get_trade_decision(
             risk_per_trade_pct=risk_per_trade_pct,
             status="evaluated",
             reason=reason,
+            compatibility=compatibility,
         )
         due_at = outcome_due_at(
             signal_result["timestamp"],
             interval,
-            settings.OUTCOME_TARGET_HORIZON_BARS,
+            int(target["target_horizon_bars"]),
         )
-
+        logger.info(
+            "symbol=%s interval=%s strategy=%s p=%.6f threshold=%.6f "
+            "margin=%.6f allowed=%s model=%s status=%s",
+            symbol,
+            interval,
+            selected_strategy,
+            float(best_prediction.prob_good_trade),
+            float(best_prediction.threshold),
+            prediction_margin(best_prediction),
+            bool(best_prediction.trade_allowed),
+            best_prediction.model_version,
+            target["model_status"],
+        )
         return TradeDecisionResponse(
             id=decision_id,
             status="evaluated",
@@ -328,12 +402,20 @@ def get_trade_decision(
             interval=interval,
             candles_count=len(candles),
             checked_at=checked_at,
-            entry_price=signal_result["close"],
+            entry_price=None,
+            signal_close_price=signal_result["close"],
+            planned_entry_price=planned_entry_price,
+            entry_convention=target["entry_convention"],
             prob_good_trade=best_prediction.prob_good_trade,
+            raw_prob_good_trade=getattr(best_prediction, "raw_prob_good_trade", best_prediction.prob_good_trade),
             risk_score=best_prediction.risk_score,
             threshold=best_prediction.threshold,
             risk_level=best_prediction.risk_level,
             model_version=best_prediction.model_version,
+            feature_schema_version=target["feature_schema_version"],
+            model_status=target["model_status"],
+            calibration_method=getattr(best_prediction, "calibration_method", target["calibration_method"]),
+            model_warnings=warnings,
             risk_parameters=risk_parameters,
             signal_timestamp=signal_result["timestamp"],
             outcome_due_at=due_at,
@@ -341,7 +423,12 @@ def get_trade_decision(
         )
     except HTTPException:
         raise
+    except MLModelUnavailableError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+    except MLUpstreamError as error:
+        raise HTTPException(status_code=502, detail=str(error)) from error
     except ConnectionError as error:
+        # Exchange request failures are upstream failures.
         raise HTTPException(status_code=502, detail=str(error)) from error
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
@@ -350,10 +437,7 @@ def get_trade_decision(
         raise HTTPException(status_code=500, detail=str(error)) from error
 
 
-@trade_router.get(
-    "/decisions",
-    response_model=list[StoredDecisionResponse],
-)
+@trade_router.get("/decisions", response_model=list[StoredDecisionResponse])
 def get_decisions(
     limit: int = Query(default=50, ge=1, le=500),
     offset: int = Query(default=0, ge=0),
@@ -361,7 +445,7 @@ def get_decisions(
     strategy: Literal["breakout", "mean_reversion"] | None = None,
     trade_allowed: bool | None = None,
     outcome_status: Literal[
-        "pending", "retry", "completed", "not_applicable"
+        "pending", "retry", "completed", "invalid_data", "not_applicable"
     ] | None = None,
 ):
     return repository.list(
@@ -374,28 +458,19 @@ def get_decisions(
     )
 
 
-@trade_router.post(
-    "/outcomes/evaluate",
-    response_model=OutcomeEvaluationResponse,
-)
+@trade_router.post("/outcomes/evaluate", response_model=OutcomeEvaluationResponse)
 def evaluate_due_outcomes(
     limit: int = Query(default=100, ge=1, le=500),
 ):
     return outcome_evaluator.run_once(limit=limit)
 
 
-@trade_router.get(
-    "/outcomes/summary",
-    response_model=OutcomeSummaryResponse,
-)
+@trade_router.get("/outcomes/summary", response_model=OutcomeSummaryResponse)
 def get_outcome_summary():
     return repository.outcome_summary()
 
 
-@trade_router.get(
-    "/decisions/{decision_id}",
-    response_model=StoredDecisionResponse,
-)
+@trade_router.get("/decisions/{decision_id}", response_model=StoredDecisionResponse)
 def get_decision(decision_id: int):
     decision = repository.get(decision_id)
     if decision is None:

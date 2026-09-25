@@ -53,6 +53,57 @@ def _hours_since(value: str | None) -> float | None:
     return float((pd.Timestamp.now(tz="UTC") - timestamp).total_seconds() / 3600)
 
 
+def _bundle_schema(bundle: Path | None) -> str | None:
+    if bundle is None:
+        return None
+    config_path = bundle / "config.json"
+    if not config_path.exists():
+        return None
+    payload = json.loads(config_path.read_text(encoding="utf-8"))
+    return str(payload.get("feature_schema_version") or "legacy_v2")
+
+
+def _history_guard_stats(
+    config: TrainingConfig,
+    last_training_data_timestamp: str | None,
+) -> dict[str, Any]:
+    if not config.history_path.exists():
+        return {
+            "new_unique_timestamps_since_training": 0,
+            "expected_symbols": list(config.symbols),
+            "available_symbols": [],
+            "missing_symbols": list(config.symbols),
+            "missing_required_symbols": list(config.required_symbols),
+            "symbol_coverage_rate": 0.0,
+        }
+    history = pd.read_parquet(config.history_path, columns=["timestamp", "symbol"])
+    history["timestamp"] = pd.to_datetime(history["timestamp"], utc=True)
+    history["symbol"] = history["symbol"].astype(str).str.upper().str.replace("/", "", regex=False).str.replace("-", "", regex=False)
+    counts = history.groupby("symbol").size()
+    expected = list(dict.fromkeys(config.symbols))
+    available = sorted(
+        symbol for symbol in expected if int(counts.get(symbol, 0)) >= config.minimum_history_rows
+    )
+    missing = sorted(set(expected) - set(available))
+    missing_required = sorted(set(config.required_symbols) - set(available))
+    if last_training_data_timestamp:
+        after = history[
+            history["timestamp"] > pd.to_datetime(last_training_data_timestamp, utc=True)
+        ]
+        new_unique = int(after["timestamp"].nunique())
+    else:
+        new_unique = int(history["timestamp"].nunique())
+    return {
+        "new_unique_timestamps_since_training": new_unique,
+        "expected_symbols": expected,
+        "available_symbols": available,
+        "missing_symbols": missing,
+        "missing_required_symbols": missing_required,
+        "symbol_coverage_rate": len(available) / len(expected) if expected else 0.0,
+        "rows_per_symbol": {symbol: int(counts.get(symbol, 0)) for symbol in expected},
+    }
+
+
 def _restart_service(config: TrainingConfig) -> None:
     subprocess.run(
         ["docker", "compose", "restart", config.docker_compose_service],
@@ -85,11 +136,14 @@ def _write_run_report(config: TrainingConfig, run_id: str, report: dict[str, Any
 def run_pipeline(
     mode: str = "manual",
     force: bool = False,
+    allow_schema_migration: bool = False,
     config: TrainingConfig | None = None,
 ) -> dict[str, Any]:
     config = config or TrainingConfig.from_env()
     if force:
         config.force_retrain = True
+    if allow_schema_migration:
+        config.allow_schema_migration = True
     run_id = _utc_now().strftime("run_%Y%m%d_%H%M%S")
     started = _utc_now()
     report: dict[str, Any] = {
@@ -137,31 +191,25 @@ def run_pipeline(
             last_training_data_timestamp = previous_state.get(
                 "last_training_data_timestamp"
             )
-            if last_training_data_timestamp and config.history_path.exists():
-                history_for_guard = pd.read_parquet(
-                    config.history_path, columns=["timestamp"]
-                )
-                history_for_guard["timestamp"] = pd.to_datetime(
-                    history_for_guard["timestamp"], utc=True
-                )
-                new_rows_since_training = int(
-                    (
-                        history_for_guard["timestamp"]
-                        > pd.to_datetime(last_training_data_timestamp, utc=True)
-                    ).sum()
-                )
-            else:
-                new_rows_since_training = changed_rows
+            guard_stats = _history_guard_stats(
+                config, last_training_data_timestamp
+            )
+            new_unique_timestamps = int(
+                guard_stats["new_unique_timestamps_since_training"]
+            )
+            coverage_rate = float(guard_stats["symbol_coverage_rate"])
+            missing_required = list(guard_stats["missing_required_symbols"])
 
             hours_since_training = _hours_since(previous_state.get("last_training_time"))
             report["guards"] = {
                 "added_unique_rows": added_rows,
                 "updated_existing_rows": updated_rows,
                 "changed_rows": changed_rows,
-                "new_rows_since_training": new_rows_since_training,
+                **guard_stats,
                 "hours_since_last_training": hours_since_training,
-                "minimum_new_candles": config.minimum_new_candles,
+                "minimum_new_unique_timestamps": config.minimum_new_unique_timestamps,
                 "minimum_hours_between_retrains": config.minimum_hours_between_retrains,
+                "minimum_symbol_coverage": config.minimum_symbol_coverage,
                 "force_retrain": config.force_retrain,
             }
 
@@ -178,10 +226,10 @@ def run_pipeline(
                 if config.retrain_on_data_change_only and data_unchanged:
                     should_skip = True
                     skip_reasons.append("history content has not changed")
-                if new_rows_since_training < config.minimum_new_candles:
+                if new_unique_timestamps < config.minimum_new_unique_timestamps:
                     should_skip = True
                     skip_reasons.append(
-                        "not enough new candles since previous training"
+                        "not enough new unique time bars since previous training"
                     )
                 if (
                     hours_since_training is not None
@@ -202,6 +250,20 @@ def run_pipeline(
                 report_path = _write_run_report(config, run_id, report)
                 report["report_path"] = str(report_path)
                 return report
+
+            # Symbol coverage is a hard data-quality gate only when a training
+            # run will proceed. --force bypasses scheduling guards, not quality.
+            if coverage_rate < config.minimum_symbol_coverage:
+                raise ValueError(
+                    "history symbol coverage below minimum: "
+                    f"coverage={coverage_rate:.3f}, required={config.minimum_symbol_coverage:.3f}, "
+                    f"missing={guard_stats['missing_symbols']}"
+                )
+            if missing_required:
+                raise ValueError(
+                    "required symbols are missing or have insufficient history: "
+                    + ", ".join(missing_required)
+                )
 
             if config.auto_select_training_window:
                 history_frame = pd.read_parquet(config.history_path)
@@ -238,9 +300,20 @@ def run_pipeline(
             candidate = train_candidate(dataset, config=config, registry=registry)
             candidate_metrics = candidate["metrics"]
             logger.info("candidate trained: version=%s", candidate["version"])
+
+            candidate_schema = str(
+                candidate["config"].get("feature_schema_version") or "unknown"
+            )
+            active_schema = _bundle_schema(active_bundle)
+            promotion_mode = (
+                "schema_upgrade"
+                if active_schema is not None and active_schema != candidate_schema
+                else "same_schema"
+            )
             champion_metrics = None
             champion_evaluation_error = None
-            if active_bundle is not None:
+
+            if promotion_mode == "same_schema" and active_bundle is not None:
                 try:
                     champion_metrics = evaluate_bundle_on_test(
                         active_bundle,
@@ -249,23 +322,39 @@ def run_pipeline(
                 except Exception as error:
                     champion_evaluation_error = str(error)
 
+            artifact_error = None
+            try:
+                registry.validate_candidate_artifacts(candidate["version"])
+            except Exception as error:
+                artifact_error = str(error)
+
             try:
                 passed, reasons = registry.promotion_gate(
                     candidate_metrics,
-                    champion_metrics,
+                    champion_metrics if promotion_mode == "same_schema" else None,
                     candidate["training_report"],
                 )
             except TypeError:
                 passed, reasons = registry.promotion_gate(
                     candidate_metrics,
-                    champion_metrics,
+                    champion_metrics if promotion_mode == "same_schema" else None,
                 )
-            if champion_evaluation_error is not None:
+
+            if artifact_error is not None:
+                passed = False
+                reasons.append("candidate artifact validation failed: " + artifact_error)
+            if promotion_mode == "same_schema" and champion_evaluation_error is not None:
                 passed = False
                 reasons.append(
                     "champion could not be evaluated on candidate test: "
                     + champion_evaluation_error
                 )
+            if promotion_mode == "schema_upgrade" and not config.allow_schema_migration:
+                passed = False
+                reasons.append(
+                    "feature schema migration requires explicit --allow-schema-migration"
+                )
+
             report["candidate"] = {
                 "version": candidate["version"],
                 "path": str(candidate["candidate_dir"]),
@@ -277,10 +366,30 @@ def run_pipeline(
             if config.candidate_only:
                 passed = False
                 reasons.append("candidate_only mode is enabled")
-            getattr(registry, "write_promotion_decision", lambda *args, **kwargs: None)(
-                candidate["version"], passed, reasons
+
+            registry.write_promotion_decision(
+                candidate["version"],
+                passed,
+                reasons,
+                mode=promotion_mode,
+                active_schema=active_schema,
+                candidate_schema=candidate_schema,
+                schema_migration_authorized=(
+                    promotion_mode == "schema_upgrade"
+                    and config.allow_schema_migration
+                ),
             )
-            report["promotion"] = {"passed": passed, "reasons": reasons}
+            report["promotion"] = {
+                "passed": passed,
+                "reasons": reasons,
+                "mode": promotion_mode,
+                "active_schema": active_schema,
+                "candidate_schema": candidate_schema,
+                "schema_migration_authorized": (
+                    promotion_mode == "schema_upgrade"
+                    and config.allow_schema_migration
+                ),
+            }
 
             if passed and config.deploy_after_training:
                 logger.info("candidate passed promotion gates")
@@ -361,6 +470,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Retrain and deploy trading risk model")
     parser.add_argument("--mode", choices=["manual", "daily", "hourly"], default="manual")
     parser.add_argument("--force", action="store_true")
+    parser.add_argument(
+        "--allow-schema-migration",
+        action="store_true",
+        help="explicitly authorize a validated v2->v3 schema upgrade",
+    )
     parser.add_argument("--rollback", action="store_true")
     parser.add_argument("--status", action="store_true")
     args = parser.parse_args()
@@ -374,7 +488,12 @@ def main() -> int:
         if args.status:
             _print_status(config)
             return 0
-        result = run_pipeline(mode=args.mode, force=args.force, config=config)
+        result = run_pipeline(
+            mode=args.mode,
+            force=args.force,
+            allow_schema_migration=args.allow_schema_migration,
+            config=config,
+        )
         print(json.dumps(result, ensure_ascii=False, indent=2, default=str))
         return 0
     except Exception as error:

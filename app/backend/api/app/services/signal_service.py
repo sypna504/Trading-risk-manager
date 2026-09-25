@@ -6,7 +6,7 @@ import pandas as pd
 
 from app.ml_services.app.features_builder import (
     calculate_features,
-    latest_complete_feature_row,
+    latest_strict_inference_row,
 )
 
 from ..config import settings
@@ -26,35 +26,16 @@ REQUIRED_SIGNAL_COLUMNS = [
 ]
 
 
-def _infer_interval(candles: list[Candle]) -> str:
-    if len(candles) < 2:
-        return "1h"
-    delta_minutes = int(
-        round(
-            (candles[-1].timestamp - candles[-2].timestamp).total_seconds()
-            / 60
-        )
-    )
-    mapping = {1: "1m", 5: "5m", 15: "15m", 60: "1h", 240: "4h", 1440: "1d"}
-    if delta_minutes not in mapping:
-        raise ValueError(
-            f"could not infer candle interval from {delta_minutes} minute spacing"
-        )
-    return mapping[delta_minutes]
-
-
 def detect_trading_signal(
     candles: list[Candle],
     symbol: str,
-    interval: str | None = None,
+    interval: str = "1h",
 ) -> dict[str, Any]:
     if len(candles) < settings.MIN_CANDLES:
         raise ValueError(
             f"at least {settings.MIN_CANDLES} candles are required, "
             f"received {len(candles)}"
         )
-
-    resolved_interval = interval or _infer_interval(candles)
 
     candles_df = pd.DataFrame(
         [
@@ -66,23 +47,17 @@ def detect_trading_signal(
                 "close": candle.close,
                 "volume": candle.volume,
                 "symbol": symbol,
-                "interval": resolved_interval,
+                "interval": interval,
             }
             for candle in candles
         ]
     )
-
     features = calculate_features(candles_df)
-    latest_frame = latest_complete_feature_row(
-        features,
-        REQUIRED_SIGNAL_COLUMNS,
-    )
+    latest_frame = latest_strict_inference_row(features, REQUIRED_SIGNAL_COLUMNS)
     latest = latest_frame.iloc[0]
     active_strategies: list[str] = []
-
     if int(latest["signal_breakout"]) == 1:
         active_strategies.append("breakout")
-
     if int(latest["signal_mean_reversion"]) == 1:
         active_strategies.append("mean_reversion")
 
@@ -92,16 +67,21 @@ def detect_trading_signal(
         if signal_detected
         else "breakout and mean_reversion conditions are not met"
     )
-
+    trend_regime = str(latest.get("trend_regime", "unknown"))
+    volatility_regime = str(latest.get("volatility_regime", "unknown"))
     return {
         "signal_detected": signal_detected,
         "active_strategies": active_strategies,
         "timestamp": pd.Timestamp(latest["timestamp"]).isoformat(),
         "symbol": str(latest["symbol"]),
+        "interval": interval,
         "close": float(latest["close"]),
         "atr_14_pct": float(latest["atr_14_pct"]),
         "signal_breakout": int(latest["signal_breakout"]),
         "signal_mean_reversion": int(latest["signal_mean_reversion"]),
+        "trend_regime": trend_regime,
+        "volatility_regime": volatility_regime,
+        "market_regime": f"{trend_regime}:{volatility_regime}",
         "indicators": {
             "rsi_14": float(latest["rsi_14"]),
             "price_z_20": float(latest["price_z_20"]),

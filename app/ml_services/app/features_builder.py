@@ -241,28 +241,66 @@ def calculate_features(candles_df: pd.DataFrame) -> pd.DataFrame:
     return pd.concat(parts, ignore_index=True).replace([np.inf, -np.inf], np.nan)
 
 
-def latest_complete_feature_row(
+def latest_complete_training_row(
     features_df: pd.DataFrame,
     required_columns: list[str] | None = None,
 ) -> pd.DataFrame:
-    """Return the latest row complete for the requested contract.
+    """Return the latest *available complete* row for offline/training use.
 
-    ``required_columns`` keeps compatibility with backend signal detection, while
-    the default remains the production ML feature schema.
+    This helper may move backwards in time and therefore must not be used for
+    online decisions.
     """
     if features_df.empty:
         raise ValueError("feature frame is empty")
-
     required = list(required_columns or FEATURE_COLUMNS)
     absent = [column for column in required if column not in features_df.columns]
     if absent:
         raise ValueError(f"feature frame is missing columns: {absent}")
-
     complete = features_df.dropna(subset=required)
     if complete.empty:
         missing = [column for column in required if features_df[column].isna().all()]
         raise ValueError(f"could not calculate a complete feature row; missing={missing}")
     return complete.sort_values("timestamp").iloc[[-1]].copy()
+
+
+def latest_strict_inference_row(
+    features_df: pd.DataFrame,
+    required_columns: list[str] | None = None,
+) -> pd.DataFrame:
+    """Validate and return exactly the latest candle feature row.
+
+    Online inference must never silently fall back to an older candle. If the
+    most recent closed candle cannot produce the required feature contract, the
+    request fails and the caller can retry with more/cleaner history.
+    """
+    if features_df.empty:
+        raise ValueError("feature frame is empty")
+    required = list(required_columns or FEATURE_COLUMNS)
+    absent = [column for column in required if column not in features_df.columns]
+    if absent:
+        raise ValueError(f"feature frame is missing columns: {absent}")
+    latest = features_df.sort_values("timestamp").iloc[[-1]].copy()
+    missing = [column for column in required if latest[column].isna().any()]
+    if missing:
+        timestamp = latest.iloc[0].get("timestamp")
+        raise ValueError(
+            "latest closed candle does not have a complete feature row; "
+            f"timestamp={timestamp}; missing={missing}"
+        )
+    return latest
+
+
+def latest_complete_feature_row(
+    features_df: pd.DataFrame,
+    required_columns: list[str] | None = None,
+) -> pd.DataFrame:
+    """Backward-compatible strict latest-row helper.
+
+    Historically this public helper was used by online callers and therefore
+    must never move backwards to an older candle. Offline code that explicitly
+    needs fallback semantics must call :func:`latest_complete_training_row`.
+    """
+    return latest_strict_inference_row(features_df, required_columns)
 
 
 def build_inference_features(
@@ -278,10 +316,9 @@ def build_inference_features(
     candles_df["interval"] = interval
     features_df = calculate_features(candles_df)
     features_df["strategy_name"] = strategy_name
-    # Keep the full calculated row. The predictor selects the exact columns from
-    # the loaded model config. This allows a legacy v2 champion to remain usable
-    # while a v3 candidate is trained and evaluated.
-    result = latest_complete_feature_row(features_df, FEATURE_COLUMNS).copy()
+    # Return the exact latest candle. The predictor will select the columns
+    # required by the loaded bundle (legacy v2 or v3).
+    result = latest_strict_inference_row(features_df, FEATURE_COLUMNS).copy()
     for column in CAT_FEATURES:
         result[column] = result[column].astype(str)
     return result

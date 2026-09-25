@@ -1,0 +1,37 @@
+{
+  "experiment_id": "exp_0017",
+  "phase": "regression_target",
+  "target": "future_net_return_regression",
+  "feature_set": "production_full",
+  "architecture": "catboost_regressor",
+  "class_weight": "n/a",
+  "parameters": "d4_lr04",
+  "seed": 42,
+  "roc_auc": null,
+  "pr_auc": null,
+  "pr_baseline": null,
+  "brier": null,
+  "trades": 50,
+  "profit_factor": 6.154068308490561,
+  "portfolio_return": 0.03480420058027622,
+  "max_drawdown": -0.006082223420626254,
+  "cost_1_5x": 0.029438639180973114,
+  "cost_2x": 0.024094401531235876,
+  "score": 0.9121121874248732,
+  "error": null,
+  "git_sha": "NOT CAPTURED",
+  "history_sha256": "bca733e890c181bd22c00649c34b49ebf85d1ffce353069401e83d26845505c2",
+  "history_max_timestamp": "2026-08-26 19:00:00+00:00",
+  "dataset_hash": null,
+  "target_config": null,
+  "feature_groups": [
+    "production_full"
+  ],
+  "model_config": {
+    "architecture": "catboost_regressor",
+    "class_weight": "n/a",
+    "parameters": "d4_lr04",
+    "seed": 42
+  },
+  "periods": null
+}

@@ -4,7 +4,7 @@ import math
 
 import grpc
 
-from ..features_builder import MIN_CANDLES
+from ..config import settings
 
 PROTOCOL_INTERVALS = {"1m", "5m", "15m", "1h", "4h", "1d"}
 ALLOWED_STRATEGIES = {"breakout", "mean_reversion"}
@@ -35,10 +35,10 @@ class Validator:
 
     def validate_candles_count(self):
         candles_count = len(self.request.candles)
-        if candles_count < MIN_CANDLES:
+        if candles_count < settings.MIN_CANDLES:
             self.context.abort(
                 grpc.StatusCode.INVALID_ARGUMENT,
-                f"at least {MIN_CANDLES} candles are required, received {candles_count}",
+                f"at least {settings.MIN_CANDLES} candles are required, received {candles_count}",
             )
 
     def validate_candles(self):

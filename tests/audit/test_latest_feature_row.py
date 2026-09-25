@@ -5,10 +5,10 @@ import pytest
 
 from app.backend.api.app.services.market_services import Candle
 from app.backend.api.app.services import signal_service
-from app.ml_services.app.features_builder import latest_complete_feature_row
+from app.ml_services.app.features_builder import latest_strict_inference_row
 
 
-def test_latest_complete_feature_row_never_falls_back_to_stale_row():
+def test_latest_inference_row_never_falls_back_to_stale_row():
     frame = pd.DataFrame(
         {
             "timestamp": pd.to_datetime(["2026-01-01", "2026-01-02"]),
@@ -16,8 +16,8 @@ def test_latest_complete_feature_row_never_falls_back_to_stale_row():
             "required": [1.0, float("nan")],
         }
     )
-    with pytest.raises(ValueError, match="latest candle"):
-        latest_complete_feature_row(frame, ["timestamp", "close", "required"])
+    with pytest.raises(ValueError, match="latest closed candle"):
+        latest_strict_inference_row(frame, ["timestamp", "close", "required"])
 
 
 def test_signal_service_rejects_incomplete_latest_row(monkeypatch):
@@ -43,5 +43,5 @@ def test_signal_service_rejects_incomplete_latest_row(monkeypatch):
         "calculate_features",
         lambda _frame: pd.DataFrame(columns),
     )
-    with pytest.raises(ValueError, match="latest candle"):
+    with pytest.raises(ValueError, match="latest closed candle"):
         signal_service.detect_trading_signal(candles, "BTCUSDT")

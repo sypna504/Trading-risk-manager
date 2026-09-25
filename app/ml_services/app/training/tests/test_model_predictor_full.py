@@ -42,6 +42,8 @@ def _write_bundle(root: Path, version: str, threshold: float = 0.5) -> Path:
         "train_start": "2026-01-01",
         "train_end": "2026-01-02",
         "calibrator": None,
+        "supported_symbols": ["BTCUSDT"],
+        "allow_unseen_symbols": False,
         "model_checksum": _checksum(model_path),
     }
     (bundle / "config.json").write_text(json.dumps(config), encoding="utf-8")

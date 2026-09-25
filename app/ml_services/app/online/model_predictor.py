@@ -65,6 +65,24 @@ def _probability_bin(probability: float) -> str:
     return f"{left:02d}-{left + 10:02d}%"
 
 
+def _infer_supported_symbols(config_path: Path) -> list[str]:
+    bundle = config_path.parent
+    dataset_path = bundle / "dataset_report.json"
+    if dataset_path.exists():
+        payload = json.loads(dataset_path.read_text(encoding="utf-8"))
+        symbols = payload.get("symbols") or []
+        if symbols:
+            return sorted({str(value).upper().replace("/", "").replace("-", "") for value in symbols})
+    training_path = bundle / "training_report.json"
+    if training_path.exists():
+        payload = json.loads(training_path.read_text(encoding="utf-8"))
+        for metrics_key in ("test_metrics", "raw_test_metrics"):
+            by_symbol = payload.get(metrics_key, {}).get("trading", {}).get("by_symbol", {})
+            if by_symbol:
+                return sorted({str(value).upper().replace("/", "").replace("-", "") for value in by_symbol})
+    return []
+
+
 class ModelPredictor:
     def __init__(
         self,
@@ -161,10 +179,45 @@ class ModelPredictor:
                 "supported_strategies", ["breakout", "mean_reversion"]
             )
             configuration.setdefault("target_horizon_minutes", 180)
+            configuration.setdefault("target_horizon_bars", 3)
             configuration.setdefault("thresholds_by_strategy", {
                 "__global__": float(configuration.get("threshold", 0.5))
             })
-            configuration.setdefault("allow_unseen_symbols", True)
+        dataset_report_path = config_path.parent / "dataset_report.json"
+        if not configuration.get("supported_symbols") and dataset_report_path.exists():
+            try:
+                dataset_report = json.loads(dataset_report_path.read_text(encoding="utf-8"))
+                symbols = list(dataset_report.get("symbols") or [])
+            except Exception:
+                symbols = []
+            if symbols:
+                configuration["supported_symbols"] = symbols
+                configuration.setdefault("allow_unseen_symbols", False)
+        configuration.setdefault("supported_symbols", [])
+        configuration.setdefault("allow_unseen_symbols", False)
+        configuration.setdefault(
+            "model_status",
+            "legacy_experimental"
+            if configuration.get("feature_schema_version") == "legacy_v2"
+            else "experimental",
+        )
+        configuration.setdefault(
+            "target_definition",
+            "horizon_return_drawdown"
+            if configuration.get("feature_schema_version") == "legacy_v2"
+            else "first_touch_atr_rr",
+        )
+        configuration.setdefault("risk_atr_stop_multiplier", 1.5)
+        configuration.setdefault("risk_min_stop_loss_pct", 0.5)
+        configuration.setdefault("risk_reward_ratio", 2.0)
+        configuration.setdefault("intrabar_priority", "stop_loss")
+        configuration.setdefault("entry_convention", "next_bar_open")
+        configuration.setdefault("exit_convention", "horizon_bar_close")
+        configuration.setdefault("production_train_end", configuration.get("train_end"))
+        configuration.setdefault("evaluation_train_end", configuration.get("train_end"))
+        configuration.setdefault("evaluation_test_end", configuration.get("test_end"))
+        if not configuration.get("supported_symbols"):
+            configuration["supported_symbols"] = _infer_supported_symbols(config_path)
         self._validate_configuration(configuration)
         threshold = float(configuration["threshold"])
         if not math.isfinite(threshold) or not 0 <= threshold <= 1:
@@ -277,10 +330,15 @@ class ModelPredictor:
             raise ValueError(
                 f"strategy {strategy} is unsupported by model {self.model_version}"
             )
-        if self.supported_symbols and not self.allow_unseen_symbols and symbol not in self.supported_symbols:
-            raise ValueError(
-                f"symbol {symbol} is unseen by model {self.model_version}"
-            )
+        if not self.allow_unseen_symbols:
+            if not self.supported_symbols:
+                raise ValueError(
+                    f"model {self.model_version} does not declare its training symbol universe"
+                )
+            if symbol not in self.supported_symbols:
+                raise ValueError(
+                    f"symbol {symbol} is unseen by model {self.model_version}"
+                )
         return symbol, strategy, interval
 
     def predict(self, features: pd.DataFrame) -> dict[str, Any]:
@@ -298,7 +356,8 @@ class ModelPredictor:
         missing = [column for column in feature_columns if column not in features.columns]
         if missing:
             raise ValueError(f"missing model features: {missing}")
-        _, strategy, interval = self._validate_request(features)
+        if len(features) != 1:
+            raise ValueError("online inference expects exactly one feature row")
         model_features = features[feature_columns].copy()
         for column in cat_features:
             model_features[column] = model_features[column].astype(str)
@@ -308,6 +367,7 @@ class ModelPredictor:
         ).to_numpy(dtype=float)
         if np.isnan(numeric_array).any() or np.isinf(numeric_array).any():
             raise ValueError("inference features contain NaN or inf values")
+        _, strategy, interval = self._validate_request(features)
         raw_probability = float(
             model.predict_proba(Pool(data=model_features, cat_features=cat_features))[0, 1]
         )
@@ -347,8 +407,15 @@ class ModelPredictor:
                 "supported_intervals": list(self.supported_intervals),
                 "supported_strategies": list(self.supported_strategies),
                 "feature_schema_version": self.config.get("feature_schema_version"),
+                "model_status": self.config.get("model_status"),
                 "target_horizon_minutes": self.config.get("target_horizon_minutes"),
+                "target_horizon_bars": self.config.get("target_horizon_bars"),
+                "supported_symbols": list(self.supported_symbols),
+                "allow_unseen_symbols": self.allow_unseen_symbols,
                 "train_start": self.config.get("train_start"),
                 "train_end": self.config.get("train_end"),
+                "evaluation_train_end": self.config.get("evaluation_train_end"),
+                "evaluation_test_end": self.config.get("evaluation_test_end"),
+                "production_train_end": self.config.get("production_train_end"),
                 "loaded_at": self.loaded_at,
             }

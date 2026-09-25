@@ -1,5 +1,17 @@
+param(
+    [switch]$SkipPersistenceCycle
+)
+
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot
+
+function Invoke-Checked {
+    param([string]$File, [Parameter(ValueFromRemainingArguments = $true)][string[]]$Arguments)
+    & $File @Arguments
+    if ($LASTEXITCODE -ne 0) {
+        throw "$File $($Arguments -join ' ') failed with exit code $LASTEXITCODE"
+    }
+}
 
 function Invoke-Compose {
     param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Arguments)
@@ -10,80 +22,101 @@ function Invoke-Compose {
 }
 
 function Show-RuntimeLogs {
+    Write-Host "`n--- docker compose ps ---" -ForegroundColor Yellow
+    & docker compose ps
     Write-Host "`n--- ml_service/backend logs ---" -ForegroundColor Yellow
-    & docker compose logs --tail 250 ml_service backend
+    & docker compose logs --tail 300 ml_service backend
 }
 
-$featuresPath = Join-Path $PSScriptRoot "app\ml_services\app\features_builder.py"
-$configPath = Join-Path $PSScriptRoot "app\ml_services\app\config.py"
-$runtimeCheckPath = Join-Path $PSScriptRoot "app\ml_services\app\training\runtime_contract_check.py"
-$backendCheckPath = Join-Path $PSScriptRoot "scripts\verify_backend_runtime.py"
+function Wait-ContainerHealthy {
+    param([string]$ContainerName, [int]$Attempts = 40)
+    for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
+        $health = (& docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' $ContainerName 2>$null)
+        if ($health -eq "healthy") { return }
+        if ($health -eq "unhealthy") {
+            Show-RuntimeLogs
+            throw "$ContainerName became unhealthy"
+        }
+        Start-Sleep -Seconds 2
+    }
+    Show-RuntimeLogs
+    throw "$ContainerName did not become healthy"
+}
 
-foreach ($requiredPath in @($featuresPath, $configPath, $runtimeCheckPath, $backendCheckPath)) {
-    if (-not (Test-Path $requiredPath)) {
-        throw "Required patch file is missing: $requiredPath. Extract the archive directly into the repository root with replacement."
+$patchVersion = (Get-Content (Join-Path $PSScriptRoot "PATCH_VERSION.txt") -Raw).Trim()
+if (-not $patchVersion) { throw "PATCH_VERSION.txt is empty" }
+Write-Host "Patch: $patchVersion" -ForegroundColor Cyan
+
+$required = @(
+    "app\backend\api\app\config.py",
+    "app\backend\api\app\services\model_compatibility.py",
+    "app\backend\api\app\services\strategy_selection.py",
+    "app\backend\api\app\services\outcome_service.py",
+    "app\ml_services\app\features_builder.py",
+    "app\ml_services\app\training\runtime_contract_check.py",
+    "scripts\verify_backend_runtime.py",
+    "scripts\grpc_runtime_probe.py",
+    "scripts\sqlite_persistence_probe.py"
+)
+foreach ($path in $required) {
+    if (-not (Test-Path (Join-Path $PSScriptRoot $path))) {
+        throw "Patch file missing: $path. Extract the ZIP directly into the repository root with replacement."
     }
 }
 
-$features = Get-Content $featuresPath -Raw
-$config = Get-Content $configPath -Raw
-if ($features -notmatch 'FEATURE_SCHEMA_VERSION\s*=\s*"v3"') {
-    throw "Old features_builder.py is still present."
-}
-if ($features -notmatch 'required_columns:\s*list\[str\]\s*\|\s*None') {
-    throw "latest_complete_feature_row compatibility fix is missing."
-}
-if ($config -notmatch 'MIN_CANDLES:\s*int\s*=\s*60') {
-    throw "ML Settings.MIN_CANDLES fix is missing."
-}
+Write-Host "Running host contract checks..."
+Invoke-Checked python scripts\check_dependency_contract.py
+Invoke-Checked python scripts\check_settings_contract.py
+Invoke-Checked python scripts\check_proto_contract.py
+Invoke-Checked python -m compileall -q app scripts tests
 
-Write-Host "Host files: runtime fix v6 found" -ForegroundColor Green
+Write-Host "Validating Compose..."
+Invoke-Compose config --quiet
 
-& docker compose config --quiet
-if ($LASTEXITCODE -ne 0) { throw "docker-compose.yml is invalid" }
-
+Write-Host "Removing old containers (volumes are preserved)..."
 Invoke-Compose down --remove-orphans
+
+Write-Host "Building backend/ML/trainer without cache..."
 Invoke-Compose build --no-cache ml_service ml_trainer backend
 
-Write-Host "Checking trainer image and active model bundle..."
+Write-Host "Checking trainer image + active bundle..."
 & docker compose --profile training run --rm -e RUNTIME_CHECK_ACTIVE_MODEL=1 ml_trainer python -m app.training.runtime_contract_check
 if ($LASTEXITCODE -ne 0) {
-    throw "Trainer image, active model, calibrator, protobuf, or feature contract is incompatible. See JSON output above."
+    throw "Trainer image or active model contract failed. Inspect the JSON above."
 }
 
-Write-Host "Checking backend image, protobuf and signal feature contract..."
+Write-Host "Checking backend image contract..."
 & docker compose run --rm --no-deps backend python ./scripts/verify_backend_runtime.py
 if ($LASTEXITCODE -ne 0) {
-    throw "Backend image, protobuf, settings, or signal feature contract is incompatible. See JSON output above."
+    throw "Backend image/settings/protobuf/signal contract failed."
 }
 
-Write-Host "Starting runtime services..."
+Write-Host "Starting services..."
 Invoke-Compose up -d ml_service backend
+Wait-ContainerHealthy "ml-services-grpc"
+Wait-ContainerHealthy "python-fastapi-backend"
 
-$healthy = $false
-for ($attempt = 1; $attempt -le 30; $attempt++) {
-    $health = (& docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' ml-services-grpc 2>$null)
-    if ($health -eq "healthy") {
-        $healthy = $true
-        break
-    }
-    if ($health -eq "unhealthy") {
-        Show-RuntimeLogs
-        throw "ml_service became unhealthy"
-    }
-    Start-Sleep -Seconds 2
-}
-if (-not $healthy) {
-    Show-RuntimeLogs
-    throw "ml_service did not become healthy within 60 seconds"
-}
-
-Write-Host "Running direct gRPC probe without exchange/network dependency..."
+Write-Host "Running network-independent backend -> gRPC -> model probe..."
 & docker compose exec -T backend python ./scripts/grpc_runtime_probe.py
 if ($LASTEXITCODE -ne 0) {
     Show-RuntimeLogs
-    throw "Direct backend -> gRPC -> active model probe failed"
+    throw "Direct gRPC prediction probe failed"
 }
 
-Write-Host "`nBuild and runtime compatibility checks passed." -ForegroundColor Green
-Write-Host "Now run: powershell -ExecutionPolicy Bypass -File .\scripts\runtime_smoke_test.ps1"
+Write-Host "Checking model-info endpoint..."
+$modelInfo = Invoke-RestMethod -Uri "http://localhost:8000/api/v1/ml/model-info" -TimeoutSec 15
+$modelInfo | ConvertTo-Json -Depth 12
+
+if (-not $SkipPersistenceCycle) {
+    Write-Host "Checking SQLite named-volume persistence across docker compose down/up..."
+    Invoke-Compose exec -T backend python ./scripts/sqlite_persistence_probe.py write
+    Invoke-Compose down
+    Invoke-Compose up -d ml_service backend
+    Wait-ContainerHealthy "ml-services-grpc"
+    Wait-ContainerHealthy "python-fastapi-backend"
+    Invoke-Compose exec -T backend python ./scripts/sqlite_persistence_probe.py read-clean
+}
+
+Write-Host "`nDocker build/runtime contract validation passed." -ForegroundColor Green
+Write-Host "Live Binance/Bybit calls were NOT executed by this script."
+Write-Host "Run .\scripts\runtime_smoke_test.ps1 for live-exchange endpoint validation."
