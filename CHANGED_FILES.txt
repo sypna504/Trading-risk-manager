@@ -6,9 +6,15 @@ MVP2_README.md
 MVP2_REPORT.md
 MVP3_README.md
 MVP3_REPORT.md
+MVP4_README.md
+MVP4_REPORT.md
 app/backend/api/app/config.py
+app/backend/api/app/routers/health_router.py
 app/backend/api/app/routers/trade_decision_router.py
 app/backend/api/app/schemas/trade_decision_schemas.py
+app/backend/api/app/static/app.js
+app/backend/api/app/static/index.html
+app/backend/api/app/static/styles.css
 app/backend/api/app/storage/database.py
 app/backend/api/app/storage/decision_repository.py
 app/backend/api/requirements.txt
@@ -38,6 +44,8 @@ config/news_sources.yaml
 docker-compose.yml
 pytest.ini
 requirements-test.txt
+tests/frontend/test_dashboard_sources.py
+tests/frontend/test_utf8_contract.py
 tests/news/conftest.py
 tests/news/fixtures/news_items.json
 tests/news/test_decision_storage_mvp3.py

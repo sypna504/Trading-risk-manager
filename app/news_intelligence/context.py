@@ -147,6 +147,7 @@ class MarketNewsContextService:
             {
                 "id": item.id,
                 "title": item.title,
+                "source": item.source_name,
                 "published_at": item.published_at.isoformat(),
                 "event_type": item.event_type.value,
                 "sentiment": item.sentiment.value,

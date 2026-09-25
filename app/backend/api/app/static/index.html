@@ -9,23 +9,49 @@
 <body>
   <main class="container">
     <section class="hero">
-      <p class="eyebrow">Research / paper-trading MVP</p>
-      <h1>Trading Risk Manager</h1>
-      <p>Сигнал, ML-фильтр, риск и outcome monitoring. Реальные ордера не исполняются.</p>
+      <div>
+        <p class="eyebrow">Research / paper-trading MVP</p>
+        <h1>Trading Risk Manager</h1>
+        <p class="hero-copy">Сигнал, ML-фильтр, риск и новостной контекст. News layer только объясняет рынок и не меняет торговый ML gate.</p>
+      </div>
+      <button id="refresh-dashboard" class="secondary hero-action" type="button">Обновить dashboard</button>
     </section>
 
-    <section class="panel" aria-live="polite">
-      <h2>Активная модель</h2>
-      <div id="model-info">Загрузка информации о модели...</div>
+    <section class="dashboard-grid">
+      <article class="panel" aria-live="polite">
+        <div class="section-header">
+          <div>
+            <p class="eyebrow">Model</p>
+            <h2>Активная модель</h2>
+          </div>
+        </div>
+        <div id="model-info">Загрузка информации о модели...</div>
+      </article>
+
+      <article class="panel" aria-live="polite">
+        <div class="section-header">
+          <div>
+            <p class="eyebrow">Health</p>
+            <h2>Состояние системы</h2>
+          </div>
+        </div>
+        <div id="system-health" class="health-grid">Загрузка...</div>
+      </article>
     </section>
 
     <section class="panel">
+      <div class="section-header">
+        <div>
+          <p class="eyebrow">Decision</p>
+          <h2>Проверка торгового решения</h2>
+        </div>
+      </div>
       <form id="decision-form" class="form-grid">
         <label>Биржа
           <select id="exchange"></select>
         </label>
         <label>Торговая пара
-          <input id="symbol" value="BTCUSDT" required>
+          <input id="symbol" value="BTCUSDT" required autocomplete="off">
         </label>
         <label>Интервал
           <select id="interval"></select>
@@ -47,12 +73,26 @@
       <p id="status" class="status"></p>
     </section>
 
-    <section id="result" class="panel hidden"></section>
+    <section id="result" class="panel hidden" aria-live="polite"></section>
+
+    <section id="news-panel" class="panel" aria-live="polite">
+      <div class="section-header">
+        <div>
+          <p class="eyebrow">News</p>
+          <h2>News context</h2>
+        </div>
+        <span class="info-badge">informational only</span>
+      </div>
+      <div id="news-context" class="empty-state">Запустите проверку решения, чтобы получить news context на момент decision.</div>
+    </section>
 
     <section class="panel">
       <div class="section-header">
-        <h2>Последние решения</h2>
-        <button id="refresh-history" class="secondary" type="button">Обновить</button>
+        <div>
+          <p class="eyebrow">History</p>
+          <h2>Последние решения</h2>
+        </div>
+        <button id="refresh-history" class="secondary compact" type="button">Обновить</button>
       </div>
       <div id="history" class="history"></div>
     </section>

@@ -23,6 +23,7 @@ class RiskParameters(BaseModel):
 class NewsTopEventResponse(BaseModel):
     id: str
     title: str
+    source: str
     published_at: str
     event_type: str
     sentiment: str
