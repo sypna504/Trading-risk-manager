@@ -6,8 +6,6 @@ from ..models import NewsItem
 
 
 class NewsDeduplicator:
-    """Exact-hash deduplication for MVP-1; embeddings intentionally excluded."""
-
     @staticmethod
     def find_duplicate(item: NewsItem, candidates: Iterable[NewsItem]) -> NewsItem | None:
         for candidate in candidates:

@@ -16,6 +16,7 @@ def test_storage_keeps_one_canonical_duplicate(tmp_path, make_news_item):
     first = analyzed(
         make_news_item,
         id="canonical",
+        external_id="one",
         title="Bitcoin ETF approved",
         text="Strong inflows",
         url="https://example.com/a?utm_source=x",
@@ -23,6 +24,7 @@ def test_storage_keeps_one_canonical_duplicate(tmp_path, make_news_item):
     second = analyzed(
         make_news_item,
         id="duplicate",
+        external_id="two",
         title=" Bitcoin  ETF approved ",
         text="Strong inflows",
         url="https://EXAMPLE.com/a?utm_medium=y",

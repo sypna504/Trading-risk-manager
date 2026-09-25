@@ -3,6 +3,8 @@ uvicorn
 httpx
 pydantic>=2.0
 pydantic-settings>=2.0
+PyYAML>=6.0
+telethon>=1.36,<2
 ccxt
 pandas
 numpy

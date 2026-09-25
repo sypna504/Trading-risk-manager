@@ -13,6 +13,13 @@ services:
       DATABASE_PATH: /app/data/trading_risk.db
       MODEL_REGISTRY_PATH: /app/app/ml_services/app/models/registry.json
       OUTCOME_AUTO_EVALUATION: 'true'
+      TELEGRAM_API_ID: ${TELEGRAM_API_ID:-}
+      TELEGRAM_API_HASH: ${TELEGRAM_API_HASH:-}
+      TELEGRAM_SESSION_PATH: ${TELEGRAM_SESSION_PATH:-/app/data/telegram.session}
+      NEWS_LLM_PROVIDER: ${NEWS_LLM_PROVIDER:-rule_based}
+      NEWS_LLM_URL: ${NEWS_LLM_URL:-http://ollama:11434}
+      NEWS_LLM_MODEL: ${NEWS_LLM_MODEL:-}
+      NEWS_LLM_TIMEOUT_SECONDS: ${NEWS_LLM_TIMEOUT_SECONDS:-8}
     depends_on:
       ml_service:
         condition: service_healthy
@@ -97,5 +104,15 @@ services:
     - ./app/ml_services/app/models:/app/app/models
     - ./app/ml_services/app/training/data:/app/app/training/data
     - ./runtime:/app/runtime
+  ollama:
+    profiles:
+    - llm
+    image: ollama/ollama:latest
+    container_name: trading-risk-ollama
+    ports:
+    - 11434:11434
+    volumes:
+    - ollama_data:/root/.ollama
 volumes:
   backend_data: null
+  ollama_data: null

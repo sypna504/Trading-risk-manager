@@ -5,7 +5,7 @@ from enum import Enum
 from typing import Annotated
 from uuid import uuid4
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 Score = Annotated[float, Field(ge=0.0, le=1.0)]
@@ -52,6 +52,28 @@ class NewsSource(BaseModel):
     credibility_score: Score = 0.5
 
 
+class NewsAnalysisResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    sentiment: NewsSentiment
+    event_type: NewsEventType
+    crypto_relevance: Score
+    impact_direction: ImpactDirection
+    impact_probability: Score
+    affected_assets: list[str] = Field(default_factory=list)
+    uncertainty: Score
+
+    @field_validator("affected_assets")
+    @classmethod
+    def normalize_assets(cls, values: list[str]) -> list[str]:
+        result: list[str] = []
+        for value in values:
+            asset = str(value).strip().upper()
+            if asset and asset not in result:
+                result.append(asset)
+        return result
+
+
 class NewsItem(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()), min_length=1, max_length=128)
     source_id: str = Field(min_length=1, max_length=128)
@@ -65,6 +87,7 @@ class NewsItem(BaseModel):
 
     published_at: datetime
     received_at: datetime
+    edited_at: datetime | None = None
 
     language: str = Field(default="unknown", min_length=2, max_length=32)
     crypto_assets: list[str] = Field(default_factory=list)
@@ -74,6 +97,7 @@ class NewsItem(BaseModel):
     crypto_relevance: Score = 0.0
     impact_direction: ImpactDirection = ImpactDirection.UNCERTAIN
     impact_probability: Score = 0.0
+    uncertainty: Score = 1.0
 
     credibility_score: Score = 0.5
 
@@ -83,16 +107,21 @@ class NewsItem(BaseModel):
     duplicate_group_id: str | None = Field(default=None, max_length=128)
     is_duplicate: bool = False
 
-    @field_validator("published_at", "received_at")
+    channel: str | None = Field(default=None, max_length=256)
+    message_id: int | None = Field(default=None, ge=1)
+
+    @field_validator("published_at", "received_at", "edited_at")
     @classmethod
-    def normalize_datetime(cls, value: datetime) -> datetime:
+    def normalize_datetime(cls, value: datetime | None) -> datetime | None:
+        if value is None:
+            return None
         if value.tzinfo is None:
             value = value.replace(tzinfo=timezone.utc)
         return value.astimezone(timezone.utc)
 
     @field_validator("crypto_assets")
     @classmethod
-    def normalize_assets(cls, values: list[str]) -> list[str]:
+    def normalize_crypto_assets(cls, values: list[str]) -> list[str]:
         normalized: list[str] = []
         for value in values:
             asset = str(value).strip().upper()

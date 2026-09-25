@@ -1,0 +1,7 @@
+telegram:
+  enabled: false
+  channels: []
+
+rss:
+  enabled: true
+  sources: []

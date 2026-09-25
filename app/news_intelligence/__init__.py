@@ -1,10 +1,21 @@
 """Independent news-intelligence layer for informational crypto context.
 
-The module is intentionally isolated from trade-decision logic.  MVP-1 does
-not change ``trade_allowed`` or any Quant Core threshold.
+MVP-2 adds optional Telegram ingestion and optional local Ollama analysis.
+The layer still does not change ``trade_allowed`` or Quant Core thresholds.
 """
 
-from .models import NewsItem, NewsSource
+from .analysis import LocalLLMNewsAnalyzer, NewsAnalyzer, RuleBasedNewsAnalyzer
+from .models import NewsAnalysisResult, NewsItem, NewsSource
 from .service import NewsIntelligenceService
+from .telegram import TelegramNewsSource
 
-__all__ = ["NewsItem", "NewsSource", "NewsIntelligenceService"]
+__all__ = [
+    "NewsItem",
+    "NewsSource",
+    "NewsAnalysisResult",
+    "NewsAnalyzer",
+    "RuleBasedNewsAnalyzer",
+    "LocalLLMNewsAnalyzer",
+    "TelegramNewsSource",
+    "NewsIntelligenceService",
+]

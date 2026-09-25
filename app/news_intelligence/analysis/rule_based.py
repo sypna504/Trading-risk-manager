@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 
+from .base import NewsAnalyzer
 from ..models import ImpactDirection, NewsEventType, NewsItem, NewsSentiment
 
 
@@ -46,8 +47,8 @@ def _contains(text: str, keyword: str) -> bool:
     return re.search(rf"\b{re.escape(keyword)}\b", text) is not None
 
 
-class RuleBasedNewsAnalyzer:
-    """Transparent baseline classifier. It is not production intelligence."""
+class RuleBasedNewsAnalyzer(NewsAnalyzer):
+    """Deterministic fallback that never needs an external service."""
 
     def analyze(self, item: NewsItem) -> NewsItem:
         content = f"{item.title} {item.text}".casefold()
@@ -110,6 +111,10 @@ class RuleBasedNewsAnalyzer:
         if relevance <= 0.10:
             impact_probability = min(impact_probability, 0.10)
 
+        uncertainty = 0.65 if direction == ImpactDirection.UNCERTAIN else 0.35
+        if relevance <= 0.10:
+            uncertainty = max(uncertainty, 0.80)
+
         return item.model_copy(
             update={
                 "crypto_assets": assets,
@@ -118,5 +123,6 @@ class RuleBasedNewsAnalyzer:
                 "crypto_relevance": round(relevance, 4),
                 "impact_direction": direction,
                 "impact_probability": round(impact_probability, 4),
+                "uncertainty": round(uncertainty, 4),
             }
         )

@@ -77,6 +77,7 @@ class NewsNormalizer:
                 "url": url,
                 "published_at": _utc(item.published_at),
                 "received_at": _utc(item.received_at),
+                "edited_at": _utc(item.edited_at) if item.edited_at else None,
                 "raw_hash": raw_hash,
                 "normalized_hash": normalized_hash,
             }

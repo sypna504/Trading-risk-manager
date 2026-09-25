@@ -22,6 +22,7 @@ def test_rule_analyzer_fixture_cases(news_fixture_rows, make_news_item):
             assert fixture["expected_asset"] in result.crypto_assets
         assert 0 <= result.crypto_relevance <= 1
         assert 0 <= result.impact_probability <= 1
+        assert 0 <= result.uncertainty <= 1
 
 
 def test_unrelated_news_has_low_crypto_relevance(news_fixture_rows, make_news_item):

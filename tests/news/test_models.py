@@ -5,7 +5,7 @@ from datetime import datetime
 import pytest
 from pydantic import ValidationError
 
-from app.news_intelligence.models import NewsSource, NewsSourceType
+from app.news_intelligence.models import NewsAnalysisResult, NewsSource, NewsSourceType
 
 
 def test_news_item_validation_and_utc(make_news_item):
@@ -32,3 +32,16 @@ def test_source_categories_are_explicit():
         credibility_score=0.95,
     )
     assert source.type.value == "official"
+
+
+def test_structured_analysis_validation_rejects_invalid_probability():
+    with pytest.raises(ValidationError):
+        NewsAnalysisResult(
+            sentiment="neutral",
+            event_type="other",
+            crypto_relevance=0.2,
+            impact_direction="uncertain",
+            impact_probability=1.1,
+            affected_assets=[],
+            uncertainty=0.8,
+        )

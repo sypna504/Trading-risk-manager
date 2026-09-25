@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS news_items (
     url TEXT,
     published_at TEXT NOT NULL,
     received_at TEXT NOT NULL,
+    edited_at TEXT,
     language TEXT NOT NULL,
     crypto_assets TEXT NOT NULL,
     event_type TEXT NOT NULL,
@@ -28,11 +29,14 @@ CREATE TABLE IF NOT EXISTS news_items (
     crypto_relevance REAL NOT NULL,
     impact_direction TEXT NOT NULL,
     impact_probability REAL NOT NULL,
+    uncertainty REAL NOT NULL DEFAULT 1.0,
     credibility_score REAL NOT NULL,
     raw_hash TEXT NOT NULL,
     normalized_hash TEXT NOT NULL,
     duplicate_group_id TEXT,
-    is_duplicate INTEGER NOT NULL DEFAULT 0
+    is_duplicate INTEGER NOT NULL DEFAULT 0,
+    channel TEXT,
+    message_id INTEGER
 )
 """
 
@@ -51,9 +55,19 @@ class NewsRepository:
         connection.execute("PRAGMA synchronous = NORMAL")
         return connection
 
+    @staticmethod
+    def _ensure_column(connection: sqlite3.Connection, name: str, definition: str) -> None:
+        columns = {row[1] for row in connection.execute("PRAGMA table_info(news_items)")}
+        if name not in columns:
+            connection.execute(f"ALTER TABLE news_items ADD COLUMN {name} {definition}")
+
     def _init_schema(self) -> None:
         with self._connect() as connection:
             connection.execute(_CREATE_SQL)
+            self._ensure_column(connection, "edited_at", "TEXT")
+            self._ensure_column(connection, "uncertainty", "REAL NOT NULL DEFAULT 1.0")
+            self._ensure_column(connection, "channel", "TEXT")
+            self._ensure_column(connection, "message_id", "INTEGER")
             connection.execute(
                 "CREATE INDEX IF NOT EXISTS idx_news_published_at ON news_items(published_at DESC)"
             )
@@ -65,6 +79,9 @@ class NewsRepository:
             )
             connection.execute(
                 "CREATE INDEX IF NOT EXISTS idx_news_normalized_hash ON news_items(normalized_hash)"
+            )
+            connection.execute(
+                "CREATE INDEX IF NOT EXISTS idx_news_source_external ON news_items(source_id, external_id)"
             )
             connection.commit()
 
@@ -91,9 +108,58 @@ class NewsRepository:
             ).fetchone()
         return self._row_to_item(row) if row else None
 
-    def save_news(self, item: NewsItem) -> NewsItem:
-        """Persist one canonical record per exact/normalized hash."""
+    def find_by_external_id(self, source_id: str, external_id: str | None) -> NewsItem | None:
+        if not external_id:
+            return None
         with self._connect() as connection:
+            row = connection.execute(
+                "SELECT * FROM news_items WHERE source_id = ? AND external_id = ? LIMIT 1",
+                (source_id, external_id),
+            ).fetchone()
+        return self._row_to_item(row) if row else None
+
+    @staticmethod
+    def _values(item: NewsItem) -> tuple:
+        payload = item.model_dump(mode="json")
+        return (
+            payload["source_id"], payload["source_name"], payload["source_type"],
+            payload["external_id"], payload["title"], payload["text"], payload["url"],
+            payload["published_at"], payload["received_at"], payload["edited_at"],
+            payload["language"], json.dumps(payload["crypto_assets"], ensure_ascii=False),
+            payload["event_type"], payload["sentiment"], payload["crypto_relevance"],
+            payload["impact_direction"], payload["impact_probability"], payload["uncertainty"],
+            payload["credibility_score"], payload["raw_hash"], payload["normalized_hash"],
+            payload["duplicate_group_id"], int(payload["is_duplicate"]), payload["channel"],
+            payload["message_id"],
+        )
+
+    def save_news(self, item: NewsItem) -> NewsItem:
+        """Insert canonical news; source/external_id acts as an edit-aware identity."""
+        with self._connect() as connection:
+            existing_external = None
+            if item.external_id:
+                existing_external = connection.execute(
+                    "SELECT * FROM news_items WHERE source_id = ? AND external_id = ? LIMIT 1",
+                    (item.source_id, item.external_id),
+                ).fetchone()
+            if existing_external is not None:
+                stable_id = str(existing_external["id"])
+                updated = item.model_copy(update={"id": stable_id})
+                connection.execute(
+                    """
+                    UPDATE news_items SET
+                        source_id=?, source_name=?, source_type=?, external_id=?, title=?, text=?, url=?,
+                        published_at=?, received_at=?, edited_at=?, language=?, crypto_assets=?, event_type=?,
+                        sentiment=?, crypto_relevance=?, impact_direction=?, impact_probability=?, uncertainty=?,
+                        credibility_score=?, raw_hash=?, normalized_hash=?, duplicate_group_id=?, is_duplicate=?,
+                        channel=?, message_id=?
+                    WHERE id=?
+                    """,
+                    self._values(updated) + (stable_id,),
+                )
+                connection.commit()
+                return updated
+
             existing = connection.execute(
                 """
                 SELECT * FROM news_items
@@ -106,29 +172,19 @@ class NewsRepository:
             ).fetchone()
             if existing is not None:
                 return self._row_to_item(existing)
+
             payload = item.model_dump(mode="json")
             connection.execute(
                 """
                 INSERT INTO news_items (
                     id, source_id, source_name, source_type, external_id,
-                    title, text, url, published_at, received_at, language,
+                    title, text, url, published_at, received_at, edited_at, language,
                     crypto_assets, event_type, sentiment, crypto_relevance,
-                    impact_direction, impact_probability, credibility_score,
-                    raw_hash, normalized_hash, duplicate_group_id, is_duplicate
-                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                    impact_direction, impact_probability, uncertainty, credibility_score,
+                    raw_hash, normalized_hash, duplicate_group_id, is_duplicate, channel, message_id
+                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                 """,
-                (
-                    payload["id"], payload["source_id"], payload["source_name"],
-                    payload["source_type"], payload["external_id"], payload["title"],
-                    payload["text"], payload["url"], payload["published_at"],
-                    payload["received_at"], payload["language"],
-                    json.dumps(payload["crypto_assets"], ensure_ascii=False),
-                    payload["event_type"], payload["sentiment"],
-                    payload["crypto_relevance"], payload["impact_direction"],
-                    payload["impact_probability"], payload["credibility_score"],
-                    payload["raw_hash"], payload["normalized_hash"],
-                    payload["duplicate_group_id"], int(payload["is_duplicate"]),
-                ),
+                (payload["id"],) + self._values(item),
             )
             connection.commit()
         return item
@@ -154,7 +210,6 @@ class NewsRepository:
         target = symbol.strip().upper()
         if not target:
             return []
-        # Keep symbol matching exact without depending on SQLite JSON1 support.
         candidates = self.list_news(limit=min(max(limit * 10, 100), 500))
         return [item for item in candidates if target in item.crypto_assets][:limit]
 

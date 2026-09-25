@@ -6,6 +6,11 @@ venv/
 .env
 .env.local
 
+# Telegram auth sessions
+*.session
+*.session-journal
+.telegram/
+
 # python
 __pycache__/
 *.py[cod]
