@@ -320,5 +320,5 @@ def build_inference_features(
     # required by the loaded bundle (legacy v2 or v3).
     result = latest_strict_inference_row(features_df, FEATURE_COLUMNS).copy()
     for column in CAT_FEATURES:
-        result[column] = result[column].astype(str)
+        result[column] = result[column].astype(str).astype(object)
     return result

@@ -47,7 +47,7 @@ from .training_config import TrainingConfig
 def _catboost_frame(frame: pd.DataFrame) -> pd.DataFrame:
     result = frame[FEATURE_COLUMNS].copy()
     for column in CAT_FEATURES:
-        result[column] = result[column].astype(str)
+        result[column] = result[column].astype(str).astype(object)
     return result
 
 
@@ -882,7 +882,7 @@ def evaluate_bundle_on_test(bundle_dir: Path, test: pd.DataFrame) -> dict[str, A
     cat_features = configuration["cat_features"]
     features = test[feature_columns].copy()
     for column in cat_features:
-        features[column] = features[column].astype(str)
+        features[column] = features[column].astype(str).astype(object)
     probabilities = model.predict_proba(Pool(features, cat_features=cat_features))[:, 1]
     probabilities = apply_calibrator(calibrator, probabilities)
     thresholds = configuration.get("thresholds_by_strategy") or float(

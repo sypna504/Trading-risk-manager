@@ -1,6 +1,6 @@
-# Trading Risk Manager — MVP
+# Trading Risk Manager — research & paper-trading platform
 
-Research / paper-trading dashboard: market signal → ML quality gate → risk sizing → decision snapshot, with an informational news-intelligence layer. **News never changes `trade_allowed`, probability, threshold, stop-loss/take-profit or position sizing.**
+A crypto research platform with a frozen Quant Core, leakage-safe news research, geopolitical event analysis, read-only analytical agent, React dashboard and simulated paper portfolio. **Real trading is disabled.**
 
 ## Quick start
 
@@ -10,101 +10,28 @@ docker compose build
 docker compose up -d
 ```
 
-Windows PowerShell:
+Open:
+- React UI: `http://localhost:3000/`
+- Backend Swagger: `http://localhost:8000/docs`
+- Backend health: `http://localhost:8000/api/v1/health`
+- News service: `http://localhost:8010/health`
 
-```powershell
-Copy-Item .env.example .env
-docker compose build
-docker compose up -d
-```
+## Optional integrations
 
-Open: `http://localhost:8000/`
-
-## URLs
-
-- Dashboard: `http://localhost:8000/`
-- Swagger: `http://localhost:8000/docs`
-- Health: `http://localhost:8000/api/v1/health`
-- Model info: `http://localhost:8000/api/v1/ml/model-info`
-- Trading decision: `http://localhost:8000/api/v1/trading/decision`
-- Decision history: `http://localhost:8000/api/v1/trading/decisions`
-- News: `http://localhost:8000/api/v1/news`
-- News summary: `http://localhost:8000/api/v1/news/summary`
+Telegram is optional; leave `TELEGRAM_API_ID`, `TELEGRAM_API_HASH` empty to disable it. Ollama is optional and starts only with `docker compose --profile llm up -d ollama`. No live Telegram/Ollama call is required in CI.
 
 ## Tests
 
-Official entrypoint:
+Python: `python scripts/test_all.py` plus focused `pytest` suites. Frontend: `cd app/frontend && npm install && npm test && npm run build`. Docker integration is split into its own CI job.
 
-```bash
-python scripts/test_all.py
-```
+## News / fusion rule
 
-Focused suites:
+MVP-6 implemented leakage-safe price+news research, but real OOS improvement is **NOT PROVEN**. Therefore news and geopolitical context stay informational and do not modify `trade_allowed`, model probability, threshold or risk sizing.
 
-```bash
-python -m pytest -q tests/regression
-PYTHONPATH=app/ml_services python -m pytest -q app/ml_services/app/training/tests
-python -m pytest -q tests/news tests/frontend
-python -m pytest -q tests/integration/test_synthetic_e2e.py
-```
+## Paper trading
 
-## Docker validation
-
-```bash
-docker compose config
-docker compose build backend ml_service
-docker compose up -d backend ml_service
-docker compose ps
-```
-
-The default stack does **not** require Ollama or Telegram.
-
-## News
-
-News is normalized, analyzed, deduplicated and persisted separately from the Quant ML gate. The trading API receives a decision-time-safe 24h context snapshot. Only `published_at <= decision_time` is used.
-
-### Optional Telegram
-
-Set locally in `.env`:
-
-```text
-TELEGRAM_API_ID=...
-TELEGRAM_API_HASH=...
-TELEGRAM_SESSION_PATH=/app/data/telegram.session
-```
-
-Do not commit credentials. Without credentials Telegram is skipped and the news service continues to work.
-
-### Optional Ollama
-
-Set:
-
-```text
-NEWS_LLM_PROVIDER=ollama
-NEWS_LLM_MODEL=<local-model-name>
-NEWS_LLM_URL=http://ollama:11434
-```
-
-Start the optional service:
-
-```bash
-docker compose --profile llm up -d
-```
-
-If Ollama is unavailable, times out or returns invalid JSON, the analyzer falls back to the rule-based implementation.
-
-## Health states
-
-The dashboard reports Backend, ML Service, News Service and LLM as `ready`, `degraded` or `optional unavailable`. LLM unavailability is not fatal in the default configuration.
-
-## Security
-
-External news text is rendered with DOM `textContent`; the dashboard does not use unsafe `innerHTML` for news. External links are restricted to HTTP/HTTPS.
+Virtual execution follows the research contract: next-bar-open entry, simulated slippage/fees, SL/TP/timeout and conservative same-bar ambiguity handling. Model outcome monitoring and paper execution are separate systems.
 
 ## Limitations
 
-- paper/research trading only; no order execution;
-- live Binance, live Telegram and live Ollama are optional environment checks and are not required by offline CI;
-- news is informational only and is deliberately isolated from the trading gate;
-- model quality still depends on the active validated model bundle and its data contract;
-- no price+news joint training is included in this MVP.
+Real exchange orders are not implemented. Real historical news/geopolitical OOS evidence is still required before any news-based production gating. Local LLM output is not treated as a factual source. See `KNOWN_LIMITATIONS.md`.

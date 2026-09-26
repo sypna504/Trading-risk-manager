@@ -1,18 +1,5 @@
-# Current State — MVP-5 feature freeze
+# Current state
 
-Date: 2026-09-25
+MVP-1 through MVP-10 are represented by the baseline plus this final overlay. MVP-6 is the frozen news-research baseline: leakage-safe price+news fusion is implemented, synthetic uplift exists, but real OOS news improvement is **NOT PROVEN**, therefore production remains price-only for the trading gate. MVP-7 adds the React UI, MVP-8 adds geopolitical research, MVP-9 adds a grounded read-only agent, and MVP-10 adds paper trading/final integration.
 
-- Feature development: **FROZEN**.
-- Quant model logic changed: **NO**.
-- News changes trading gate: **NO**.
-- Price+news training: **NOT STARTED**.
-- Current branch inspected: `feature/news-agent-full-mvp`, commit `1588a49f35c9282aa8f8df6957ffe062b0502125`.
-- Existing GitHub CI compile: **PASS**.
-- Existing GitHub CI Docker build: **PASS**.
-- Existing GitHub CI backend integration smoke: **PASS**.
-- Existing ML CI: **FAIL** due to pandas categorical dtype regression (2 tests) and one CI import-path issue in the combined regression job.
-- Local MVP news + frontend suite: **49/49 PASS**.
-- Docker runtime in this sandbox: **NOT RUN** because Docker CLI is unavailable.
-- GitHub CI update from this sandbox: **NOT APPLIED** because the connected GitHub integration is read-only for repository contents.
-
-MVP-5 package includes the regression patch, proposed CI workflow, synthetic offline E2E and updated docs.
+Real trading: **NO**. Promotion readiness: **NO** until the Quant research gates are satisfied on real OOS evidence.

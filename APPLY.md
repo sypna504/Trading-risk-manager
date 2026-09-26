@@ -1,32 +1,21 @@
-# APPLY — MVP-5 validation package
+# Apply final MVP-7 → MVP-10 overlay
 
-Target branch: `feature/news-agent-full-mvp`.
+Baseline: repository `sypna504/Trading-risk-manager`, branch `feature/news-agent-full-mvp`, with MVP-1..5 and MVP-6 applied.
 
-This package contains only feature-freeze work: regression fixes, tests, CI, documentation and packaging metadata. It does not add trading features and does not start price+news training.
+1. Extract the ZIP contents directly into the repository root with replacement.
+2. Run `python APPLY_FINAL.py` once. It applies the known pandas/CatBoost MVP-5 regression fix if the full base files are present and removes a stale `.rej` file if present.
+3. Run Python tests and frontend/Docker validation as separate passes.
 
-## Apply
-
-Extract the archive into the repository root with replacement, then apply the two-line ML compatibility patch:
-
-```bash
-python APPLY_MVP5.py
-
-# or, equivalently:
-# git apply MVP5_REGRESSION_FIX.patch
-```
-
-Then:
+Recommended:
 
 ```bash
-cp .env.example .env
+python APPLY_FINAL.py
 python scripts/test_all.py
+cd app/frontend && npm install && npm test && npm run build && cd ../..
+cp .env.example .env
 docker compose config
-docker compose build backend ml_service
+docker compose build
 docker compose up -d
 ```
 
-Open `http://localhost:8000/`.
-
-## Why the patch exists
-
-The current MVP-4 branch CI exposed a pandas 3 categorical dtype regression in CatBoost preparation. The patch forces categorical columns back to plain `object` dtype. The proposed CI also fixes the ML import-path contract by running ML tests with `PYTHONPATH=app/ml_services` or via `scripts/test_all.py`.
+Open `http://localhost:3000/`. Backend Swagger is `http://localhost:8000/docs`. No real trading endpoint is included.

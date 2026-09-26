@@ -1,10 +1,10 @@
-# Known Limitations — MVP-5
+# Known limitations
 
-1. The application is research/paper-trading only and does not execute orders.
-2. News is informational and never changes the Quant ML trading gate.
-3. Telegram requires user credentials and is optional.
-4. Ollama requires a local model and is optional; rule-based fallback remains available.
-5. Live Binance, Telegram and Ollama are not part of deterministic CI.
-6. No price+news joint model training is included.
-7. Docker runtime could not be executed in this ChatGPT sandbox because Docker CLI is unavailable; the current repository's GitHub Actions Docker build is PASS.
-8. This environment's GitHub connection can read the repository but cannot commit CI/docs/regression fixes (`403 Resource not accessible by integration`). The included files therefore need to be applied to the branch before a final green CI artifact can be produced.
+1. Real OOS news improvement: NOT PROVEN.
+2. Real OOS geopolitical improvement: NOT PROVEN.
+3. News/geopolitical context does not affect `trade_allowed`.
+4. Live Binance/Telegram/Ollama tests are not required and were not run in the packaging environment.
+5. Docker CLI is unavailable in the packaging environment; CI definitions cover build/runtime.
+6. Frontend dependency installation/build requires npm registry access; source contracts and TypeScript syntax are checked locally.
+7. Paper trading is simulation only; no real order endpoint exists.
+8. OHLC same-bar TP/SL ambiguity uses conservative stop-loss priority unless more granular data is supplied.
