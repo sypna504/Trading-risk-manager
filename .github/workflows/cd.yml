@@ -1,0 +1,40 @@
+name: paper-platform-cd
+on:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: read
+  packages: write
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}/trading-risk-manager
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: backend
+            dockerfile: app/backend/api/dockerfile
+          - name: ml_service
+            dockerfile: app/ml_services/dockerfile
+          - name: news_service
+            dockerfile: app/news_service/Dockerfile
+          - name: frontend
+            dockerfile: app/frontend/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.name }}:${{ github.ref_name }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.name }}:latest
+# Paper/research services only. No real trading deployment exists.

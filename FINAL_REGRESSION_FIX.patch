@@ -1,0 +1,13 @@
+--- a/app/ml_services/app/features_builder.py
++++ b/app/ml_services/app/features_builder.py
+@@
+-        result[column] = result[column].astype(str)
++        result[column] = result[column].astype(str).astype(object)
+--- a/app/ml_services/app/training/train_model.py
++++ b/app/ml_services/app/training/train_model.py
+@@
+-        result[column] = result[column].astype(str)
++        result[column] = result[column].astype(str).astype(object)
+@@
+-        features[column] = features[column].astype(str)
++        features[column] = features[column].astype(str).astype(object)

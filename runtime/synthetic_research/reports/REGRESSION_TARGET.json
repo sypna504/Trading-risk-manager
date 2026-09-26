@@ -1,0 +1,100 @@
+{
+  "status": "completed",
+  "selection": {
+    "threshold_selection": {
+      "threshold": -9.457308140196593e-05,
+      "score": null,
+      "reason": "no threshold met minimum trade count"
+    },
+    "candidates": []
+  },
+  "metrics": {
+    "regression": {
+      "rmse": 0.013971741531554649,
+      "mae": 0.011559225418498374,
+      "correlation": -0.2485620397305074,
+      "prediction_mean": -0.0008391371215660624,
+      "prediction_std": 0.0009361356657539739
+    },
+    "trading": {
+      "trades": 7,
+      "selected_rate": 0.15555555555555556,
+      "mean_net_return": -0.005924373412721798,
+      "total_net_return": -0.041470613889052585,
+      "profit_factor": 0.32195183238820746
+    },
+    "portfolio": {
+      "cost_1x": {
+        "starting_capital": 10000.0,
+        "ending_capital": 9896.243032939816,
+        "portfolio_return": -0.010375696706018456,
+        "trades": 7,
+        "skipped_capacity": 0,
+        "win_rate": 0.14285714285714285,
+        "mean_trade_pnl": -14.822423865740896,
+        "profit_factor": 0.3192577209101568,
+        "maximum_drawdown": -0.012908104155788691,
+        "sharpe": -10.300122859307077,
+        "sortino": -3.1782979497037944,
+        "calmar": -46.40077212903784,
+        "cagr": -0.5989459995506374,
+        "turnover": 1.7396762953168476,
+        "exposure": 0.25,
+        "average_holding_bars": 2.857142857142857,
+        "cost_multiplier": 1.0,
+        "base_round_trip_cost": 0.003,
+        "max_concurrent_positions": 5,
+        "max_portfolio_risk_pct": 5.0,
+        "max_gross_exposure_pct": 100.0
+      },
+      "cost_1_5x": {
+        "starting_capital": 10000.0,
+        "ending_capital": 9870.186806812833,
+        "portfolio_return": -0.01298131931871671,
+        "trades": 7,
+        "skipped_capacity": 0,
+        "win_rate": 0.14285714285714285,
+        "mean_trade_pnl": -18.544741883880786,
+        "profit_factor": 0.2569317924298268,
+        "maximum_drawdown": -0.014770378424414199,
+        "sharpe": -12.091809349861121,
+        "sortino": -3.7487811246689335,
+        "calmar": -46.14991022571852,
+        "cagr": -0.681651638286605,
+        "turnover": 1.7380879855505813,
+        "exposure": 0.25,
+        "average_holding_bars": 2.857142857142857,
+        "cost_multiplier": 1.5,
+        "base_round_trip_cost": 0.003,
+        "max_concurrent_positions": 5,
+        "max_portfolio_risk_pct": 5.0,
+        "max_gross_exposure_pct": 100.0
+      },
+      "cost_2x": {
+        "starting_capital": 10000.0,
+        "ending_capital": 9844.178151293017,
+        "portfolio_return": -0.01558218487069829,
+        "trades": 7,
+        "skipped_capacity": 0,
+        "win_rate": 0.14285714285714285,
+        "mean_trade_pnl": -22.260264100997517,
+        "profit_factor": 0.2088014761256604,
+        "maximum_drawdown": -0.016630690070990717,
+        "sharpe": -13.539954643617193,
+        "sortino": -4.255329031085411,
+        "calmar": -44.9379401982412,
+        "cagr": -0.7473489558656645,
+        "turnover": 1.7365008693661155,
+        "exposure": 0.25,
+        "average_holding_bars": 2.857142857142857,
+        "cost_multiplier": 2.0,
+        "base_round_trip_cost": 0.003,
+        "max_concurrent_positions": 5,
+        "max_portfolio_risk_pct": 5.0,
+        "max_gross_exposure_pct": 100.0
+      }
+    },
+    "threshold": -9.457308140196593e-05
+  },
+  "score": -0.34036516302359515
+}

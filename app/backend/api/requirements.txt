@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+httpx
+pydantic>=2.0
+pydantic-settings>=2.0
+PyYAML>=6.0
+telethon>=1.36,<2
+ccxt
+pandas
+numpy
+grpcio==1.81.1
+grpcio-tools==1.81.1
+grpcio-health-checking==1.81.1
+protobuf==6.33.5

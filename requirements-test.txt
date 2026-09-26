@@ -1,0 +1,6 @@
+-r app/backend/api/requirements.txt
+-r app/ml_services/requirements.txt
+pytest
+pytest-cov
+PyYAML
+telethon>=1.36,<2

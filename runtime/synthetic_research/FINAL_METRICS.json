@@ -1,0 +1,507 @@
+{
+  "classification": {
+    "positive_class_rate": 0.13261648745519714,
+    "precision": 0.125,
+    "recall": 0.2972972972972973,
+    "f1": 0.176,
+    "confusion_matrix": [
+      [
+        165,
+        77
+      ],
+      [
+        26,
+        11
+      ]
+    ],
+    "roc_auc": 0.44750949296403847,
+    "pr_auc": 0.12081739587268647,
+    "log_loss": 0.44662400209689723,
+    "brier_score": 0.1351907329559662,
+    "single_class_test": false
+  },
+  "probabilities": {
+    "count": 279,
+    "unique_count": 277,
+    "min": 0.07872050061903599,
+    "max": 0.6157663044775069,
+    "mean": 0.21566595921809842,
+    "std": 0.0932033067511086,
+    "range": 0.5370458038584709,
+    "q05": 0.10985187519220516,
+    "q25": 0.14805562614469472,
+    "median": 0.19643114259536765,
+    "q75": 0.2596420720598645,
+    "q95": 0.38887130375364926,
+    "expected_calibration_error": 0.10427591884319339,
+    "calibration_curve": [
+      {
+        "left": 0.0,
+        "right": 0.1,
+        "count": 11,
+        "mean_probability": 0.0944464211181141,
+        "positive_rate": 0.36363636363636365
+      },
+      {
+        "left": 0.1,
+        "right": 0.2,
+        "count": 132,
+        "mean_probability": 0.15285089661435072,
+        "positive_rate": 0.11363636363636363
+      },
+      {
+        "left": 0.2,
+        "right": 0.30000000000000004,
+        "count": 94,
+        "mean_probability": 0.24215498050800024,
+        "positive_rate": 0.14893617021276595
+      },
+      {
+        "left": 0.30000000000000004,
+        "right": 0.4,
+        "count": 29,
+        "mean_probability": 0.3390839248820151,
+        "positive_rate": 0.10344827586206896
+      },
+      {
+        "left": 0.4,
+        "right": 0.5,
+        "count": 8,
+        "mean_probability": 0.4426794333061522,
+        "positive_rate": 0.125
+      },
+      {
+        "left": 0.5,
+        "right": 0.6000000000000001,
+        "count": 4,
+        "mean_probability": 0.5505924690496813,
+        "positive_rate": 0.0
+      },
+      {
+        "left": 0.6000000000000001,
+        "right": 0.7000000000000001,
+        "count": 1,
+        "mean_probability": 0.6157663044775069,
+        "positive_rate": 0.0
+      }
+    ]
+  },
+  "trading": {
+    "threshold": {
+      "__global__": 0.22000000000000003,
+      "breakout": 0.22000000000000003,
+      "mean_reversion": 0.24000000000000002
+    },
+    "trades": 88,
+    "selected_rate": 0.3154121863799283,
+    "win_rate": 0.375,
+    "mean_net_return": -0.004956480931878709,
+    "median_net_return": -0.004770654674217054,
+    "total_net_return": -0.43617032200532635,
+    "cumulative_return": -0.3587750238459465,
+    "maximum_drawdown": -0.3607803416030173,
+    "profit_factor": 0.40772842624977074,
+    "average_win": 0.009098970853503089,
+    "average_loss": -0.013389752003107786,
+    "payoff_ratio": 0.6795473770829513,
+    "sharpe_like": null,
+    "by_month": {
+      "2026-02": {
+        "trades": 86,
+        "mean_net_return": -0.0050114986367845865,
+        "total_net_return": -0.4309888827634744
+      },
+      "2026-03": {
+        "trades": 2,
+        "mean_net_return": -0.002590719620925938,
+        "total_net_return": -0.005181439241851876
+      }
+    },
+    "by_symbol": {
+      "ADAUSDT": {
+        "trades": 15,
+        "win_rate": 0.6,
+        "mean_net_return": 0.001996741458609237,
+        "total_net_return": 0.029951121879138558
+      },
+      "BTCUSDT": {
+        "trades": 17,
+        "win_rate": 0.4117647058823529,
+        "mean_net_return": -0.0010905794670190735,
+        "total_net_return": -0.01853985093932425
+      },
+      "ETHUSDT": {
+        "trades": 38,
+        "win_rate": 0.3684210526315789,
+        "mean_net_return": -0.005812700006990117,
+        "total_net_return": -0.22088260026562445
+      },
+      "SOLUSDT": {
+        "trades": 18,
+        "win_rate": 0.16666666666666666,
+        "mean_net_return": -0.012594388482195342,
+        "total_net_return": -0.22669899267951615
+      }
+    },
+    "by_strategy": {
+      "breakout": {
+        "trades": 6,
+        "win_rate": 0.5,
+        "mean_net_return": -0.002891406478461604,
+        "total_net_return": -0.017348438870769624
+      },
+      "mean_reversion": {
+        "trades": 82,
+        "win_rate": 0.36585365853658536,
+        "mean_net_return": -0.005107583940665327,
+        "total_net_return": -0.41882188313455676
+      }
+    },
+    "by_interval": {
+      "1h": {
+        "trades": 88,
+        "win_rate": 0.375,
+        "mean_net_return": -0.004956480931878709,
+        "total_net_return": -0.43617032200532635
+      }
+    },
+    "by_trend_regime": {
+      "down": {
+        "trades": 71,
+        "win_rate": 0.39436619718309857,
+        "mean_net_return": -0.004390307660993202,
+        "total_net_return": -0.3117118439305174
+      },
+      "range": {
+        "trades": 12,
+        "win_rate": 0.16666666666666666,
+        "mean_net_return": -0.010042983028083928,
+        "total_net_return": -0.12051579633700713
+      },
+      "up": {
+        "trades": 5,
+        "win_rate": 0.6,
+        "mean_net_return": -0.0007885363475603722,
+        "total_net_return": -0.003942681737801861
+      }
+    },
+    "by_volatility_regime": {
+      "high": {
+        "trades": 30,
+        "win_rate": 0.4666666666666667,
+        "mean_net_return": -0.002571611934100157,
+        "total_net_return": -0.07714835802300471
+      },
+      "low": {
+        "trades": 58,
+        "win_rate": 0.3275862068965517,
+        "mean_net_return": -0.006190033861764165,
+        "total_net_return": -0.3590219639823216
+      }
+    },
+    "diagnostic_note": "trade-level aggregates are diagnostics, not a portfolio backtest; use portfolio_backtest for Sharpe, drawdown and portfolio return"
+  },
+  "model": {},
+  "raw_probability_diagnostics": {
+    "positive_rate_baseline": 0.13261648745519714,
+    "top_buckets": {
+      "top_1pct": {
+        "observations": 3,
+        "positive_rate": 0.0,
+        "lift_over_baseline": 0.0,
+        "mean_net_return": -0.007999117194196952,
+        "total_net_return": -0.023997351582590854,
+        "profit_factor": 0.0
+      },
+      "top_2pct": {
+        "observations": 6,
+        "positive_rate": 0.0,
+        "lift_over_baseline": 0.0,
+        "mean_net_return": -0.012696825460776955,
+        "total_net_return": -0.07618095276466173,
+        "profit_factor": 0.0
+      },
+      "top_5pct": {
+        "observations": 14,
+        "positive_rate": 0.07142857142857142,
+        "lift_over_baseline": 0.5386100386100385,
+        "mean_net_return": -0.005939977232250472,
+        "total_net_return": -0.0831596812515066,
+        "profit_factor": 0.242682597085924
+      },
+      "top_10pct": {
+        "observations": 28,
+        "positive_rate": 0.07142857142857142,
+        "lift_over_baseline": 0.5386100386100385,
+        "mean_net_return": -0.00456850937014131,
+        "total_net_return": -0.12791826236395668,
+        "profit_factor": 0.3612817794075993
+      },
+      "top_20pct": {
+        "observations": 56,
+        "positive_rate": 0.08928571428571429,
+        "lift_over_baseline": 0.6732625482625483,
+        "mean_net_return": -0.006811326977454133,
+        "total_net_return": -0.38143431073743145,
+        "profit_factor": 0.27346917117047503
+      }
+    }
+  },
+  "probability_rank_diagnostics": {
+    "positive_rate_baseline": 0.13261648745519714,
+    "top_buckets": {
+      "top_1pct": {
+        "observations": 3,
+        "positive_rate": 0.0,
+        "lift_over_baseline": 0.0,
+        "mean_net_return": -0.007999117194196952,
+        "total_net_return": -0.023997351582590854,
+        "profit_factor": 0.0
+      },
+      "top_2pct": {
+        "observations": 6,
+        "positive_rate": 0.0,
+        "lift_over_baseline": 0.0,
+        "mean_net_return": -0.012696825460776955,
+        "total_net_return": -0.07618095276466173,
+        "profit_factor": 0.0
+      },
+      "top_5pct": {
+        "observations": 14,
+        "positive_rate": 0.07142857142857142,
+        "lift_over_baseline": 0.5386100386100385,
+        "mean_net_return": -0.005939977232250472,
+        "total_net_return": -0.0831596812515066,
+        "profit_factor": 0.242682597085924
+      },
+      "top_10pct": {
+        "observations": 28,
+        "positive_rate": 0.07142857142857142,
+        "lift_over_baseline": 0.5386100386100385,
+        "mean_net_return": -0.00456850937014131,
+        "total_net_return": -0.12791826236395668,
+        "profit_factor": 0.3612817794075993
+      },
+      "top_20pct": {
+        "observations": 56,
+        "positive_rate": 0.08928571428571429,
+        "lift_over_baseline": 0.6732625482625483,
+        "mean_net_return": -0.006811326977454133,
+        "total_net_return": -0.38143431073743145,
+        "profit_factor": 0.27346917117047503
+      }
+    }
+  },
+  "expected_utility": {
+    "reference": {
+      "__global__": {
+        "expected_win": 0.01882115366943127,
+        "expected_loss": -0.013437342668507542,
+        "rows": 33
+      },
+      "breakout": {
+        "expected_win": null,
+        "expected_loss": -0.024997539375135932,
+        "rows": 1
+      },
+      "mean_reversion": {
+        "expected_win": 0.01882115366943127,
+        "expected_loss": -0.013009187234928712,
+        "rows": 32
+      }
+    },
+    "valid_rows": 257,
+    "selected_rows": 12,
+    "mean_expected_utility": -0.0060312875709862684,
+    "mean_realized_net_return": -0.006062575181764079,
+    "total_realized_net_return": -0.07275090218116895,
+    "profit_factor": 0.26704998101360233,
+    "portfolio": {
+      "starting_capital": 10000.0,
+      "ending_capital": 9818.943554950778,
+      "portfolio_return": -0.018105644504922247,
+      "trades": 12,
+      "skipped_capacity": 0,
+      "win_rate": 0.16666666666666666,
+      "mean_trade_pnl": -15.08803708743524,
+      "profit_factor": 0.2656259205108898,
+      "maximum_drawdown": -0.018105644504922247,
+      "sharpe": -9.298014493177327,
+      "sortino": -3.1492596041607355,
+      "calmar": -21.47928961257558,
+      "cagr": -0.3888963819435626,
+      "turnover": 2.976241068280816,
+      "exposure": 0.25,
+      "average_holding_bars": 2.9166666666666665,
+      "cost_multiplier": 1.0,
+      "base_round_trip_cost": 0.003,
+      "max_concurrent_positions": 5,
+      "max_portfolio_risk_pct": 5.0,
+      "max_gross_exposure_pct": 100.0
+    }
+  },
+  "portfolio": {
+    "cost_1x": {
+      "starting_capital": 10000.0,
+      "ending_capital": 8927.368035178952,
+      "portfolio_return": -0.1072631964821048,
+      "trades": 86,
+      "skipped_capacity": 2,
+      "win_rate": 0.37209302325581395,
+      "mean_trade_pnl": -12.47246470722145,
+      "profit_factor": 0.37457153824274425,
+      "maximum_drawdown": -0.11021623221574406,
+      "sharpe": -12.95722929381187,
+      "sortino": -6.886440034593824,
+      "calmar": -8.071619741725588,
+      "cagr": -0.8896235158112115,
+      "turnover": 20.010580246808175,
+      "exposure": 0.25,
+      "average_holding_bars": 2.7674418604651163,
+      "cost_multiplier": 1.0,
+      "base_round_trip_cost": 0.003,
+      "max_concurrent_positions": 5,
+      "max_portfolio_risk_pct": 5.0,
+      "max_gross_exposure_pct": 100.0
+    },
+    "cost_1_5x": {
+      "starting_capital": 10000.0,
+      "ending_capital": 8643.034492571236,
+      "portfolio_return": -0.13569655074287634,
+      "trades": 86,
+      "skipped_capacity": 2,
+      "win_rate": 0.313953488372093,
+      "mean_trade_pnl": -15.778668691032127,
+      "profit_factor": 0.28221653455862894,
+      "maximum_drawdown": -0.13598226723300744,
+      "sharpe": -16.066798816232705,
+      "sortino": -8.619538661047052,
+      "calmar": -6.921033170336927,
+      "cagr": -0.9411377820972647,
+      "turnover": 19.70507671514545,
+      "exposure": 0.25,
+      "average_holding_bars": 2.7674418604651163,
+      "cost_multiplier": 1.5,
+      "base_round_trip_cost": 0.003,
+      "max_concurrent_positions": 5,
+      "max_portfolio_risk_pct": 5.0,
+      "max_gross_exposure_pct": 100.0
+    },
+    "cost_2x": {
+      "starting_capital": 10000.0,
+      "ending_capital": 8367.46681889391,
+      "portfolio_return": -0.16325331811060895,
+      "trades": 86,
+      "skipped_capacity": 2,
+      "win_rate": 0.27906976744186046,
+      "mean_trade_pnl": -18.98294396634987,
+      "profit_factor": 0.2117944490849858,
+      "maximum_drawdown": -0.16325331811060895,
+      "sharpe": -18.83251498867881,
+      "sortino": -10.234959640044078,
+      "calmar": -5.933298941981598,
+      "cagr": -0.9686307396206614,
+      "turnover": 19.405619026725077,
+      "exposure": 0.25,
+      "average_holding_bars": 2.7674418604651163,
+      "cost_multiplier": 2.0,
+      "base_round_trip_cost": 0.003,
+      "max_concurrent_positions": 5,
+      "max_portfolio_risk_pct": 5.0,
+      "max_gross_exposure_pct": 100.0
+    },
+    "cost_3x": {
+      "starting_capital": 10000.0,
+      "ending_capital": 7841.590757131133,
+      "portfolio_return": -0.21584092428688673,
+      "trades": 86,
+      "skipped_capacity": 2,
+      "win_rate": 0.23255813953488372,
+      "mean_trade_pnl": -25.097781893824063,
+      "profit_factor": 0.11875092777240037,
+      "maximum_drawdown": -0.21584092428688673,
+      "sharpe": -23.360009721197223,
+      "sortino": -13.257709905344596,
+      "calmar": -4.591848507410879,
+      "cagr": -0.9911088260249254,
+      "turnover": 18.824322737812203,
+      "exposure": 0.25,
+      "average_holding_bars": 2.7674418604651163,
+      "cost_multiplier": 3.0,
+      "base_round_trip_cost": 0.003,
+      "max_concurrent_positions": 5,
+      "max_portfolio_risk_pct": 5.0,
+      "max_gross_exposure_pct": 100.0
+    },
+    "all_signals": {
+      "starting_capital": 10000.0,
+      "ending_capital": 7616.544129609024,
+      "portfolio_return": -0.23834558703909758,
+      "trades": 242,
+      "skipped_capacity": 37,
+      "win_rate": 0.3305785123966942,
+      "mean_trade_pnl": -9.848991199962686,
+      "profit_factor": 0.43144251920347315,
+      "maximum_drawdown": -0.24059112311826092,
+      "sharpe": -16.03735606816697,
+      "sortino": -10.886189392583445,
+      "calmar": -4.126630001874447,
+      "cagr": -0.9928305468444842,
+      "turnover": 53.56035831963619,
+      "exposure": 0.24515479537000442,
+      "average_holding_bars": 2.7520661157024793,
+      "cost_multiplier": 1.0,
+      "base_round_trip_cost": 0.003,
+      "max_concurrent_positions": 5,
+      "max_portfolio_risk_pct": 5.0,
+      "max_gross_exposure_pct": 100.0
+    }
+  },
+  "confidence_intervals": {
+    "method": "moving_block_bootstrap",
+    "iterations": 5,
+    "block_size_bars": 24,
+    "confidence_intervals": {
+      "roc_auc": {
+        "lower_95": 0.4451992183734808,
+        "median": 0.4704225352112677,
+        "upper_95": 0.5036351373318466
+      },
+      "pr_auc": {
+        "lower_95": 0.09204972298752569,
+        "median": 0.13658173308465713,
+        "upper_95": 0.15202073503613445
+      },
+      "precision": {
+        "lower_95": 0.08129032258064517,
+        "median": 0.12359550561797752,
+        "upper_95": 0.1517234219269103
+      },
+      "win_rate": {
+        "lower_95": 0.2510752688172043,
+        "median": 0.3372093023255814,
+        "upper_95": 0.42504012841091493
+      },
+      "mean_trade_return": {
+        "lower_95": -0.00821219251792717,
+        "median": -0.006250935707580121,
+        "upper_95": -0.0036008556749684856
+      },
+      "profit_factor": {
+        "lower_95": 0.2332730385171152,
+        "median": 0.36998704232527224,
+        "upper_95": 0.521822649750868
+      },
+      "portfolio_return": {
+        "lower_95": -0.1498242329216164,
+        "median": -0.1250541639121695,
+        "upper_95": -0.0977243810749959
+      },
+      "sharpe": {
+        "lower_95": -28.80064845033086,
+        "median": -20.496944010319265,
+        "upper_95": -15.700165137744827
+      }
+    }
+  }
+}

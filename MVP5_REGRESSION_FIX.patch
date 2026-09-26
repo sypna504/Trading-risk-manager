@@ -1,0 +1,27 @@
+diff --git a/app/ml_services/app/features_builder.py b/app/ml_services/app/features_builder.py
+--- a/app/ml_services/app/features_builder.py
++++ b/app/ml_services/app/features_builder.py
+@@
+     result = latest_strict_inference_row(features_df, FEATURE_COLUMNS).copy()
+     for column in CAT_FEATURES:
+-        result[column] = result[column].astype(str)
++        # pandas 3 may keep string values in a dedicated string dtype. CatBoost
++        # and the existing runtime contract expect plain Python objects here.
++        result[column] = result[column].astype(str).astype(object)
+     return result
+diff --git a/app/ml_services/app/training/train_model.py b/app/ml_services/app/training/train_model.py
+--- a/app/ml_services/app/training/train_model.py
++++ b/app/ml_services/app/training/train_model.py
+@@
+ def _catboost_frame(frame: pd.DataFrame) -> pd.DataFrame:
+     result = frame[FEATURE_COLUMNS].copy()
+     for column in CAT_FEATURES:
+-        result[column] = result[column].astype(str)
++        result[column] = result[column].astype(str).astype(object)
+     return result
+@@
+     features = test[feature_columns].copy()
+     for column in cat_features:
+-        features[column] = features[column].astype(str)
++        features[column] = features[column].astype(str).astype(object)
+     probabilities = model.predict_proba(Pool(features, cat_features=cat_features))[:, 1]

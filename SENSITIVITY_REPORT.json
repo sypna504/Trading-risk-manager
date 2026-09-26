@@ -1,0 +1,14 @@
+{
+  "date": "2026-08-25",
+  "base_state": "feature/auto-signal-choseing + research-mvp-final-v9 overlay + frozen research finalization v10",
+  "commit": "NOT CAPTURED",
+  "status": "NOT RUN ON REAL BINANCE DATA",
+  "synthetic_research": {
+    "status": "PASS",
+    "experiments": 17,
+    "candidate_exported": false,
+    "research_result": "NO ROBUST EDGE FOUND"
+  },
+  "real_v3_sensitivity": "NOT RUN; generated only for a promotion-ready production-compatible real-data candidate",
+  "reproduce": "scripts\\research_full.cmd then inspect runtime/research/reports/SENSITIVITY_REPORT.md and candidate sensitivity_report.json if exported"
+}

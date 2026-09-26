@@ -1,0 +1,85 @@
+{
+  "experiment_id": "exp_0014",
+  "phase": "target",
+  "target": "horizon_net_6h",
+  "feature_set": "production_full",
+  "architecture": "pooled",
+  "class_weight": "balanced",
+  "parameters": "d4_lr04",
+  "seed": 42,
+  "roc_auc": 0.5962077603510818,
+  "pr_auc": 0.4213488683679551,
+  "pr_baseline": 0.3164937192790825,
+  "brier": 0.21350615734309925,
+  "trades": 78,
+  "profit_factor": 1.8253345577577906,
+  "portfolio_return": 0.016842065048431554,
+  "max_drawdown": -0.008692511346444776,
+  "cost_1_5x": 0.011936732107141967,
+  "cost_2x": 0.007048279146125935,
+  "score": 0.43090004061024745,
+  "error": null,
+  "git_sha": "NOT CAPTURED",
+  "history_sha256": "bca733e890c181bd22c00649c34b49ebf85d1ffce353069401e83d26845505c2",
+  "history_max_timestamp": "2026-08-26 19:00:00+00:00",
+  "dataset_hash": "cf3fa2c1629b29502c81ca7e4b0a708c087b1223f71d7f3807e5785f8442d79b",
+  "target_config": {
+    "name": "horizon_net_6h",
+    "definition": "horizon_return_drawdown",
+    "horizon_minutes": 360,
+    "atr_stop_multiplier": 1.5,
+    "reward_ratio": 2.0,
+    "minimum_net_return": 0.003,
+    "maximum_drawdown": -0.02
+  },
+  "feature_groups": [
+    "production_full"
+  ],
+  "model_config": {
+    "architecture": "pooled",
+    "class_weight": "balanced",
+    "parameters": "d4_lr04",
+    "seed": 42
+  },
+  "periods": {
+    "holdout_start": "2026-07-12 13:00:00",
+    "purge": "0 days 07:00:00",
+    "parts": {
+      "train": {
+        "rows": 24283,
+        "start": "2025-12-11 20:00:00",
+        "end": "2026-04-10 00:00:00"
+      },
+      "model_selection": {
+        "rows": 4517,
+        "start": "2026-04-10 08:00:00",
+        "end": "2026-05-04 13:00:00"
+      },
+      "calibration_fit": {
+        "rows": 3365,
+        "start": "2026-05-04 21:00:00",
+        "end": "2026-05-20 09:00:00"
+      },
+      "calibration_selection": {
+        "rows": 3387,
+        "start": "2026-05-20 17:00:00",
+        "end": "2026-06-04 03:00:00"
+      },
+      "threshold_selection": {
+        "rows": 2590,
+        "start": "2026-06-04 11:00:00",
+        "end": "2026-06-21 04:00:00"
+      },
+      "development_oos": {
+        "rows": 3662,
+        "start": "2026-06-21 12:00:00",
+        "end": "2026-07-12 05:00:00"
+      }
+    },
+    "final_holdout": {
+      "rows": 8102,
+      "start": "2026-07-12 13:00:00",
+      "end": "2026-08-26 13:00:00"
+    }
+  }
+}

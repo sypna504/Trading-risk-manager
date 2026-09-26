@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package ml.v1;
+
+service MLService {
+  rpc PredictSignalQuality(PredictSignalQualityRequest)
+      returns (PredictSignalQualityResponse);
+}
+
+message Candle {
+  int64 timestamp_ms = 1;
+  double open = 2;
+  double high = 3;
+  double low = 4;
+  double close = 5;
+  double volume = 6;
+}
+
+message PredictSignalQualityRequest {
+  string symbol = 1;
+  string interval = 2;
+  string strategy_name = 3;
+  repeated Candle candles = 4;
+}
+
+message PredictSignalQualityResponse {
+  double prob_good_trade = 1;
+  double risk_score = 2;
+  bool trade_allowed = 3;
+  double threshold = 4;
+  string risk_level = 5;
+  string model_version = 6;
+  double raw_prob_good_trade = 7;
+  string calibration_method = 8;
+  string probability_bin = 9;
+  string model_supported_interval = 10;
+}

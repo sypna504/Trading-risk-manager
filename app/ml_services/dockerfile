@@ -1,0 +1,32 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Keep /app importable during image build as well as at runtime. The build
+# contract checker imports both `ml.v1` and `app.*` before CMD is started.
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+COPY app/ml_services/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY app/ml_services/app ./app
+COPY app/proto/ml ./proto/ml
+
+RUN rm -rf ./ml && \
+    mkdir -p ./ml/v1 && \
+    touch ./ml/__init__.py ./ml/v1/__init__.py && \
+    python -m grpc_tools.protoc \
+      -I./proto \
+      --python_out=. \
+      --grpc_python_out=. \
+      ./proto/ml/v1/ml.proto && \
+    test -s ./ml/v1/ml_pb2.py && \
+    test -s ./ml/v1/ml_pb2_grpc.py && \
+    python -c "from ml.v1 import ml_pb2, ml_pb2_grpc; from app.config import Settings; assert Settings(_env_file=None).MIN_CANDLES == 60" && \
+    python -m app.training.runtime_contract_check
+
+EXPOSE 50051
+
+CMD ["python", "-m", "app.online.server"]

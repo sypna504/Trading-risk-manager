@@ -1,0 +1,58 @@
+[
+  {
+    "name": "etf_positive",
+    "title": "SEC approved a spot Bitcoin ETF with strong inflows",
+    "text": "Bitcoin ETF launch sees record inflow from investors.",
+    "url": "https://example.com/etf?utm_source=test",
+    "expected_event": "etf",
+    "expected_sentiment": "positive",
+    "expected_direction": "bullish",
+    "expected_asset": "BTC"
+  },
+  {
+    "name": "exchange_hack_negative",
+    "title": "Crypto exchange hacked after security breach",
+    "text": "Attackers stole funds from the exchange in a major exploit.",
+    "url": "https://example.com/hack",
+    "expected_event": "hack",
+    "expected_sentiment": "negative",
+    "expected_direction": "bearish"
+  },
+  {
+    "name": "regulation_negative",
+    "title": "Regulator announces crypto crackdown",
+    "text": "New regulation includes a lawsuit and tighter compliance rules.",
+    "url": "https://example.com/regulation",
+    "expected_event": "regulation",
+    "expected_sentiment": "negative",
+    "expected_direction": "bearish"
+  },
+  {
+    "name": "macro",
+    "title": "Federal Reserve keeps interest rates unchanged",
+    "text": "The Fed statement discusses inflation and the jobs report.",
+    "url": "https://example.com/macro",
+    "expected_event": "macro",
+    "expected_sentiment": "neutral",
+    "expected_direction": "uncertain"
+  },
+  {
+    "name": "unrelated",
+    "title": "Local football club opens a new training center",
+    "text": "The club welcomed supporters to the facility.",
+    "url": "https://example.com/sport",
+    "expected_event": "other",
+    "expected_sentiment": "neutral",
+    "expected_direction": "uncertain"
+  },
+  {
+    "name": "duplicate_article",
+    "title": "  SEC   approved a spot Bitcoin ETF with strong inflows  ",
+    "text": "Bitcoin ETF launch sees record inflow from investors.\n",
+    "url": "https://EXAMPLE.com/etf?utm_medium=social&utm_source=duplicate",
+    "expected_event": "etf",
+    "expected_sentiment": "positive",
+    "expected_direction": "bullish",
+    "expected_asset": "BTC"
+  }
+]

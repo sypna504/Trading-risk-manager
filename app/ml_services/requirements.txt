@@ -1,0 +1,15 @@
+grpcio==1.81.1
+grpcio-tools==1.81.1
+grpcio-health-checking==1.81.1
+protobuf==6.33.5
+pytest
+ccxt
+pandas
+pydantic
+pydantic-settings
+catboost
+numpy
+pyarrow
+scikit-learn==1.8.0
+scipy
+joblib

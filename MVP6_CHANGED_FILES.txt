@@ -1,0 +1,14 @@
+APPLY_MVP6.md
+MVP6_CHANGED_FILES.txt
+MVP6_README.md
+MVP6_REPORT.md
+NEWS_FEATURE_ABLATION.md
+NEWS_FUSION_REPORT.md
+NEWS_FUSION_SYNTHETIC.json
+NEWS_LEAKAGE_AUDIT.md
+NEWS_MODEL_COMPARISON.md
+app/ml_services/app/research/news_fusion.py
+app/ml_services/app/research/news_fusion_runner.py
+scripts/news_fusion_research.py
+scripts/news_fusion_synthetic.py
+tests/news_research/test_news_fusion.py

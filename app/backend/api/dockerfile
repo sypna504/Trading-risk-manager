@@ -1,0 +1,35 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Build-time verification scripts are executed by file path. Without an
+# explicit PYTHONPATH, Python adds /app/scripts rather than /app to sys.path,
+# so both the generated `ml` package and the project `app` package are hidden.
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+COPY app/backend/api/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+# Generate protobuf after COPY so stale generated files from the host cannot
+# shadow the current contract. Explicit __init__.py files also make imports
+# deterministic across Python launch modes and tooling.
+RUN rm -rf ./ml && \
+    mkdir -p ./ml/v1 && \
+    touch ./ml/__init__.py ./ml/v1/__init__.py && \
+    python -m grpc_tools.protoc \
+      -I./app/proto \
+      --python_out=. \
+      --grpc_python_out=. \
+      ./app/proto/ml/v1/ml.proto && \
+    test -s ./ml/v1/ml_pb2.py && \
+    test -s ./ml/v1/ml_pb2_grpc.py && \
+    python -c "from ml.v1 import ml_pb2, ml_pb2_grpc; from app.backend.api.app.config import settings; assert settings.MIN_CANDLES == 60" && \
+    python ./scripts/verify_backend_runtime.py
+
+EXPOSE 8000
+
+CMD ["uvicorn", "app.backend.api.app.main:app", "--host", "0.0.0.0", "--port", "8000"]

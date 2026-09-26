@@ -1,0 +1,3127 @@
+# Target Experiment Report
+
+- **generated_at:** 2026-08-26T20:33:44.632613+00:00
+- **source_ref:** feature/auto-signal-choseing + research patch
+- **git_sha:** NOT CAPTURED
+- **history_sha256:** bca733e890c181bd22c00649c34b49ebf85d1ffce353069401e83d26845505c2
+- **history_period:** 2025-12-09 18:00:00+00:00 → 2026-08-26 19:00:00+00:00
+- **mode:** full
+
+Selected target: **horizon_net_12h**
+
+```csv
+experiment_id,phase,target,feature_set,architecture,class_weight,parameters,seed,roc_auc,pr_auc,pr_baseline,brier,trades,profit_factor,portfolio_return,max_drawdown,cost_1_5x,cost_2x,score,error
+exp_0001,target,ft_atr100_r10_3h,production_full,pooled,none,d4_lr04,42,0.6115961790299013,0.3988097817691636,0.3327991452991453,0.21614473579839677,472,0.5856572314594226,-0.16963358252514427,-0.17124647049426645,-0.24443183387606282,-0.3125505541709661,-2.411814769018584,
+exp_0002,target,ft_atr100_r10_3h,production_full,pooled,balanced,d4_lr04,42,0.5963044914262069,0.3864270487336229,0.3327991452991453,0.21774109490330645,267,0.6375038604455979,-0.1047716883130897,-0.11223333621160403,-0.15704142386914466,-0.20630223444152396,-1.556341530393984,
+exp_0003,target,ft_atr125_r15_6h,production_full,pooled,none,d4_lr04,42,0.5881266906405441,0.26106781588354167,0.21873293282359366,0.1699524210913879,71,1.0200207412282996,0.0013748288173951462,-0.023358411427660597,-0.009814022349856177,-0.020889101914489783,-0.04994614930271446,
+exp_0004,target,ft_atr125_r15_6h,production_full,pooled,balanced,d4_lr04,42,0.5830273325766769,0.2534337101188421,0.21873293282359366,0.17263236825207146,344,0.6445056715631133,-0.0988168159088717,-0.11936569996458879,-0.1459494096582168,-0.19066846405600524,-1.4897640483142107,
+exp_0005,target,ft_atr150_r20_6h,production_full,pooled,none,d4_lr04,42,0.6154835689719411,0.1352009554657627,0.09584926269797925,0.08737288183535317,11,4.672464721054572,0.04849743417418906,-0.006762245818691781,0.044225394606473456,0.03996776807098623,1.073161034591395,
+exp_0006,target,ft_atr150_r20_6h,production_full,pooled,balanced,d4_lr04,42,0.5931493140795466,0.12105473024284363,0.09584926269797925,0.08840558843348051,102,0.5998287948079911,-0.07313358710189843,-0.07698045132221465,-0.09790216838552879,-0.12203616943644247,-1.077463501972912,
+exp_0007,target,ft_atr150_r20_12h,production_full,pooled,none,d4_lr04,42,0.5642082436480282,0.20963126847824157,0.17364771151178918,0.14386797768855492,29,1.306532651107693,0.017242534289021894,-0.040778191157061716,0.010806731072294573,0.00440536427474858,0.18906505030570514,
+exp_0008,target,ft_atr150_r20_12h,production_full,pooled,balanced,d4_lr04,42,0.5667792223948899,0.19701072248045268,0.17364771151178918,0.1460778045738853,58,0.3537799654286226,-0.10543675189711088,-0.10543675189711088,-0.12083888865551451,-0.13599021391330135,-1.4714670239952579,
+exp_0009,target,ft_atr200_r25_12h,production_full,pooled,none,d4_lr04,42,0.5777262815817611,0.04934652729629034,0.038002773925104025,0.03661393287523673,0,,0.0,0.0,0.0,0.0,-0.29432812331440683,
+exp_0010,target,ft_atr200_r25_12h,production_full,pooled,balanced,d4_lr04,42,0.5770232953636586,0.048159587173935016,0.038002773925104025,0.03723407219740745,115,0.5777275739377186,-0.09674250472110202,-0.09674250472110202,-0.12711816369105677,-0.15650869076785745,-1.385035288443562,
+exp_0011,target,ft_atr200_r30_24h,production_full,pooled,none,d4_lr04,42,0.628655142103721,0.0646175353221759,0.04344170403587444,0.0428543895583315,325,0.9053585214016144,-0.02056266670794571,-0.09740864224223822,-0.05050870574473343,-0.07955231180815425,-0.518371920589751,
+exp_0012,target,ft_atr200_r30_24h,production_full,pooled,balanced,d4_lr04,42,0.6318743324858463,0.06602888612532722,0.04344170403587444,0.042818772111411135,409,0.8891497222507667,-0.03055762450188848,-0.12554454142844884,-0.06573046817274353,-0.09966897341847103,-0.6904844293707494,
+exp_0013,target,horizon_net_6h,production_full,pooled,none,d4_lr04,42,0.5925746739805244,0.3809932795084997,0.3164937192790825,0.21392635797042533,42,1.1195379122582916,0.00378829217286758,-0.02533866827459874,-0.001082040393092898,-0.005934433708158937,0.04365234953006582,
+exp_0014,target,horizon_net_6h,production_full,pooled,balanced,d4_lr04,42,0.5962077603510818,0.4213488683679551,0.3164937192790825,0.21350615734309925,78,1.8253345577577906,0.016842065048431554,-0.008692511346444776,0.011936732107141967,0.007048279146125935,0.43090004061024745,
+exp_0015,target,horizon_net_12h,production_full,pooled,none,d4_lr04,42,0.5824786639126398,0.43230017545938265,0.3667128987517337,0.22784489769425856,160,0.7939414779392814,-0.0318809528632914,-0.07739047395519827,-0.05345000308143699,-0.07456694687043242,-0.5713123024916803,
+exp_0016,target,horizon_net_12h,production_full,pooled,balanced,d4_lr04,42,0.5717251367239141,0.4131420676045381,0.3667128987517337,0.23821980801981746,58,45.10252921075832,0.047501100876985,-0.0010420492914975377,0.045195657199389005,0.04289246352179332,1.0851375508710264,
+```
+
+```json
+{
+  "ft_atr100_r10_3h": {
+    "rows": 50269,
+    "positive_class_rate": 0.31673596053233605,
+    "net_return_mean": -0.003020974023238974,
+    "net_return_median": -0.003,
+    "exit_reason": {
+      "timeout": 17642,
+      "stop_loss": 16705,
+      "take_profit": 15922
+    },
+    "by_month": {
+      "2025-12": {
+        "rows": 4122,
+        "positive_rate": 0.31489568170790877,
+        "mean_net_return": -0.002553546902964512,
+        "median_net_return": -0.0027872025799457996
+      },
+      "2026-01": {
+        "rows": 5789,
+        "positive_rate": 0.28882363102435654,
+        "mean_net_return": -0.0035282883620195286,
+        "median_net_return": -0.003659630606860251
+      },
+      "2026-02": {
+        "rows": 5859,
+        "positive_rate": 0.3444273766854412,
+        "mean_net_return": -0.003310854207941139,
+        "median_net_return": -0.003
+      },
+      "2026-03": {
+        "rows": 6372,
+        "positive_rate": 0.31936597614563716,
+        "mean_net_return": -0.0029638400118737153,
+        "median_net_return": -0.003
+      },
+      "2026-04": {
+        "rows": 6144,
+        "positive_rate": 0.28857421875,
+        "mean_net_return": -0.003276526632727773,
+        "median_net_return": -0.003099999999999989
+      },
+      "2026-05": {
+        "rows": 6393,
+        "positive_rate": 0.30423901141873927,
+        "mean_net_return": -0.0030642546319524437,
+        "median_net_return": -0.003
+      },
+      "2026-06": {
+        "rows": 5635,
+        "positive_rate": 0.3416149068322981,
+        "mean_net_return": -0.0028547191683936006,
+        "median_net_return": -0.003
+      },
+      "2026-07": {
+        "rows": 5900,
+        "positive_rate": 0.30186440677966103,
+        "mean_net_return": -0.003045289033445284,
+        "median_net_return": -0.003
+      },
+      "2026-08": {
+        "rows": 4055,
+        "positive_rate": 0.3637484586929716,
+        "mean_net_return": -0.002183026103005236,
+        "median_net_return": -0.0014962406015036596
+      }
+    },
+    "by_symbol": {
+      "AAVEUSDT": {
+        "rows": 1155,
+        "positive_rate": 0.3220779220779221,
+        "mean_net_return": -0.003217539445805861,
+        "median_net_return": -0.003
+      },
+      "ADAUSDT": {
+        "rows": 1242,
+        "positive_rate": 0.3115942028985507,
+        "mean_net_return": -0.0032373898860544067,
+        "median_net_return": -0.003384099476674671
+      },
+      "ALGOUSDT": {
+        "rows": 1171,
+        "positive_rate": 0.3637916310845431,
+        "mean_net_return": -0.0027970462016802837,
+        "median_net_return": -0.0019094874591057938
+      },
+      "APTUSDT": {
+        "rows": 1146,
+        "positive_rate": 0.3263525305410122,
+        "mean_net_return": -0.0029646235653191496,
+        "median_net_return": -0.003
+      },
+      "ATOMUSDT": {
+        "rows": 1282,
+        "positive_rate": 0.3361934477379095,
+        "mean_net_return": -0.0031127647455604928,
+        "median_net_return": -0.00359595792778544
+      },
+      "AVAXUSDT": {
+        "rows": 1120,
+        "positive_rate": 0.2892857142857143,
+        "mean_net_return": -0.0034741649176851263,
+        "median_net_return": -0.0038130102796226613
+      },
+      "BCHUSDT": {
+        "rows": 1122,
+        "positive_rate": 0.3048128342245989,
+        "mean_net_return": -0.0034393424853376084,
+        "median_net_return": -0.0036837617582347578
+      },
+      "BNBUSDT": {
+        "rows": 1105,
+        "positive_rate": 0.28868778280542984,
+        "mean_net_return": -0.0031405580213571447,
+        "median_net_return": -0.0029783823513515025
+      },
+      "BTCUSDT": {
+        "rows": 1132,
+        "positive_rate": 0.2968197879858657,
+        "mean_net_return": -0.00300249968865091,
+        "median_net_return": -0.0029633958004444657
+      },
+      "CHZUSDT": {
+        "rows": 1192,
+        "positive_rate": 0.3213087248322148,
+        "mean_net_return": -0.00332875699710713,
+        "median_net_return": -0.003246066939785683
+      },
+      "DOGEUSDT": {
+        "rows": 1112,
+        "positive_rate": 0.31654676258992803,
+        "mean_net_return": -0.0030993894250805976,
+        "median_net_return": -0.0028817150261561926
+      },
+      "DOTUSDT": {
+        "rows": 1189,
+        "positive_rate": 0.3347350714886459,
+        "mean_net_return": -0.002634609203955779,
+        "median_net_return": -0.003
+      },
+      "EGLDUSDT": {
+        "rows": 1092,
+        "positive_rate": 0.32051282051282054,
+        "mean_net_return": -0.0031717345434091907,
+        "median_net_return": -0.003
+      },
+      "ETHUSDT": {
+        "rows": 1053,
+        "positive_rate": 0.30959164292497626,
+        "mean_net_return": -0.0032291816034863046,
+        "median_net_return": -0.0024286614917844425
+      },
+      "FETUSDT": {
+        "rows": 1102,
+        "positive_rate": 0.3466424682395644,
+        "mean_net_return": -0.0028078288780319215,
+        "median_net_return": -0.003
+      },
+      "FILUSDT": {
+        "rows": 1099,
+        "positive_rate": 0.31028207461328483,
+        "mean_net_return": -0.00288949744701332,
+        "median_net_return": -0.0028494656028902306
+      },
+      "FLOWUSDT": {
+        "rows": 1131,
+        "positive_rate": 0.3359858532272325,
+        "mean_net_return": -0.002804749663930882,
+        "median_net_return": -0.0027064004697591156
+      },
+      "GALAUSDT": {
+        "rows": 1220,
+        "positive_rate": 0.3163934426229508,
+        "mean_net_return": -0.0030951046852851598,
+        "median_net_return": -0.003
+      },
+      "GRTUSDT": {
+        "rows": 1128,
+        "positive_rate": 0.35638297872340424,
+        "mean_net_return": -0.0025306552540183933,
+        "median_net_return": -0.0017496081532271087
+      },
+      "ICPUSDT": {
+        "rows": 1078,
+        "positive_rate": 0.3404452690166976,
+        "mean_net_return": -0.0029533713104918495,
+        "median_net_return": -0.002532347512705477
+      },
+      "IMXUSDT": {
+        "rows": 1117,
+        "positive_rate": 0.3366159355416294,
+        "mean_net_return": -0.003173223587152709,
+        "median_net_return": -0.003
+      },
+      "LDOUSDT": {
+        "rows": 1063,
+        "positive_rate": 0.34619002822201317,
+        "mean_net_return": -0.0025094310321760746,
+        "median_net_return": -0.0015693848354793013
+      },
+      "LINKUSDT": {
+        "rows": 1043,
+        "positive_rate": 0.3000958772770853,
+        "mean_net_return": -0.003187877705689851,
+        "median_net_return": -0.003
+      },
+      "LTCUSDT": {
+        "rows": 1049,
+        "positive_rate": 0.3393708293612965,
+        "mean_net_return": -0.002695199413876717,
+        "median_net_return": -0.0020795529257066044
+      },
+      "MANAUSDT": {
+        "rows": 1154,
+        "positive_rate": 0.3561525129982669,
+        "mean_net_return": -0.0027724773785988395,
+        "median_net_return": -0.003
+      },
+      "MINAUSDT": {
+        "rows": 1068,
+        "positive_rate": 0.3586142322097378,
+        "mean_net_return": -0.0030628660577201572,
+        "median_net_return": -0.003
+      },
+      "NEARUSDT": {
+        "rows": 1096,
+        "positive_rate": 0.34306569343065696,
+        "mean_net_return": -0.0023971714934935755,
+        "median_net_return": -0.001742527705107186
+      },
+      "OPUSDT": {
+        "rows": 1165,
+        "positive_rate": 0.3244635193133047,
+        "mean_net_return": -0.00343293055721081,
+        "median_net_return": -0.0035720823798628372
+      },
+      "PEPEUSDT": {
+        "rows": 1018,
+        "positive_rate": 0.30353634577603145,
+        "mean_net_return": -0.0026324612414355916,
+        "median_net_return": -0.003
+      },
+      "QNTUSDT": {
+        "rows": 1123,
+        "positive_rate": 0.3686553873552983,
+        "mean_net_return": -0.0028922827558491362,
+        "median_net_return": -0.002850746268656554
+      },
+      "RENDERUSDT": {
+        "rows": 1067,
+        "positive_rate": 0.3514526710402999,
+        "mean_net_return": -0.002861192990587694,
+        "median_net_return": -0.002272197962154385
+      },
+      "SANDUSDT": {
+        "rows": 1220,
+        "positive_rate": 0.32295081967213113,
+        "mean_net_return": -0.003211814330751517,
+        "median_net_return": -0.0036441403473977925
+      },
+      "SHIBUSDT": {
+        "rows": 1153,
+        "positive_rate": 0.3113616652211622,
+        "mean_net_return": -0.0030276456405311254,
+        "median_net_return": -0.003
+      },
+      "SOLUSDT": {
+        "rows": 1119,
+        "positive_rate": 0.2770330652368186,
+        "mean_net_return": -0.003298388086892601,
+        "median_net_return": -0.0033658982802781097
+      },
+      "STXUSDT": {
+        "rows": 1168,
+        "positive_rate": 0.3219178082191781,
+        "mean_net_return": -0.0032320580634111174,
+        "median_net_return": -0.003
+      },
+      "SUIUSDT": {
+        "rows": 1077,
+        "positive_rate": 0.2999071494893222,
+        "mean_net_return": -0.0030602011056417217,
+        "median_net_return": -0.0024081964787688844
+      },
+      "THETAUSDT": {
+        "rows": 1018,
+        "positive_rate": 0.31728880157170924,
+        "mean_net_return": -0.0026617342163540183,
+        "median_net_return": -0.003
+      },
+      "TIAUSDT": {
+        "rows": 1142,
+        "positive_rate": 0.3239929947460595,
+        "mean_net_return": -0.0029583758420790173,
+        "median_net_return": -0.003
+      },
+      "TONUSDT": {
+        "rows": 828,
+        "positive_rate": 0.3140096618357488,
+        "mean_net_return": -0.0038348856772979947,
+        "median_net_return": -0.004454339758297285
+      },
+      "TRXUSDT": {
+        "rows": 1210,
+        "positive_rate": 0.16611570247933885,
+        "mean_net_return": -0.0028763473887043964,
+        "median_net_return": -0.0027126806364168284
+      },
+      "UNIUSDT": {
+        "rows": 1087,
+        "positive_rate": 0.32382704691812325,
+        "mean_net_return": -0.003060015374551983,
+        "median_net_return": -0.002823974652349845
+      },
+      "USDCUSDT": {
+        "rows": 669,
+        "positive_rate": 0.0029895366218236174,
+        "mean_net_return": -0.0029780511076034225,
+        "median_net_return": -0.003
+      },
+      "VETUSDT": {
+        "rows": 1231,
+        "positive_rate": 0.3371242891957758,
+        "mean_net_return": -0.002857512347891563,
+        "median_net_return": -0.003
+      },
+      "XLMUSDT": {
+        "rows": 1229,
+        "positive_rate": 0.31570382424735555,
+        "mean_net_return": -0.0032551745215367084,
+        "median_net_return": -0.0035659309564232107
+      },
+      "XRPUSDT": {
+        "rows": 1284,
+        "positive_rate": 0.32087227414330216,
+        "mean_net_return": -0.003100284175952716,
+        "median_net_return": -0.0028515162168059023
+      }
+    },
+    "by_strategy": {
+      "breakout": {
+        "rows": 7984,
+        "positive_rate": 0.4000501002004008,
+        "mean_net_return": -0.0033471788143319757,
+        "median_net_return": -0.0036204123422988706
+      },
+      "mean_reversion": {
+        "rows": 42285,
+        "positive_rate": 0.301005084545347,
+        "mean_net_return": -0.0029593819917363953,
+        "median_net_return": -0.003
+      }
+    },
+    "by_trend_regime": {
+      "down": {
+        "rows": 36175,
+        "positive_rate": 0.31079474775397375,
+        "mean_net_return": -0.002910526302312339,
+        "median_net_return": -0.0028120553094376196
+      },
+      "range": {
+        "rows": 7247,
+        "positive_rate": 0.2525182834276252,
+        "mean_net_return": -0.0032017083596266975,
+        "median_net_return": -0.003
+      },
+      "up": {
+        "rows": 6847,
+        "positive_rate": 0.41609463998831603,
+        "mean_net_return": -0.0034132136272581313,
+        "median_net_return": -0.004306380638063764
+      }
+    },
+    "by_volatility_regime": {
+      "high": {
+        "rows": 20372,
+        "positive_rate": 0.3065972903985863,
+        "mean_net_return": -0.0029126113564868325,
+        "median_net_return": -0.002930033933526419
+      },
+      "low": {
+        "rows": 29897,
+        "positive_rate": 0.323644512827374,
+        "mean_net_return": -0.003094813012002884,
+        "median_net_return": -0.003
+      }
+    }
+  },
+  "ft_atr125_r15_6h": {
+    "rows": 50206,
+    "positive_class_rate": 0.21282316854559216,
+    "net_return_mean": -0.0031621676124102337,
+    "net_return_median": -0.004746724890829721,
+    "exit_reason": {
+      "stop_loss": 20150,
+      "timeout": 19371,
+      "take_profit": 10685
+    },
+    "by_month": {
+      "2025-12": {
+        "rows": 4122,
+        "positive_rate": 0.21348859776807375,
+        "mean_net_return": -0.0020501107176685465,
+        "median_net_return": -0.003
+      },
+      "2026-01": {
+        "rows": 5789,
+        "positive_rate": 0.20970806702366557,
+        "mean_net_return": -0.003947613044193728,
+        "median_net_return": -0.008000000000000004
+      },
+      "2026-02": {
+        "rows": 5859,
+        "positive_rate": 0.24492234169653523,
+        "mean_net_return": -0.0034131836533513524,
+        "median_net_return": -0.0044389968136498955
+      },
+      "2026-03": {
+        "rows": 6372,
+        "positive_rate": 0.18895166352793472,
+        "mean_net_return": -0.00318350693200685,
+        "median_net_return": -0.005312902243626125
+      },
+      "2026-04": {
+        "rows": 6144,
+        "positive_rate": 0.19075520833333334,
+        "mean_net_return": -0.003460760568741631,
+        "median_net_return": -0.0051118085366271245
+      },
+      "2026-05": {
+        "rows": 6393,
+        "positive_rate": 0.2100735179102143,
+        "mean_net_return": -0.0029854072246188463,
+        "median_net_return": -0.004198771259459108
+      },
+      "2026-06": {
+        "rows": 5635,
+        "positive_rate": 0.22448979591836735,
+        "mean_net_return": -0.003536925391922797,
+        "median_net_return": -0.0069215686274509665
+      },
+      "2026-07": {
+        "rows": 5900,
+        "positive_rate": 0.18847457627118644,
+        "mean_net_return": -0.003615328769509073,
+        "median_net_return": -0.004711236288604867
+      },
+      "2026-08": {
+        "rows": 3992,
+        "positive_rate": 0.2655310621242485,
+        "mean_net_return": -0.0013937159361078074,
+        "median_net_return": -0.0021377896013392546
+      }
+    },
+    "by_symbol": {
+      "AAVEUSDT": {
+        "rows": 1154,
+        "positive_rate": 0.2097053726169844,
+        "mean_net_return": -0.004099001748909739,
+        "median_net_return": -0.007051962516322227
+      },
+      "ADAUSDT": {
+        "rows": 1239,
+        "positive_rate": 0.2033898305084746,
+        "mean_net_return": -0.0036576587594439967,
+        "median_net_return": -0.005802241793434801
+      },
+      "ALGOUSDT": {
+        "rows": 1170,
+        "positive_rate": 0.22735042735042735,
+        "mean_net_return": -0.0031388191602179792,
+        "median_net_return": -0.00462574268531257
+      },
+      "APTUSDT": {
+        "rows": 1145,
+        "positive_rate": 0.22183406113537119,
+        "mean_net_return": -0.003230234038951541,
+        "median_net_return": -0.0061914893617019936
+      },
+      "ATOMUSDT": {
+        "rows": 1282,
+        "positive_rate": 0.20748829953198128,
+        "mean_net_return": -0.003728948193750875,
+        "median_net_return": -0.007710026065475603
+      },
+      "AVAXUSDT": {
+        "rows": 1119,
+        "positive_rate": 0.18141197497765862,
+        "mean_net_return": -0.004160104902006992,
+        "median_net_return": -0.00704530744336562
+      },
+      "BCHUSDT": {
+        "rows": 1119,
+        "positive_rate": 0.18945487042001788,
+        "mean_net_return": -0.003935658185794063,
+        "median_net_return": -0.005969806962547561
+      },
+      "BNBUSDT": {
+        "rows": 1105,
+        "positive_rate": 0.20542986425339366,
+        "mean_net_return": -0.003244677587424815,
+        "median_net_return": -0.003971429562683368
+      },
+      "BTCUSDT": {
+        "rows": 1131,
+        "positive_rate": 0.1971706454465075,
+        "mean_net_return": -0.003365539357492465,
+        "median_net_return": -0.0044885094141829925
+      },
+      "CHZUSDT": {
+        "rows": 1189,
+        "positive_rate": 0.21026072329688814,
+        "mean_net_return": -0.003085338990477542,
+        "median_net_return": -0.006129890453834161
+      },
+      "DOGEUSDT": {
+        "rows": 1110,
+        "positive_rate": 0.22792792792792793,
+        "mean_net_return": -0.0029590787408100036,
+        "median_net_return": -0.004473505971228195
+      },
+      "DOTUSDT": {
+        "rows": 1188,
+        "positive_rate": 0.21296296296296297,
+        "mean_net_return": -0.002983067829614427,
+        "median_net_return": -0.005352954203206692
+      },
+      "EGLDUSDT": {
+        "rows": 1092,
+        "positive_rate": 0.21703296703296704,
+        "mean_net_return": -0.0034765253332885875,
+        "median_net_return": -0.005433090024331119
+      },
+      "ETHUSDT": {
+        "rows": 1053,
+        "positive_rate": 0.19848053181386516,
+        "mean_net_return": -0.004000391029028309,
+        "median_net_return": -0.005516291373636959
+      },
+      "FETUSDT": {
+        "rows": 1101,
+        "positive_rate": 0.22979109900090827,
+        "mean_net_return": -0.0028895435372931796,
+        "median_net_return": -0.005646903123345701
+      },
+      "FILUSDT": {
+        "rows": 1096,
+        "positive_rate": 0.22992700729927007,
+        "mean_net_return": -0.0019876239036491256,
+        "median_net_return": -0.003
+      },
+      "FLOWUSDT": {
+        "rows": 1129,
+        "positive_rate": 0.23737821080602303,
+        "mean_net_return": -0.0023316253125218837,
+        "median_net_return": -0.004229709788489908
+      },
+      "GALAUSDT": {
+        "rows": 1217,
+        "positive_rate": 0.19638455217748563,
+        "mean_net_return": -0.0033937523420709877,
+        "median_net_return": -0.006225806451612967
+      },
+      "GRTUSDT": {
+        "rows": 1126,
+        "positive_rate": 0.2433392539964476,
+        "mean_net_return": -0.001975758660172352,
+        "median_net_return": -0.003
+      },
+      "ICPUSDT": {
+        "rows": 1076,
+        "positive_rate": 0.22304832713754646,
+        "mean_net_return": -0.003161414886502386,
+        "median_net_return": -0.0059443306194905095
+      },
+      "IMXUSDT": {
+        "rows": 1114,
+        "positive_rate": 0.2378815080789946,
+        "mean_net_return": -0.003426053331014626,
+        "median_net_return": -0.0074733062054119755
+      },
+      "LDOUSDT": {
+        "rows": 1060,
+        "positive_rate": 0.23773584905660378,
+        "mean_net_return": -0.002821466986500709,
+        "median_net_return": -0.005924029499473901
+      },
+      "LINKUSDT": {
+        "rows": 1043,
+        "positive_rate": 0.20613614573346117,
+        "mean_net_return": -0.003434686562344756,
+        "median_net_return": -0.005341920374707263
+      },
+      "LTCUSDT": {
+        "rows": 1049,
+        "positive_rate": 0.21544327931363202,
+        "mean_net_return": -0.0028895055476349245,
+        "median_net_return": -0.0037351860020586854
+      },
+      "MANAUSDT": {
+        "rows": 1154,
+        "positive_rate": 0.24610051993067592,
+        "mean_net_return": -0.002899686339446745,
+        "median_net_return": -0.005362670641200493
+      },
+      "MINAUSDT": {
+        "rows": 1068,
+        "positive_rate": 0.24344569288389514,
+        "mean_net_return": -0.003169255581886191,
+        "median_net_return": -0.0066363756574402384
+      },
+      "NEARUSDT": {
+        "rows": 1093,
+        "positive_rate": 0.23879231473010065,
+        "mean_net_return": -0.002443758065868413,
+        "median_net_return": -0.004255492780916523
+      },
+      "OPUSDT": {
+        "rows": 1163,
+        "positive_rate": 0.24849527085124679,
+        "mean_net_return": -0.003061597799810557,
+        "median_net_return": -0.007333694474539573
+      },
+      "PEPEUSDT": {
+        "rows": 1015,
+        "positive_rate": 0.20886699507389161,
+        "mean_net_return": -0.0022461123559960445,
+        "median_net_return": -0.003
+      },
+      "QNTUSDT": {
+        "rows": 1120,
+        "positive_rate": 0.2669642857142857,
+        "mean_net_return": -0.0030314504968819845,
+        "median_net_return": -0.006023642318677522
+      },
+      "RENDERUSDT": {
+        "rows": 1066,
+        "positive_rate": 0.25140712945590993,
+        "mean_net_return": -0.002500356536602505,
+        "median_net_return": -0.0042398744861980005
+      },
+      "SANDUSDT": {
+        "rows": 1219,
+        "positive_rate": 0.21493027071369974,
+        "mean_net_return": -0.003290362358461137,
+        "median_net_return": -0.006502626970227629
+      },
+      "SHIBUSDT": {
+        "rows": 1151,
+        "positive_rate": 0.19113814074717636,
+        "mean_net_return": -0.0031798356764300463,
+        "median_net_return": -0.004697792869270076
+      },
+      "SOLUSDT": {
+        "rows": 1119,
+        "positive_rate": 0.1769436997319035,
+        "mean_net_return": -0.003685061702326414,
+        "median_net_return": -0.005134591618919379
+      },
+      "STXUSDT": {
+        "rows": 1168,
+        "positive_rate": 0.20034246575342465,
+        "mean_net_return": -0.0039367990199347235,
+        "median_net_return": -0.008016453735965875
+      },
+      "SUIUSDT": {
+        "rows": 1074,
+        "positive_rate": 0.21042830540037244,
+        "mean_net_return": -0.0030986927061995235,
+        "median_net_return": -0.004733570083182978
+      },
+      "THETAUSDT": {
+        "rows": 1018,
+        "positive_rate": 0.19548133595284872,
+        "mean_net_return": -0.003452482211554519,
+        "median_net_return": -0.0066365559831263994
+      },
+      "TIAUSDT": {
+        "rows": 1141,
+        "positive_rate": 0.2287467134092901,
+        "mean_net_return": -0.002566919710845179,
+        "median_net_return": -0.005484815019326403
+      },
+      "TONUSDT": {
+        "rows": 828,
+        "positive_rate": 0.21256038647342995,
+        "mean_net_return": -0.0041091790507947305,
+        "median_net_return": -0.00944300728852487
+      },
+      "TRXUSDT": {
+        "rows": 1209,
+        "positive_rate": 0.12903225806451613,
+        "mean_net_return": -0.0026060902385771465,
+        "median_net_return": -0.002712313003452202
+      },
+      "UNIUSDT": {
+        "rows": 1086,
+        "positive_rate": 0.2007366482504604,
+        "mean_net_return": -0.0029145465238052805,
+        "median_net_return": -0.004083172260465837
+      },
+      "USDCUSDT": {
+        "rows": 669,
+        "positive_rate": 0.007473841554559043,
+        "mean_net_return": -0.00292258038048872,
+        "median_net_return": -0.0029900000999990546
+      },
+      "VETUSDT": {
+        "rows": 1230,
+        "positive_rate": 0.21788617886178863,
+        "mean_net_return": -0.0027075875589601694,
+        "median_net_return": -0.004181170990886771
+      },
+      "XLMUSDT": {
+        "rows": 1227,
+        "positive_rate": 0.22575387123064386,
+        "mean_net_return": -0.0033159414640291343,
+        "median_net_return": -0.005321532211259525
+      },
+      "XRPUSDT": {
+        "rows": 1281,
+        "positive_rate": 0.21935987509758,
+        "mean_net_return": -0.0036534027509001594,
+        "median_net_return": -0.005425009225578534
+      }
+    },
+    "by_strategy": {
+      "breakout": {
+        "rows": 7984,
+        "positive_rate": 0.30561122244488975,
+        "mean_net_return": -0.0028306235508729453,
+        "median_net_return": -0.007999999999999893
+      },
+      "mean_reversion": {
+        "rows": 42222,
+        "positive_rate": 0.19527734356496612,
+        "mean_net_return": -0.0032248611794443317,
+        "median_net_return": -0.0044025961250019315
+      }
+    },
+    "by_trend_regime": {
+      "down": {
+        "rows": 36113,
+        "positive_rate": 0.19735275385595216,
+        "mean_net_return": -0.003226078791163375,
+        "median_net_return": -0.004813236627379866
+      },
+      "range": {
+        "rows": 7246,
+        "positive_rate": 0.1878277670438863,
+        "mean_net_return": -0.0032267903275909737,
+        "median_net_return": -0.0031999400179946154
+      },
+      "up": {
+        "rows": 6847,
+        "positive_rate": 0.32087045421352417,
+        "mean_net_return": -0.0027566935956858485,
+        "median_net_return": -0.008631536604988051
+      }
+    },
+    "by_volatility_regime": {
+      "high": {
+        "rows": 20371,
+        "positive_rate": 0.198468410976388,
+        "mean_net_return": -0.0032035615338915358,
+        "median_net_return": -0.0044425851125217105
+      },
+      "low": {
+        "rows": 29835,
+        "positive_rate": 0.22262443438914026,
+        "mean_net_return": -0.0031339043117735448,
+        "median_net_return": -0.005003004506760053
+      }
+    }
+  },
+  "ft_atr150_r20_6h": {
+    "rows": 50206,
+    "positive_class_rate": 0.08893359359439111,
+    "net_return_mean": -0.0030117392198160307,
+    "net_return_median": -0.003933576406886183,
+    "exit_reason": {
+      "timeout": 28751,
+      "stop_loss": 16990,
+      "take_profit": 4465
+    },
+    "by_month": {
+      "2025-12": {
+        "rows": 4122,
+        "positive_rate": 0.10868510431829209,
+        "mean_net_return": -0.0012274406049766298,
+        "median_net_return": -0.003
+      },
+      "2026-01": {
+        "rows": 5789,
+        "positive_rate": 0.08827085852478839,
+        "mean_net_return": -0.003853724147013506,
+        "median_net_return": -0.006642987249544705
+      },
+      "2026-02": {
+        "rows": 5859,
+        "positive_rate": 0.11247653183137055,
+        "mean_net_return": -0.003234907282385676,
+        "median_net_return": -0.0033544842254521453
+      },
+      "2026-03": {
+        "rows": 6372,
+        "positive_rate": 0.06465787821720025,
+        "mean_net_return": -0.003389575941039472,
+        "median_net_return": -0.004730108984892953
+      },
+      "2026-04": {
+        "rows": 6144,
+        "positive_rate": 0.07926432291666667,
+        "mean_net_return": -0.0032255480159685004,
+        "median_net_return": -0.004144492225311988
+      },
+      "2026-05": {
+        "rows": 6393,
+        "positive_rate": 0.07946191146566557,
+        "mean_net_return": -0.0027958681047200278,
+        "median_net_return": -0.0034475274110539163
+      },
+      "2026-06": {
+        "rows": 5635,
+        "positive_rate": 0.08997338065661047,
+        "mean_net_return": -0.0035744013356739605,
+        "median_net_return": -0.0047619592987402344
+      },
+      "2026-07": {
+        "rows": 5900,
+        "positive_rate": 0.07169491525423728,
+        "mean_net_return": -0.003706696569385871,
+        "median_net_return": -0.004087173119217744
+      },
+      "2026-08": {
+        "rows": 3992,
+        "positive_rate": 0.12775551102204408,
+        "mean_net_return": -0.0008977823787631754,
+        "median_net_return": -0.0018370983578540586
+      }
+    },
+    "by_symbol": {
+      "AAVEUSDT": {
+        "rows": 1154,
+        "positive_rate": 0.0779896013864818,
+        "mean_net_return": -0.004063593365294772,
+        "median_net_return": -0.005626568657990269
+      },
+      "ADAUSDT": {
+        "rows": 1239,
+        "positive_rate": 0.08555286521388217,
+        "mean_net_return": -0.0035156756501732375,
+        "median_net_return": -0.004819599688068552
+      },
+      "ALGOUSDT": {
+        "rows": 1170,
+        "positive_rate": 0.07606837606837606,
+        "mean_net_return": -0.003073101314643687,
+        "median_net_return": -0.003877180838463332
+      },
+      "APTUSDT": {
+        "rows": 1145,
+        "positive_rate": 0.0943231441048035,
+        "mean_net_return": -0.003004895108766997,
+        "median_net_return": -0.0050661157024793875
+      },
+      "ATOMUSDT": {
+        "rows": 1282,
+        "positive_rate": 0.07644305772230889,
+        "mean_net_return": -0.0035723708205888786,
+        "median_net_return": -0.00559366837503805
+      },
+      "AVAXUSDT": {
+        "rows": 1119,
+        "positive_rate": 0.0741733690795353,
+        "mean_net_return": -0.004195950246090098,
+        "median_net_return": -0.0052962112514353095
+      },
+      "BCHUSDT": {
+        "rows": 1119,
+        "positive_rate": 0.07238605898123325,
+        "mean_net_return": -0.003763235741705185,
+        "median_net_return": -0.0045941698929630155
+      },
+      "BNBUSDT": {
+        "rows": 1105,
+        "positive_rate": 0.08597285067873303,
+        "mean_net_return": -0.0031354593683571206,
+        "median_net_return": -0.0034584422133588895
+      },
+      "BTCUSDT": {
+        "rows": 1131,
+        "positive_rate": 0.08664898320070734,
+        "mean_net_return": -0.0033076688562776566,
+        "median_net_return": -0.0037010831167637566
+      },
+      "CHZUSDT": {
+        "rows": 1189,
+        "positive_rate": 0.07485281749369217,
+        "mean_net_return": -0.0036975196576540643,
+        "median_net_return": -0.0050526855969893454
+      },
+      "DOGEUSDT": {
+        "rows": 1110,
+        "positive_rate": 0.10720720720720721,
+        "mean_net_return": -0.002640847895155552,
+        "median_net_return": -0.003510713128488105
+      },
+      "DOTUSDT": {
+        "rows": 1188,
+        "positive_rate": 0.10016835016835017,
+        "mean_net_return": -0.0021891052042954046,
+        "median_net_return": -0.003923329544019191
+      },
+      "EGLDUSDT": {
+        "rows": 1092,
+        "positive_rate": 0.07967032967032966,
+        "mean_net_return": -0.003428613760108946,
+        "median_net_return": -0.003
+      },
+      "ETHUSDT": {
+        "rows": 1053,
+        "positive_rate": 0.08831908831908832,
+        "mean_net_return": -0.0036761928905150476,
+        "median_net_return": -0.004365086101776547
+      },
+      "FETUSDT": {
+        "rows": 1101,
+        "positive_rate": 0.08446866485013624,
+        "mean_net_return": -0.0031269261668852603,
+        "median_net_return": -0.0043999066728884735
+      },
+      "FILUSDT": {
+        "rows": 1096,
+        "positive_rate": 0.08485401459854014,
+        "mean_net_return": -0.0021246973519935303,
+        "median_net_return": -0.003
+      },
+      "FLOWUSDT": {
+        "rows": 1129,
+        "positive_rate": 0.10274579273693533,
+        "mean_net_return": -0.0027284591334535845,
+        "median_net_return": -0.00430208333333337
+      },
+      "GALAUSDT": {
+        "rows": 1217,
+        "positive_rate": 0.09695973705834018,
+        "mean_net_return": -0.002838507727723001,
+        "median_net_return": -0.005268859897901376
+      },
+      "GRTUSDT": {
+        "rows": 1126,
+        "positive_rate": 0.09147424511545293,
+        "mean_net_return": -0.0019462209378107937,
+        "median_net_return": -0.003
+      },
+      "ICPUSDT": {
+        "rows": 1076,
+        "positive_rate": 0.09758364312267657,
+        "mean_net_return": -0.003016530513790032,
+        "median_net_return": -0.005387253292623959
+      },
+      "IMXUSDT": {
+        "rows": 1114,
+        "positive_rate": 0.10771992818671454,
+        "mean_net_return": -0.002842419533489897,
+        "median_net_return": -0.005376475737545236
+      },
+      "LDOUSDT": {
+        "rows": 1060,
+        "positive_rate": 0.1,
+        "mean_net_return": -0.002741734422530013,
+        "median_net_return": -0.005017070811486277
+      },
+      "LINKUSDT": {
+        "rows": 1043,
+        "positive_rate": 0.07670182166826463,
+        "mean_net_return": -0.0033446848934239027,
+        "median_net_return": -0.004133786848072527
+      },
+      "LTCUSDT": {
+        "rows": 1049,
+        "positive_rate": 0.07530981887511916,
+        "mean_net_return": -0.0030421456394646644,
+        "median_net_return": -0.003550458715596336
+      },
+      "MANAUSDT": {
+        "rows": 1154,
+        "positive_rate": 0.11005199306759099,
+        "mean_net_return": -0.0025953157152907363,
+        "median_net_return": -0.004287784679089077
+      },
+      "MINAUSDT": {
+        "rows": 1068,
+        "positive_rate": 0.10674157303370786,
+        "mean_net_return": -0.00273729572414958,
+        "median_net_return": -0.004757556101252555
+      },
+      "NEARUSDT": {
+        "rows": 1093,
+        "positive_rate": 0.1070448307410796,
+        "mean_net_return": -0.0019594583562158457,
+        "median_net_return": -0.003
+      },
+      "OPUSDT": {
+        "rows": 1163,
+        "positive_rate": 0.09716251074806535,
+        "mean_net_return": -0.0029147464974015676,
+        "median_net_return": -0.005364066193853653
+      },
+      "PEPEUSDT": {
+        "rows": 1015,
+        "positive_rate": 0.08768472906403942,
+        "mean_net_return": -0.0018409354454182521,
+        "median_net_return": -0.003
+      },
+      "QNTUSDT": {
+        "rows": 1120,
+        "positive_rate": 0.12767857142857142,
+        "mean_net_return": -0.002555365166643946,
+        "median_net_return": -0.004780133170267817
+      },
+      "RENDERUSDT": {
+        "rows": 1066,
+        "positive_rate": 0.09849906191369606,
+        "mean_net_return": -0.001929520789309245,
+        "median_net_return": -0.0032777777777778213
+      },
+      "SANDUSDT": {
+        "rows": 1219,
+        "positive_rate": 0.08777686628383921,
+        "mean_net_return": -0.003325421837266563,
+        "median_net_return": -0.005173913043478248
+      },
+      "SHIBUSDT": {
+        "rows": 1151,
+        "positive_rate": 0.08601216333622937,
+        "mean_net_return": -0.0029610701115586244,
+        "median_net_return": -0.004277139208173628
+      },
+      "SOLUSDT": {
+        "rows": 1119,
+        "positive_rate": 0.09562109025915996,
+        "mean_net_return": -0.0033862917335854906,
+        "median_net_return": -0.0043818516812529325
+      },
+      "STXUSDT": {
+        "rows": 1168,
+        "positive_rate": 0.08647260273972603,
+        "mean_net_return": -0.003897786606012302,
+        "median_net_return": -0.006300390946766041
+      },
+      "SUIUSDT": {
+        "rows": 1074,
+        "positive_rate": 0.09683426443202979,
+        "mean_net_return": -0.0026443111768702783,
+        "median_net_return": -0.0039050195382063753
+      },
+      "THETAUSDT": {
+        "rows": 1018,
+        "positive_rate": 0.08055009823182711,
+        "mean_net_return": -0.0030830131328196037,
+        "median_net_return": -0.003
+      },
+      "TIAUSDT": {
+        "rows": 1141,
+        "positive_rate": 0.09202453987730061,
+        "mean_net_return": -0.0024577873224511833,
+        "median_net_return": -0.004877346683354153
+      },
+      "TONUSDT": {
+        "rows": 828,
+        "positive_rate": 0.08816425120772947,
+        "mean_net_return": -0.004152315445089458,
+        "median_net_return": -0.00688833760779167
+      },
+      "TRXUSDT": {
+        "rows": 1209,
+        "positive_rate": 0.058726220016542596,
+        "mean_net_return": -0.0025938419691882773,
+        "median_net_return": -0.002713631156930127
+      },
+      "UNIUSDT": {
+        "rows": 1086,
+        "positive_rate": 0.08747697974217311,
+        "mean_net_return": -0.002460806488250514,
+        "median_net_return": -0.003
+      },
+      "USDCUSDT": {
+        "rows": 669,
+        "positive_rate": 0.007473841554559043,
+        "mean_net_return": -0.002903895776602323,
+        "median_net_return": -0.0029900000999990546
+      },
+      "VETUSDT": {
+        "rows": 1230,
+        "positive_rate": 0.07804878048780488,
+        "mean_net_return": -0.003050495602683977,
+        "median_net_return": -0.003858430507290231
+      },
+      "XLMUSDT": {
+        "rows": 1227,
+        "positive_rate": 0.0945395273023635,
+        "mean_net_return": -0.0034703117020643075,
+        "median_net_return": -0.004356852103120754
+      },
+      "XRPUSDT": {
+        "rows": 1281,
+        "positive_rate": 0.09992193598750976,
+        "mean_net_return": -0.0034125041940217577,
+        "median_net_return": -0.004944264419961095
+      }
+    },
+    "by_strategy": {
+      "breakout": {
+        "rows": 7984,
+        "positive_rate": 0.17610220440881763,
+        "mean_net_return": -0.0024244094482036185,
+        "median_net_return": -0.006886264183092625
+      },
+      "mean_reversion": {
+        "rows": 42222,
+        "positive_rate": 0.07245038131779641,
+        "mean_net_return": -0.003122800772953104,
+        "median_net_return": -0.003520713299947684
+      }
+    },
+    "by_trend_regime": {
+      "down": {
+        "rows": 36113,
+        "positive_rate": 0.07113781740647412,
+        "mean_net_return": -0.003115045855022728,
+        "median_net_return": -0.003771604938271553
+      },
+      "range": {
+        "rows": 7246,
+        "positive_rate": 0.08556444935136627,
+        "mean_net_return": -0.0031681707375866273,
+        "median_net_return": -0.0031000550305170767
+      },
+      "up": {
+        "rows": 6847,
+        "positive_rate": 0.18635898933839637,
+        "mean_net_return": -0.0023013236662911027,
+        "median_net_return": -0.008000000000000004
+      }
+    },
+    "by_volatility_regime": {
+      "high": {
+        "rows": 20371,
+        "positive_rate": 0.08310834028766384,
+        "mean_net_return": -0.0029761461069863354,
+        "median_net_return": -0.0037898894154817482
+      },
+      "low": {
+        "rows": 29835,
+        "positive_rate": 0.09291101055806938,
+        "mean_net_return": -0.0030360417940226247,
+        "median_net_return": -0.004080497028633332
+      }
+    }
+  },
+  "ft_atr150_r20_12h": {
+    "rows": 50175,
+    "positive_class_rate": 0.17100149476831092,
+    "net_return_mean": -0.003365183121409773,
+    "net_return_median": -0.009203499729830807,
+    "exit_reason": {
+      "stop_loss": 24137,
+      "timeout": 17458,
+      "take_profit": 8580
+    },
+    "by_month": {
+      "2025-12": {
+        "rows": 4122,
+        "positive_rate": 0.20135856380397865,
+        "mean_net_return": 0.00031008975170437983,
+        "median_net_return": -0.003352051229805861
+      },
+      "2026-01": {
+        "rows": 5789,
+        "positive_rate": 0.15183969597512523,
+        "mean_net_return": -0.00469932870193223,
+        "median_net_return": -0.012316770186335254
+      },
+      "2026-02": {
+        "rows": 5859,
+        "positive_rate": 0.20890937019969277,
+        "mean_net_return": -0.0037734963462916727,
+        "median_net_return": -0.012796718099436607
+      },
+      "2026-03": {
+        "rows": 6372,
+        "positive_rate": 0.1253923414940364,
+        "mean_net_return": -0.004319557582506716,
+        "median_net_return": -0.01115252502810998
+      },
+      "2026-04": {
+        "rows": 6144,
+        "positive_rate": 0.18603515625,
+        "mean_net_return": -0.0023876315873651386,
+        "median_net_return": -0.006657985849766732
+      },
+      "2026-05": {
+        "rows": 6393,
+        "positive_rate": 0.18238698576568121,
+        "mean_net_return": -0.0024698881432164525,
+        "median_net_return": -0.008429825561509504
+      },
+      "2026-06": {
+        "rows": 5635,
+        "positive_rate": 0.13948535936113576,
+        "mean_net_return": -0.0063643124047812845,
+        "median_net_return": -0.013284456984776313
+      },
+      "2026-07": {
+        "rows": 5900,
+        "positive_rate": 0.14661016949152542,
+        "mean_net_return": -0.0038332402206460343,
+        "median_net_return": -0.008918354956520099
+      },
+      "2026-08": {
+        "rows": 3961,
+        "positive_rate": 0.22418581166372128,
+        "mean_net_return": -0.0010982282590283094,
+        "median_net_return": -0.0030099982003239907
+      }
+    },
+    "by_symbol": {
+      "AAVEUSDT": {
+        "rows": 1154,
+        "positive_rate": 0.1707105719237435,
+        "mean_net_return": -0.004215578404074961,
+        "median_net_return": -0.012827477352605417
+      },
+      "ADAUSDT": {
+        "rows": 1239,
+        "positive_rate": 0.1694915254237288,
+        "mean_net_return": -0.004096092996186405,
+        "median_net_return": -0.0115190039318479
+      },
+      "ALGOUSDT": {
+        "rows": 1170,
+        "positive_rate": 0.17264957264957265,
+        "mean_net_return": -0.0038392257007219288,
+        "median_net_return": -0.011230005873350265
+      },
+      "APTUSDT": {
+        "rows": 1144,
+        "positive_rate": 0.16258741258741258,
+        "mean_net_return": -0.0038182193011077896,
+        "median_net_return": -0.013282965112522301
+      },
+      "ATOMUSDT": {
+        "rows": 1281,
+        "positive_rate": 0.16237314597970337,
+        "mean_net_return": -0.003805522407395251,
+        "median_net_return": -0.011167552735379834
+      },
+      "AVAXUSDT": {
+        "rows": 1119,
+        "positive_rate": 0.14924039320822163,
+        "mean_net_return": -0.004877697480212403,
+        "median_net_return": -0.011556012332990747
+      },
+      "BCHUSDT": {
+        "rows": 1119,
+        "positive_rate": 0.15281501340482573,
+        "mean_net_return": -0.004197041202685751,
+        "median_net_return": -0.009280530355896707
+      },
+      "BNBUSDT": {
+        "rows": 1104,
+        "positive_rate": 0.15579710144927536,
+        "mean_net_return": -0.0038248669194294246,
+        "median_net_return": -0.008000000000000004
+      },
+      "BTCUSDT": {
+        "rows": 1131,
+        "positive_rate": 0.15384615384615385,
+        "mean_net_return": -0.0036995991260134094,
+        "median_net_return": -0.008000000000000004
+      },
+      "CHZUSDT": {
+        "rows": 1189,
+        "positive_rate": 0.15138772077375945,
+        "mean_net_return": -0.003962685518149214,
+        "median_net_return": -0.01231054239877771
+      },
+      "DOGEUSDT": {
+        "rows": 1110,
+        "positive_rate": 0.17297297297297298,
+        "mean_net_return": -0.0034283791578648536,
+        "median_net_return": -0.009083904427124253
+      },
+      "DOTUSDT": {
+        "rows": 1187,
+        "positive_rate": 0.17944397641112048,
+        "mean_net_return": -0.00239257661979839,
+        "median_net_return": -0.011188153310104695
+      },
+      "EGLDUSDT": {
+        "rows": 1092,
+        "positive_rate": 0.1813186813186813,
+        "mean_net_return": -0.003940170228032763,
+        "median_net_return": -0.01259283778404285
+      },
+      "ETHUSDT": {
+        "rows": 1053,
+        "positive_rate": 0.14245014245014245,
+        "mean_net_return": -0.004665713946516958,
+        "median_net_return": -0.009371164222830127
+      },
+      "FETUSDT": {
+        "rows": 1101,
+        "positive_rate": 0.17620345140781107,
+        "mean_net_return": -0.002912173602204336,
+        "median_net_return": -0.01155227148330595
+      },
+      "FILUSDT": {
+        "rows": 1096,
+        "positive_rate": 0.17791970802919707,
+        "mean_net_return": -0.002289970200675905,
+        "median_net_return": -0.007917344199609874
+      },
+      "FLOWUSDT": {
+        "rows": 1129,
+        "positive_rate": 0.18069087688219662,
+        "mean_net_return": -0.0033661412965649146,
+        "median_net_return": -0.011654994031038531
+      },
+      "GALAUSDT": {
+        "rows": 1215,
+        "positive_rate": 0.16213991769547326,
+        "mean_net_return": -0.004069498341572931,
+        "median_net_return": -0.01331572366364497
+      },
+      "GRTUSDT": {
+        "rows": 1126,
+        "positive_rate": 0.1989342806394316,
+        "mean_net_return": -0.002349823707262135,
+        "median_net_return": -0.008417550255293057
+      },
+      "ICPUSDT": {
+        "rows": 1076,
+        "positive_rate": 0.17565055762081785,
+        "mean_net_return": -0.0033379190530419436,
+        "median_net_return": -0.010874648594273725
+      },
+      "IMXUSDT": {
+        "rows": 1111,
+        "positive_rate": 0.21422142214221424,
+        "mean_net_return": -0.0026616249762752915,
+        "median_net_return": -0.011885850991114274
+      },
+      "LDOUSDT": {
+        "rows": 1054,
+        "positive_rate": 0.17647058823529413,
+        "mean_net_return": -0.002113114662942411,
+        "median_net_return": -0.01136849003847917
+      },
+      "LINKUSDT": {
+        "rows": 1042,
+        "positive_rate": 0.14683301343570057,
+        "mean_net_return": -0.003790745613240205,
+        "median_net_return": -0.009483029476594292
+      },
+      "LTCUSDT": {
+        "rows": 1049,
+        "positive_rate": 0.16873212583412775,
+        "mean_net_return": -0.003277674362032653,
+        "median_net_return": -0.007761904761904745
+      },
+      "MANAUSDT": {
+        "rows": 1154,
+        "positive_rate": 0.21403812824956672,
+        "mean_net_return": -0.0026137244019553384,
+        "median_net_return": -0.011293995463837244
+      },
+      "MINAUSDT": {
+        "rows": 1068,
+        "positive_rate": 0.21254681647940074,
+        "mean_net_return": -0.002602612429926153,
+        "median_net_return": -0.011754444925891058
+      },
+      "NEARUSDT": {
+        "rows": 1093,
+        "positive_rate": 0.1747483989021043,
+        "mean_net_return": -0.0029110825854998757,
+        "median_net_return": -0.007547751389590737
+      },
+      "OPUSDT": {
+        "rows": 1163,
+        "positive_rate": 0.19174548581255374,
+        "mean_net_return": -0.0031477035560759444,
+        "median_net_return": -0.013543106131341572
+      },
+      "PEPEUSDT": {
+        "rows": 1013,
+        "positive_rate": 0.14807502467917077,
+        "mean_net_return": -0.0024045829318039918,
+        "median_net_return": -0.006676470588235281
+      },
+      "QNTUSDT": {
+        "rows": 1115,
+        "positive_rate": 0.21345291479820627,
+        "mean_net_return": -0.00299357821837827,
+        "median_net_return": -0.009675367466141723
+      },
+      "RENDERUSDT": {
+        "rows": 1066,
+        "positive_rate": 0.20637898686679174,
+        "mean_net_return": -0.0017873255707143213,
+        "median_net_return": -0.0097597982806471
+      },
+      "SANDUSDT": {
+        "rows": 1219,
+        "positive_rate": 0.18129614438063987,
+        "mean_net_return": -0.003288090465018412,
+        "median_net_return": -0.012026575705121553
+      },
+      "SHIBUSDT": {
+        "rows": 1150,
+        "positive_rate": 0.15739130434782608,
+        "mean_net_return": -0.0033256689881300504,
+        "median_net_return": -0.009377561396230302
+      },
+      "SOLUSDT": {
+        "rows": 1118,
+        "positive_rate": 0.14669051878354203,
+        "mean_net_return": -0.0041954487987424394,
+        "median_net_return": -0.009681928882007303
+      },
+      "STXUSDT": {
+        "rows": 1168,
+        "positive_rate": 0.1703767123287671,
+        "mean_net_return": -0.004600327747023763,
+        "median_net_return": -0.012829650016565882
+      },
+      "SUIUSDT": {
+        "rows": 1073,
+        "positive_rate": 0.17148182665424044,
+        "mean_net_return": -0.0030780926634734794,
+        "median_net_return": -0.007999999999999893
+      },
+      "THETAUSDT": {
+        "rows": 1018,
+        "positive_rate": 0.16699410609037327,
+        "mean_net_return": -0.00361282300526155,
+        "median_net_return": -0.013581526766603621
+      },
+      "TIAUSDT": {
+        "rows": 1140,
+        "positive_rate": 0.2043859649122807,
+        "mean_net_return": -0.002064228078237167,
+        "median_net_return": -0.013528009112548919
+      },
+      "TONUSDT": {
+        "rows": 828,
+        "positive_rate": 0.17149758454106281,
+        "mean_net_return": -0.0035191693959306424,
+        "median_net_return": -0.012308093248059756
+      },
+      "TRXUSDT": {
+        "rows": 1209,
+        "positive_rate": 0.15467328370554176,
+        "mean_net_return": -0.002571222900462741,
+        "median_net_return": -0.0036709158000670624
+      },
+      "UNIUSDT": {
+        "rows": 1086,
+        "positive_rate": 0.16482504604051565,
+        "mean_net_return": -0.002456060570961757,
+        "median_net_return": -0.008399574504148296
+      },
+      "USDCUSDT": {
+        "rows": 669,
+        "positive_rate": 0.01046337817638266,
+        "mean_net_return": -0.002860781956568824,
+        "median_net_return": -0.002959978388329729
+      },
+      "VETUSDT": {
+        "rows": 1230,
+        "positive_rate": 0.15691056910569107,
+        "mean_net_return": -0.0039653957801719505,
+        "median_net_return": -0.010297526183691504
+      },
+      "XLMUSDT": {
+        "rows": 1227,
+        "positive_rate": 0.17603911980440098,
+        "mean_net_return": -0.004011559874413622,
+        "median_net_return": -0.010807149705519766
+      },
+      "XRPUSDT": {
+        "rows": 1277,
+        "positive_rate": 0.18089271730618636,
+        "mean_net_return": -0.003772313088066537,
+        "median_net_return": -0.009529119874640998
+      }
+    },
+    "by_strategy": {
+      "breakout": {
+        "rows": 7982,
+        "positive_rate": 0.25620145326985716,
+        "mean_net_return": -0.002463438158942747,
+        "median_net_return": -0.010921751652616437
+      },
+      "mean_reversion": {
+        "rows": 42193,
+        "positive_rate": 0.1548835114829474,
+        "mean_net_return": -0.0035357737001885233,
+        "median_net_return": -0.008803571428571463
+      }
+    },
+    "by_trend_regime": {
+      "down": {
+        "rows": 36084,
+        "positive_rate": 0.15242212615009423,
+        "mean_net_return": -0.0035845611530907436,
+        "median_net_return": -0.010137457932216539
+      },
+      "range": {
+        "rows": 7246,
+        "positive_rate": 0.1731990063483301,
+        "mean_net_return": -0.003271145507039291,
+        "median_net_return": -0.005770085464255723
+      },
+      "up": {
+        "rows": 6845,
+        "positive_rate": 0.266617969320672,
+        "mean_net_return": -0.0023082597698469405,
+        "median_net_return": -0.01247364359033742
+      }
+    },
+    "by_volatility_regime": {
+      "high": {
+        "rows": 20370,
+        "positive_rate": 0.1586647029945999,
+        "mean_net_return": -0.0032595371303457818,
+        "median_net_return": -0.008380775347960053
+      },
+      "low": {
+        "rows": 29805,
+        "positive_rate": 0.1794329810434491,
+        "mean_net_return": -0.0034373860684982992,
+        "median_net_return": -0.009466512702078652
+      }
+    }
+  },
+  "ft_atr200_r25_12h": {
+    "rows": 50175,
+    "positive_class_rate": 0.06180368709516692,
+    "net_return_mean": -0.003597832211733276,
+    "net_return_median": -0.0060807147258163914,
+    "exit_reason": {
+      "timeout": 28227,
+      "stop_loss": 18847,
+      "take_profit": 3101
+    },
+    "by_month": {
+      "2025-12": {
+        "rows": 4122,
+        "positive_rate": 0.06380397865114022,
+        "mean_net_return": -0.00031251127840557487,
+        "median_net_return": -0.002230176603058018
+      },
+      "2026-01": {
+        "rows": 5789,
+        "positive_rate": 0.05648643979961997,
+        "mean_net_return": -0.005668889420073551,
+        "median_net_return": -0.01110910431256917
+      },
+      "2026-02": {
+        "rows": 5859,
+        "positive_rate": 0.07151391022358765,
+        "mean_net_return": -0.00471792533869325,
+        "median_net_return": -0.009844778096710246
+      },
+      "2026-03": {
+        "rows": 6372,
+        "positive_rate": 0.037350910232266166,
+        "mean_net_return": -0.004525403239095252,
+        "median_net_return": -0.007927211893285376
+      },
+      "2026-04": {
+        "rows": 6144,
+        "positive_rate": 0.08333333333333333,
+        "mean_net_return": -0.001373210754462793,
+        "median_net_return": -0.0033035648445251505
+      },
+      "2026-05": {
+        "rows": 6393,
+        "positive_rate": 0.07148443610198654,
+        "mean_net_return": -0.002249322185225452,
+        "median_net_return": -0.005177068214804123
+      },
+      "2026-06": {
+        "rows": 5635,
+        "positive_rate": 0.04897959183673469,
+        "mean_net_return": -0.0071229635449513145,
+        "median_net_return": -0.009669630947087723
+      },
+      "2026-07": {
+        "rows": 5900,
+        "positive_rate": 0.03847457627118644,
+        "mean_net_return": -0.00414836060301924,
+        "median_net_return": -0.005210318464705874
+      },
+      "2026-08": {
+        "rows": 3961,
+        "positive_rate": 0.09644029285533956,
+        "mean_net_return": -0.0006330507809202171,
+        "median_net_return": -0.0028300492857070677
+      }
+    },
+    "by_symbol": {
+      "AAVEUSDT": {
+        "rows": 1154,
+        "positive_rate": 0.07019064124783363,
+        "mean_net_return": -0.004328136378491679,
+        "median_net_return": -0.008286006839112344
+      },
+      "ADAUSDT": {
+        "rows": 1239,
+        "positive_rate": 0.06618240516545601,
+        "mean_net_return": -0.00469646215412291,
+        "median_net_return": -0.008031446540880501
+      },
+      "ALGOUSDT": {
+        "rows": 1170,
+        "positive_rate": 0.05897435897435897,
+        "mean_net_return": -0.004059379072333523,
+        "median_net_return": -0.006527857263610712
+      },
+      "APTUSDT": {
+        "rows": 1144,
+        "positive_rate": 0.06031468531468531,
+        "mean_net_return": -0.003925575725782475,
+        "median_net_return": -0.007983388704318913
+      },
+      "ATOMUSDT": {
+        "rows": 1281,
+        "positive_rate": 0.04605776736924278,
+        "mean_net_return": -0.004710403327708913,
+        "median_net_return": -0.009519558676028047
+      },
+      "AVAXUSDT": {
+        "rows": 1119,
+        "positive_rate": 0.05630026809651475,
+        "mean_net_return": -0.005134469891173531,
+        "median_net_return": -0.007842615012106587
+      },
+      "BCHUSDT": {
+        "rows": 1119,
+        "positive_rate": 0.03842716711349419,
+        "mean_net_return": -0.004479392859527605,
+        "median_net_return": -0.00730839002267569
+      },
+      "BNBUSDT": {
+        "rows": 1104,
+        "positive_rate": 0.05344202898550725,
+        "mean_net_return": -0.004099997026454323,
+        "median_net_return": -0.005834010289414712
+      },
+      "BTCUSDT": {
+        "rows": 1131,
+        "positive_rate": 0.060123784261715295,
+        "mean_net_return": -0.00409696714805677,
+        "median_net_return": -0.006354826121017784
+      },
+      "CHZUSDT": {
+        "rows": 1189,
+        "positive_rate": 0.05214465937762826,
+        "mean_net_return": -0.004835411057077441,
+        "median_net_return": -0.008533199195170923
+      },
+      "DOGEUSDT": {
+        "rows": 1110,
+        "positive_rate": 0.07297297297297298,
+        "mean_net_return": -0.0036364223930810376,
+        "median_net_return": -0.005415608550697168
+      },
+      "DOTUSDT": {
+        "rows": 1187,
+        "positive_rate": 0.07160909856781802,
+        "mean_net_return": -0.0026373297819532134,
+        "median_net_return": -0.006205128205128305
+      },
+      "EGLDUSDT": {
+        "rows": 1092,
+        "positive_rate": 0.06684981684981685,
+        "mean_net_return": -0.003591157024266619,
+        "median_net_return": -0.006490922383331319
+      },
+      "ETHUSDT": {
+        "rows": 1053,
+        "positive_rate": 0.05982905982905983,
+        "mean_net_return": -0.004604836792839964,
+        "median_net_return": -0.0067448259482933955
+      },
+      "FETUSDT": {
+        "rows": 1101,
+        "positive_rate": 0.047229791099000905,
+        "mean_net_return": -0.002781543730877883,
+        "median_net_return": -0.006294892915980174
+      },
+      "FILUSDT": {
+        "rows": 1096,
+        "positive_rate": 0.05656934306569343,
+        "mean_net_return": -0.0019145106155393674,
+        "median_net_return": -0.003
+      },
+      "FLOWUSDT": {
+        "rows": 1129,
+        "positive_rate": 0.070859167404783,
+        "mean_net_return": -0.0035953131382181615,
+        "median_net_return": -0.006085361672951703
+      },
+      "GALAUSDT": {
+        "rows": 1215,
+        "positive_rate": 0.06255144032921811,
+        "mean_net_return": -0.004613385598303623,
+        "median_net_return": -0.009802721088435381
+      },
+      "GRTUSDT": {
+        "rows": 1126,
+        "positive_rate": 0.0763765541740675,
+        "mean_net_return": -0.0018831958528775028,
+        "median_net_return": -0.003938860928270058
+      },
+      "ICPUSDT": {
+        "rows": 1076,
+        "positive_rate": 0.055762081784386616,
+        "mean_net_return": -0.004278703454877551,
+        "median_net_return": -0.007853402199609335
+      },
+      "IMXUSDT": {
+        "rows": 1111,
+        "positive_rate": 0.0819081908190819,
+        "mean_net_return": -0.0018231416171848288,
+        "median_net_return": -0.0069308176100628645
+      },
+      "LDOUSDT": {
+        "rows": 1054,
+        "positive_rate": 0.07495256166982922,
+        "mean_net_return": -0.002484504706242332,
+        "median_net_return": -0.005337287982962566
+      },
+      "LINKUSDT": {
+        "rows": 1042,
+        "positive_rate": 0.06238003838771593,
+        "mean_net_return": -0.00360977232981097,
+        "median_net_return": -0.005329645519400958
+      },
+      "LTCUSDT": {
+        "rows": 1049,
+        "positive_rate": 0.052430886558627265,
+        "mean_net_return": -0.0036184357342552566,
+        "median_net_return": -0.00452312378842423
+      },
+      "MANAUSDT": {
+        "rows": 1154,
+        "positive_rate": 0.06932409012131716,
+        "mean_net_return": -0.003033750261555714,
+        "median_net_return": -0.007405307716565998
+      },
+      "MINAUSDT": {
+        "rows": 1068,
+        "positive_rate": 0.07584269662921349,
+        "mean_net_return": -0.0030093100218350523,
+        "median_net_return": -0.007844570834001637
+      },
+      "NEARUSDT": {
+        "rows": 1093,
+        "positive_rate": 0.059469350411710885,
+        "mean_net_return": -0.003337221111884199,
+        "median_net_return": -0.005619515389652882
+      },
+      "OPUSDT": {
+        "rows": 1163,
+        "positive_rate": 0.058469475494411005,
+        "mean_net_return": -0.003855776184175867,
+        "median_net_return": -0.008681818181818231
+      },
+      "PEPEUSDT": {
+        "rows": 1013,
+        "positive_rate": 0.07206317867719644,
+        "mean_net_return": -0.0018646908725934185,
+        "median_net_return": -0.003
+      },
+      "QNTUSDT": {
+        "rows": 1115,
+        "positive_rate": 0.07443946188340807,
+        "mean_net_return": -0.0026178338308296954,
+        "median_net_return": -0.006068381063705328
+      },
+      "RENDERUSDT": {
+        "rows": 1066,
+        "positive_rate": 0.055347091932457786,
+        "mean_net_return": -0.002848140517647728,
+        "median_net_return": -0.003
+      },
+      "SANDUSDT": {
+        "rows": 1219,
+        "positive_rate": 0.06808859721082855,
+        "mean_net_return": -0.004057675021232864,
+        "median_net_return": -0.011464328899637107
+      },
+      "SHIBUSDT": {
+        "rows": 1150,
+        "positive_rate": 0.04695652173913043,
+        "mean_net_return": -0.003734330277927769,
+        "median_net_return": -0.004823591994148555
+      },
+      "SOLUSDT": {
+        "rows": 1118,
+        "positive_rate": 0.05366726296958855,
+        "mean_net_return": -0.004413924185395083,
+        "median_net_return": -0.006508842250263988
+      },
+      "STXUSDT": {
+        "rows": 1168,
+        "positive_rate": 0.06078767123287671,
+        "mean_net_return": -0.0049369314453502865,
+        "median_net_return": -0.009122449611783542
+      },
+      "SUIUSDT": {
+        "rows": 1073,
+        "positive_rate": 0.06337371854613234,
+        "mean_net_return": -0.004109932627516733,
+        "median_net_return": -0.005992633517495458
+      },
+      "THETAUSDT": {
+        "rows": 1018,
+        "positive_rate": 0.05108055009823183,
+        "mean_net_return": -0.003776334740077228,
+        "median_net_return": -0.008089091474153095
+      },
+      "TIAUSDT": {
+        "rows": 1140,
+        "positive_rate": 0.06842105263157895,
+        "mean_net_return": -0.001474670071964988,
+        "median_net_return": -0.006391339673198768
+      },
+      "TONUSDT": {
+        "rows": 828,
+        "positive_rate": 0.05314009661835749,
+        "mean_net_return": -0.004185014182435605,
+        "median_net_return": -0.007426501290023643
+      },
+      "TRXUSDT": {
+        "rows": 1209,
+        "positive_rate": 0.06699751861042183,
+        "mean_net_return": -0.0026339620475611214,
+        "median_net_return": -0.003547045951859948
+      },
+      "UNIUSDT": {
+        "rows": 1086,
+        "positive_rate": 0.06998158379373849,
+        "mean_net_return": -0.002021801003056433,
+        "median_net_return": -0.005472626377851339
+      },
+      "USDCUSDT": {
+        "rows": 669,
+        "positive_rate": 0.0,
+        "mean_net_return": -0.002964743383398032,
+        "median_net_return": -0.002959983593273094
+      },
+      "VETUSDT": {
+        "rows": 1230,
+        "positive_rate": 0.06422764227642276,
+        "mean_net_return": -0.0042847776541498125,
+        "median_net_return": -0.0077895126996629345
+      },
+      "XLMUSDT": {
+        "rows": 1227,
+        "positive_rate": 0.07334963325183375,
+        "mean_net_return": -0.00413684393299367,
+        "median_net_return": -0.006130870381966244
+      },
+      "XRPUSDT": {
+        "rows": 1277,
+        "positive_rate": 0.07282693813625685,
+        "mean_net_return": -0.004177704720080605,
+        "median_net_return": -0.008000000000000004
+      }
+    },
+    "by_strategy": {
+      "breakout": {
+        "rows": 7982,
+        "positive_rate": 0.1309195690303182,
+        "mean_net_return": -0.0021657239102587183,
+        "median_net_return": -0.00874637908106712
+      },
+      "mean_reversion": {
+        "rows": 42193,
+        "positive_rate": 0.04872846206716754,
+        "mean_net_return": -0.0038687560252182117,
+        "median_net_return": -0.0054884464984001876
+      }
+    },
+    "by_trend_regime": {
+      "down": {
+        "rows": 36084,
+        "positive_rate": 0.04691830174038355,
+        "mean_net_return": -0.003941548668860725,
+        "median_net_return": -0.005957112193819944
+      },
+      "range": {
+        "rows": 7246,
+        "positive_rate": 0.06500138007176373,
+        "mean_net_return": -0.0034575052722970153,
+        "median_net_return": -0.0035292852202511967
+      },
+      "up": {
+        "rows": 6845,
+        "positive_rate": 0.1368882395909423,
+        "mean_net_return": -0.0019344493577038038,
+        "median_net_return": -0.010518796992481257
+      }
+    },
+    "by_volatility_regime": {
+      "high": {
+        "rows": 20370,
+        "positive_rate": 0.06067746686303387,
+        "mean_net_return": -0.0032799313690569675,
+        "median_net_return": -0.0053976517585797
+      },
+      "low": {
+        "rows": 29805,
+        "positive_rate": 0.06257339372588491,
+        "mean_net_return": -0.0038150991188064657,
+        "median_net_return": -0.006508771929824683
+      }
+    }
+  },
+  "ft_atr200_r30_24h": {
+    "rows": 49995,
+    "positive_class_rate": 0.08770877087708771,
+    "net_return_mean": -0.004894481558544807,
+    "net_return_median": -0.014649294911097451,
+    "exit_reason": {
+      "stop_loss": 27041,
+      "timeout": 18569,
+      "take_profit": 4385
+    },
+    "by_month": {
+      "2025-12": {
+        "rows": 4122,
+        "positive_rate": 0.0725376031052887,
+        "mean_net_return": -0.003995305978937658,
+        "median_net_return": -0.014194576100104436
+      },
+      "2026-01": {
+        "rows": 5789,
+        "positive_rate": 0.0761789600967352,
+        "mean_net_return": -0.006436175040946921,
+        "median_net_return": -0.017585414585414624
+      },
+      "2026-02": {
+        "rows": 5859,
+        "positive_rate": 0.09779825908858167,
+        "mean_net_return": -0.006549918710862046,
+        "median_net_return": -0.0198199147790985
+      },
+      "2026-03": {
+        "rows": 6372,
+        "positive_rate": 0.07517263025737601,
+        "mean_net_return": -0.004314757430714538,
+        "median_net_return": -0.015511788501458287
+      },
+      "2026-04": {
+        "rows": 6144,
+        "positive_rate": 0.13134765625,
+        "mean_net_return": -0.00048311468374597107,
+        "median_net_return": -0.009213995709048736
+      },
+      "2026-05": {
+        "rows": 6393,
+        "positive_rate": 0.0957297043641483,
+        "mean_net_return": -0.0027257891687073824,
+        "median_net_return": -0.012687865167743891
+      },
+      "2026-06": {
+        "rows": 5634,
+        "positive_rate": 0.06230031948881789,
+        "mean_net_return": -0.012889865891663176,
+        "median_net_return": -0.02040332609083528
+      },
+      "2026-07": {
+        "rows": 5900,
+        "positive_rate": 0.055254237288135596,
+        "mean_net_return": -0.0054089001871192085,
+        "median_net_return": -0.013499640734059678
+      },
+      "2026-08": {
+        "rows": 3782,
+        "positive_rate": 0.13141195134849287,
+        "mean_net_return": -4.603029525539042e-05,
+        "median_net_return": -0.008000000000000004
+      }
+    },
+    "by_symbol": {
+      "AAVEUSDT": {
+        "rows": 1152,
+        "positive_rate": 0.09114583333333333,
+        "mean_net_return": -0.004606166479080967,
+        "median_net_return": -0.016622558124245065
+      },
+      "ADAUSDT": {
+        "rows": 1232,
+        "positive_rate": 0.09902597402597403,
+        "mean_net_return": -0.005444273605526882,
+        "median_net_return": -0.017297837148737057
+      },
+      "ALGOUSDT": {
+        "rows": 1166,
+        "positive_rate": 0.10891938250428816,
+        "mean_net_return": -0.005595994187145792,
+        "median_net_return": -0.01697668760354398
+      },
+      "APTUSDT": {
+        "rows": 1136,
+        "positive_rate": 0.0880281690140845,
+        "mean_net_return": -0.007074165959417501,
+        "median_net_return": -0.020079645133487697
+      },
+      "ATOMUSDT": {
+        "rows": 1281,
+        "positive_rate": 0.09914129586260734,
+        "mean_net_return": -0.0048023833478703275,
+        "median_net_return": -0.01495123894510397
+      },
+      "AVAXUSDT": {
+        "rows": 1115,
+        "positive_rate": 0.07713004484304933,
+        "mean_net_return": -0.0057631474117328845,
+        "median_net_return": -0.015156129343629306
+      },
+      "BCHUSDT": {
+        "rows": 1118,
+        "positive_rate": 0.06976744186046512,
+        "mean_net_return": -0.005430867969244356,
+        "median_net_return": -0.012400102836330692
+      },
+      "BNBUSDT": {
+        "rows": 1102,
+        "positive_rate": 0.06715063520871144,
+        "mean_net_return": -0.005087481129372795,
+        "median_net_return": -0.010584007010775384
+      },
+      "BTCUSDT": {
+        "rows": 1130,
+        "positive_rate": 0.08938053097345133,
+        "mean_net_return": -0.0040405907526902575,
+        "median_net_return": -0.010788117720439524
+      },
+      "CHZUSDT": {
+        "rows": 1187,
+        "positive_rate": 0.05644481887110362,
+        "mean_net_return": -0.008259791439058242,
+        "median_net_return": -0.018306122448979664
+      },
+      "DOGEUSDT": {
+        "rows": 1103,
+        "positive_rate": 0.09882139619220308,
+        "mean_net_return": -0.005068626785359878,
+        "median_net_return": -0.014939785274901803
+      },
+      "DOTUSDT": {
+        "rows": 1180,
+        "positive_rate": 0.09067796610169492,
+        "mean_net_return": -0.004651959575736667,
+        "median_net_return": -0.016333911237720596
+      },
+      "EGLDUSDT": {
+        "rows": 1086,
+        "positive_rate": 0.10497237569060773,
+        "mean_net_return": -0.0037717816726591403,
+        "median_net_return": -0.01590604657188199
+      },
+      "ETHUSDT": {
+        "rows": 1051,
+        "positive_rate": 0.0922930542340628,
+        "mean_net_return": -0.005236742864198625,
+        "median_net_return": -0.013755214516915078
+      },
+      "FETUSDT": {
+        "rows": 1095,
+        "positive_rate": 0.08493150684931507,
+        "mean_net_return": -0.0022728460775280485,
+        "median_net_return": -0.017669472641743008
+      },
+      "FILUSDT": {
+        "rows": 1091,
+        "positive_rate": 0.08524289642529789,
+        "mean_net_return": -0.003835442992679921,
+        "median_net_return": -0.01704628890662407
+      },
+      "FLOWUSDT": {
+        "rows": 1126,
+        "positive_rate": 0.08259325044404973,
+        "mean_net_return": -0.006830631941298704,
+        "median_net_return": -0.018354207412229925
+      },
+      "GALAUSDT": {
+        "rows": 1209,
+        "positive_rate": 0.06865177832919768,
+        "mean_net_return": -0.007084158503634549,
+        "median_net_return": -0.019519311307584882
+      },
+      "GRTUSDT": {
+        "rows": 1120,
+        "positive_rate": 0.1,
+        "mean_net_return": -0.003929068385812402,
+        "median_net_return": -0.015108686913862076
+      },
+      "ICPUSDT": {
+        "rows": 1075,
+        "positive_rate": 0.07348837209302325,
+        "mean_net_return": -0.006435718811841291,
+        "median_net_return": -0.01764407379551391
+      },
+      "IMXUSDT": {
+        "rows": 1110,
+        "positive_rate": 0.11531531531531532,
+        "mean_net_return": -0.003076662096082787,
+        "median_net_return": -0.017157423668536616
+      },
+      "LDOUSDT": {
+        "rows": 1049,
+        "positive_rate": 0.10104861773117255,
+        "mean_net_return": -0.005182089852946405,
+        "median_net_return": -0.018794084913925865
+      },
+      "LINKUSDT": {
+        "rows": 1039,
+        "positive_rate": 0.0875842155919153,
+        "mean_net_return": -0.004299736424589286,
+        "median_net_return": -0.015531328320802059
+      },
+      "LTCUSDT": {
+        "rows": 1045,
+        "positive_rate": 0.07942583732057416,
+        "mean_net_return": -0.004061198626707391,
+        "median_net_return": -0.012277238403451959
+      },
+      "MANAUSDT": {
+        "rows": 1152,
+        "positive_rate": 0.09461805555555555,
+        "mean_net_return": -0.004547096557009828,
+        "median_net_return": -0.016450216245925294
+      },
+      "MINAUSDT": {
+        "rows": 1067,
+        "positive_rate": 0.1190253045923149,
+        "mean_net_return": -0.0033859136972114656,
+        "median_net_return": -0.01634776334776333
+      },
+      "NEARUSDT": {
+        "rows": 1090,
+        "positive_rate": 0.09174311926605505,
+        "mean_net_return": -0.0043380718798217465,
+        "median_net_return": -0.01717958918922707
+      },
+      "OPUSDT": {
+        "rows": 1159,
+        "positive_rate": 0.08283002588438308,
+        "mean_net_return": -0.006708281877983905,
+        "median_net_return": -0.01965867689357625
+      },
+      "PEPEUSDT": {
+        "rows": 1005,
+        "positive_rate": 0.09154228855721393,
+        "mean_net_return": -0.004129430185065522,
+        "median_net_return": -0.01801501501501501
+      },
+      "QNTUSDT": {
+        "rows": 1109,
+        "positive_rate": 0.1073038773669973,
+        "mean_net_return": -0.0025878337002635736,
+        "median_net_return": -0.013086865194844918
+      },
+      "RENDERUSDT": {
+        "rows": 1065,
+        "positive_rate": 0.08826291079812207,
+        "mean_net_return": -0.003759462900805838,
+        "median_net_return": -0.017326942898371552
+      },
+      "SANDUSDT": {
+        "rows": 1214,
+        "positive_rate": 0.08731466227347612,
+        "mean_net_return": -0.00553721296949688,
+        "median_net_return": -0.01724354549354545
+      },
+      "SHIBUSDT": {
+        "rows": 1146,
+        "positive_rate": 0.07504363001745201,
+        "mean_net_return": -0.005513570940780888,
+        "median_net_return": -0.01657023539638974
+      },
+      "SOLUSDT": {
+        "rows": 1112,
+        "positive_rate": 0.07913669064748201,
+        "mean_net_return": -0.0053801737225297845,
+        "median_net_return": -0.014695700759824178
+      },
+      "STXUSDT": {
+        "rows": 1168,
+        "positive_rate": 0.08476027397260275,
+        "mean_net_return": -0.005999833585355802,
+        "median_net_return": -0.017147490773122605
+      },
+      "SUIUSDT": {
+        "rows": 1065,
+        "positive_rate": 0.08262910798122065,
+        "mean_net_return": -0.0049455128494218055,
+        "median_net_return": -0.015976357913066726
+      },
+      "THETAUSDT": {
+        "rows": 1012,
+        "positive_rate": 0.0691699604743083,
+        "mean_net_return": -0.006352213554872197,
+        "median_net_return": -0.019914657039178715
+      },
+      "TIAUSDT": {
+        "rows": 1133,
+        "positive_rate": 0.088261253309797,
+        "mean_net_return": -0.005031376830308663,
+        "median_net_return": -0.019233766233766377
+      },
+      "TONUSDT": {
+        "rows": 827,
+        "positive_rate": 0.08101571946795647,
+        "mean_net_return": -0.004225826436897994,
+        "median_net_return": -0.015642225031605502
+      },
+      "TRXUSDT": {
+        "rows": 1202,
+        "positive_rate": 0.1064891846921797,
+        "mean_net_return": -0.0023201527906259295,
+        "median_net_return": -0.006810099712153736
+      },
+      "UNIUSDT": {
+        "rows": 1085,
+        "positive_rate": 0.07373271889400922,
+        "mean_net_return": -0.004461432823573527,
+        "median_net_return": -0.016770461903242048
+      },
+      "USDCUSDT": {
+        "rows": 669,
+        "positive_rate": 0.0014947683109118087,
+        "mean_net_return": -0.0029575876635370897,
+        "median_net_return": -0.0029799891941647534
+      },
+      "VETUSDT": {
+        "rows": 1230,
+        "positive_rate": 0.0951219512195122,
+        "mean_net_return": -0.0052975962776900904,
+        "median_net_return": -0.014466052901607514
+      },
+      "XLMUSDT": {
+        "rows": 1218,
+        "positive_rate": 0.10016420361247948,
+        "mean_net_return": -0.00440046353833464,
+        "median_net_return": -0.014702350020000973
+      },
+      "XRPUSDT": {
+        "rows": 1269,
+        "positive_rate": 0.09535066981875492,
+        "mean_net_return": -0.0049044992496242775,
+        "median_net_return": -0.013164952218637779
+      }
+    },
+    "by_strategy": {
+      "breakout": {
+        "rows": 7980,
+        "positive_rate": 0.15676691729323308,
+        "mean_net_return": -0.002540787215898374,
+        "median_net_return": -0.01542863195723326
+      },
+      "mean_reversion": {
+        "rows": 42015,
+        "positive_rate": 0.07459240747352136,
+        "mean_net_return": -0.005341523825695075,
+        "median_net_return": -0.014533420707732666
+      }
+    },
+    "by_trend_regime": {
+      "down": {
+        "rows": 35916,
+        "positive_rate": 0.07163938077736942,
+        "mean_net_return": -0.005624538686955588,
+        "median_net_return": -0.015994321904483907
+      },
+      "range": {
+        "rows": 7236,
+        "positive_rate": 0.0978441127694859,
+        "mean_net_return": -0.003670425257668018,
+        "median_net_return": -0.008354311683945844
+      },
+      "up": {
+        "rows": 6843,
+        "positive_rate": 0.16133274879438841,
+        "mean_net_return": -0.002357076848496996,
+        "median_net_return": -0.01716299048061298
+      }
+    },
+    "by_volatility_regime": {
+      "high": {
+        "rows": 20366,
+        "positive_rate": 0.08327604831582049,
+        "mean_net_return": -0.0046293224569678906,
+        "median_net_return": -0.01466211504901382
+      },
+      "low": {
+        "rows": 29629,
+        "positive_rate": 0.09075567855816936,
+        "mean_net_return": -0.005076743202971399,
+        "median_net_return": -0.014648145668764153
+      }
+    }
+  },
+  "horizon_net_6h": {
+    "rows": 50206,
+    "positive_class_rate": 0.3038680635780584,
+    "net_return_mean": -0.003076082146657,
+    "net_return_median": -0.003,
+    "exit_reason": {
+      "horizon_close": 50206
+    },
+    "by_month": {
+      "2025-12": {
+        "rows": 4122,
+        "positive_rate": 0.3418243571081999,
+        "mean_net_return": -0.002057325215257819,
+        "median_net_return": -0.0020002483761843966
+      },
+      "2026-01": {
+        "rows": 5789,
+        "positive_rate": 0.30091552945240974,
+        "mean_net_return": -0.005754395694811605,
+        "median_net_return": -0.0038845543207076646
+      },
+      "2026-02": {
+        "rows": 5859,
+        "positive_rate": 0.3377709506741765,
+        "mean_net_return": -0.003595129736712371,
+        "median_net_return": -0.0024585814834866522
+      },
+      "2026-03": {
+        "rows": 6372,
+        "positive_rate": 0.28735091023226617,
+        "mean_net_return": -0.002745202766364079,
+        "median_net_return": -0.003
+      },
+      "2026-04": {
+        "rows": 6144,
+        "positive_rate": 0.27490234375,
+        "mean_net_return": -0.0028410827307941942,
+        "median_net_return": -0.003
+      },
+      "2026-05": {
+        "rows": 6393,
+        "positive_rate": 0.30251837947755356,
+        "mean_net_return": -0.0032384402243007845,
+        "median_net_return": -0.002989999499975024
+      },
+      "2026-06": {
+        "rows": 5635,
+        "positive_rate": 0.31694764862466723,
+        "mean_net_return": -0.0025745338057698804,
+        "median_net_return": -0.003
+      },
+      "2026-07": {
+        "rows": 5900,
+        "positive_rate": 0.2542372881355932,
+        "mean_net_return": -0.003221562365689945,
+        "median_net_return": -0.003
+      },
+      "2026-08": {
+        "rows": 3992,
+        "positive_rate": 0.3471943887775551,
+        "mean_net_return": -0.0006050388979950273,
+        "median_net_return": -0.0009949293122901689
+      }
+    },
+    "by_symbol": {
+      "AAVEUSDT": {
+        "rows": 1154,
+        "positive_rate": 0.31629116117850953,
+        "mean_net_return": -0.004159422468292112,
+        "median_net_return": -0.0035653133402537814
+      },
+      "ADAUSDT": {
+        "rows": 1239,
+        "positive_rate": 0.288135593220339,
+        "mean_net_return": -0.003993730076225538,
+        "median_net_return": -0.00370546737213395
+      },
+      "ALGOUSDT": {
+        "rows": 1170,
+        "positive_rate": 0.31025641025641026,
+        "mean_net_return": -0.003100620707438003,
+        "median_net_return": -0.003
+      },
+      "APTUSDT": {
+        "rows": 1145,
+        "positive_rate": 0.30393013100436683,
+        "mean_net_return": -0.003072037567246911,
+        "median_net_return": -0.003
+      },
+      "ATOMUSDT": {
+        "rows": 1282,
+        "positive_rate": 0.2995319812792512,
+        "mean_net_return": -0.003731388014868704,
+        "median_net_return": -0.004123282192081576
+      },
+      "AVAXUSDT": {
+        "rows": 1119,
+        "positive_rate": 0.289544235924933,
+        "mean_net_return": -0.00377743347027905,
+        "median_net_return": -0.003
+      },
+      "BCHUSDT": {
+        "rows": 1119,
+        "positive_rate": 0.26988382484361034,
+        "mean_net_return": -0.0049543586030469326,
+        "median_net_return": -0.003
+      },
+      "BNBUSDT": {
+        "rows": 1105,
+        "positive_rate": 0.24705882352941178,
+        "mean_net_return": -0.003522558827473956,
+        "median_net_return": -0.0025438099732578686
+      },
+      "BTCUSDT": {
+        "rows": 1131,
+        "positive_rate": 0.22988505747126436,
+        "mean_net_return": -0.003419378133346501,
+        "median_net_return": -0.0026839866672884157
+      },
+      "CHZUSDT": {
+        "rows": 1189,
+        "positive_rate": 0.343986543313709,
+        "mean_net_return": -0.004402501828221537,
+        "median_net_return": -0.002257793171697051
+      },
+      "DOGEUSDT": {
+        "rows": 1110,
+        "positive_rate": 0.3207207207207207,
+        "mean_net_return": -0.0026173858046625283,
+        "median_net_return": -0.0023037623986892327
+      },
+      "DOTUSDT": {
+        "rows": 1188,
+        "positive_rate": 0.335016835016835,
+        "mean_net_return": -0.0019076161013394188,
+        "median_net_return": -0.002174474464243123
+      },
+      "EGLDUSDT": {
+        "rows": 1092,
+        "positive_rate": 0.31959706959706957,
+        "mean_net_return": -0.003353204251136365,
+        "median_net_return": -0.003
+      },
+      "ETHUSDT": {
+        "rows": 1053,
+        "positive_rate": 0.27635327635327633,
+        "mean_net_return": -0.003656965286415403,
+        "median_net_return": -0.0026820826146695094
+      },
+      "FETUSDT": {
+        "rows": 1101,
+        "positive_rate": 0.32697547683923706,
+        "mean_net_return": -0.0025011600843571615,
+        "median_net_return": -0.002376558603491061
+      },
+      "FILUSDT": {
+        "rows": 1096,
+        "positive_rate": 0.3604014598540146,
+        "mean_net_return": -0.002504132742272761,
+        "median_net_return": -0.0016043259079185886
+      },
+      "FLOWUSDT": {
+        "rows": 1129,
+        "positive_rate": 0.3179805137289637,
+        "mean_net_return": -0.0037897406809452466,
+        "median_net_return": -0.003
+      },
+      "GALAUSDT": {
+        "rows": 1217,
+        "positive_rate": 0.3278553820870994,
+        "mean_net_return": -0.0031765874186018644,
+        "median_net_return": -0.003
+      },
+      "GRTUSDT": {
+        "rows": 1126,
+        "positive_rate": 0.3330373001776199,
+        "mean_net_return": -0.0016960716625647723,
+        "median_net_return": -0.0016652856585129801
+      },
+      "ICPUSDT": {
+        "rows": 1076,
+        "positive_rate": 0.30111524163568776,
+        "mean_net_return": -0.0022148439344781405,
+        "median_net_return": -0.003893870862326729
+      },
+      "IMXUSDT": {
+        "rows": 1114,
+        "positive_rate": 0.3348294434470377,
+        "mean_net_return": -0.0029389450978192524,
+        "median_net_return": -0.003
+      },
+      "LDOUSDT": {
+        "rows": 1060,
+        "positive_rate": 0.3613207547169811,
+        "mean_net_return": -0.003435185568545789,
+        "median_net_return": -0.002107890040130342
+      },
+      "LINKUSDT": {
+        "rows": 1043,
+        "positive_rate": 0.29242569511025884,
+        "mean_net_return": -0.0033940242274996544,
+        "median_net_return": -0.003
+      },
+      "LTCUSDT": {
+        "rows": 1049,
+        "positive_rate": 0.29361296472831266,
+        "mean_net_return": -0.002957358318511895,
+        "median_net_return": -0.0019124524197934286
+      },
+      "MANAUSDT": {
+        "rows": 1154,
+        "positive_rate": 0.34055459272097055,
+        "mean_net_return": -0.0028449149931982095,
+        "median_net_return": -0.003
+      },
+      "MINAUSDT": {
+        "rows": 1068,
+        "positive_rate": 0.350187265917603,
+        "mean_net_return": -0.0033393570485957948,
+        "median_net_return": -0.003
+      },
+      "NEARUSDT": {
+        "rows": 1093,
+        "positive_rate": 0.3284537968892955,
+        "mean_net_return": -0.0019418847786352817,
+        "median_net_return": -0.0021902834008097312
+      },
+      "OPUSDT": {
+        "rows": 1163,
+        "positive_rate": 0.3353396388650043,
+        "mean_net_return": -0.003840855935463312,
+        "median_net_return": -0.003
+      },
+      "PEPEUSDT": {
+        "rows": 1015,
+        "positive_rate": 0.33497536945812806,
+        "mean_net_return": -0.0010287892694692614,
+        "median_net_return": -0.003
+      },
+      "QNTUSDT": {
+        "rows": 1120,
+        "positive_rate": 0.31875,
+        "mean_net_return": -0.0018859601029446449,
+        "median_net_return": -0.002730111475267358
+      },
+      "RENDERUSDT": {
+        "rows": 1066,
+        "positive_rate": 0.3527204502814259,
+        "mean_net_return": -0.001323468524374025,
+        "median_net_return": -0.0016515318198485592
+      },
+      "SANDUSDT": {
+        "rows": 1219,
+        "positive_rate": 0.32157506152584087,
+        "mean_net_return": -0.0041078082591978066,
+        "median_net_return": -0.003
+      },
+      "SHIBUSDT": {
+        "rows": 1151,
+        "positive_rate": 0.29365768896611644,
+        "mean_net_return": -0.0031669523230158305,
+        "median_net_return": -0.003
+      },
+      "SOLUSDT": {
+        "rows": 1119,
+        "positive_rate": 0.27882037533512066,
+        "mean_net_return": -0.003521872970099018,
+        "median_net_return": -0.002887690925426842
+      },
+      "STXUSDT": {
+        "rows": 1168,
+        "positive_rate": 0.2996575342465753,
+        "mean_net_return": -0.0040130361458779185,
+        "median_net_return": -0.003434591316104571
+      },
+      "SUIUSDT": {
+        "rows": 1074,
+        "positive_rate": 0.3091247672253259,
+        "mean_net_return": -0.002641750404907069,
+        "median_net_return": -0.002536483137563714
+      },
+      "THETAUSDT": {
+        "rows": 1018,
+        "positive_rate": 0.33595284872298625,
+        "mean_net_return": -0.002527114226648545,
+        "median_net_return": -0.003
+      },
+      "TIAUSDT": {
+        "rows": 1141,
+        "positive_rate": 0.3172655565293602,
+        "mean_net_return": -0.0017864628918470675,
+        "median_net_return": -0.003
+      },
+      "TONUSDT": {
+        "rows": 828,
+        "positive_rate": 0.30917874396135264,
+        "mean_net_return": -0.004990572458954543,
+        "median_net_return": -0.0037605002530180483
+      },
+      "TRXUSDT": {
+        "rows": 1209,
+        "positive_rate": 0.13564929693961952,
+        "mean_net_return": -0.0029730609514732383,
+        "median_net_return": -0.0026582365003416904
+      },
+      "UNIUSDT": {
+        "rows": 1086,
+        "positive_rate": 0.3342541436464088,
+        "mean_net_return": -0.0017433840152104607,
+        "median_net_return": -0.0017928139366871739
+      },
+      "USDCUSDT": {
+        "rows": 669,
+        "positive_rate": 0.0,
+        "mean_net_return": -0.0029777376427710988,
+        "median_net_return": -0.0029900001999959543
+      },
+      "VETUSDT": {
+        "rows": 1230,
+        "positive_rate": 0.3170731707317073,
+        "mean_net_return": -0.002789354491562926,
+        "median_net_return": -0.0026987739734196632
+      },
+      "XLMUSDT": {
+        "rows": 1227,
+        "positive_rate": 0.29584352078239606,
+        "mean_net_return": -0.003146789485205691,
+        "median_net_return": -0.003
+      },
+      "XRPUSDT": {
+        "rows": 1281,
+        "positive_rate": 0.2677595628415301,
+        "mean_net_return": -0.003262286454952524,
+        "median_net_return": -0.003360568255570737
+      }
+    },
+    "by_strategy": {
+      "breakout": {
+        "rows": 7984,
+        "positive_rate": 0.29208416833667333,
+        "mean_net_return": -0.002454705979703642,
+        "median_net_return": -0.0042473643533945645
+      },
+      "mean_reversion": {
+        "rows": 42222,
+        "positive_rate": 0.30609634787551515,
+        "mean_net_return": -0.00319358172784585,
+        "median_net_return": -0.0028700948307732706
+      }
+    },
+    "by_trend_regime": {
+      "down": {
+        "rows": 36113,
+        "positive_rate": 0.31999556946252045,
+        "mean_net_return": -0.0031931521869952495,
+        "median_net_return": -0.0024058229352347223
+      },
+      "range": {
+        "rows": 7246,
+        "positive_rate": 0.22357162572453768,
+        "mean_net_return": -0.0032772494214399054,
+        "median_net_return": -0.003
+      },
+      "up": {
+        "rows": 6847,
+        "positive_rate": 0.30378267854534835,
+        "mean_net_return": -0.0022457318560462,
+        "median_net_return": -0.004859312054539708
+      }
+    },
+    "by_volatility_regime": {
+      "high": {
+        "rows": 20371,
+        "positive_rate": 0.3037160669579304,
+        "mean_net_return": -0.0023406959456638878,
+        "median_net_return": -0.0029500479539642495
+      },
+      "low": {
+        "rows": 29835,
+        "positive_rate": 0.3039718451483157,
+        "mean_net_return": -0.0035781955135224496,
+        "median_net_return": -0.003
+      }
+    }
+  },
+  "horizon_net_12h": {
+    "rows": 50175,
+    "positive_class_rate": 0.3182859990034878,
+    "net_return_mean": -0.0033413054146120297,
+    "net_return_median": -0.003,
+    "exit_reason": {
+      "horizon_close": 50175
+    },
+    "by_month": {
+      "2025-12": {
+        "rows": 4122,
+        "positive_rate": 0.3779718583212033,
+        "mean_net_return": -0.002174275107699933,
+        "median_net_return": -0.0007347529309238406
+      },
+      "2026-01": {
+        "rows": 5789,
+        "positive_rate": 0.30091552945240974,
+        "mean_net_return": -0.0075038309818555105,
+        "median_net_return": -0.00540847784200382
+      },
+      "2026-02": {
+        "rows": 5859,
+        "positive_rate": 0.32872503840245776,
+        "mean_net_return": -0.005695118856698347,
+        "median_net_return": -0.004082251082251129
+      },
+      "2026-03": {
+        "rows": 6372,
+        "positive_rate": 0.2940991839296924,
+        "mean_net_return": -0.0031497603880604745,
+        "median_net_return": -0.004092419084134211
+      },
+      "2026-04": {
+        "rows": 6144,
+        "positive_rate": 0.33349609375,
+        "mean_net_return": -0.000662641720331301,
+        "median_net_return": -0.0025675050778453086
+      },
+      "2026-05": {
+        "rows": 6393,
+        "positive_rate": 0.3358360707023307,
+        "mean_net_return": -0.001691051616755557,
+        "median_net_return": -0.0029499974998748986
+      },
+      "2026-06": {
+        "rows": 5635,
+        "positive_rate": 0.2834072759538598,
+        "mean_net_return": -0.00472330480117951,
+        "median_net_return": -0.004412906517018309
+      },
+      "2026-07": {
+        "rows": 5900,
+        "positive_rate": 0.2901694915254237,
+        "mean_net_return": -0.003628006313209016,
+        "median_net_return": -0.003
+      },
+      "2026-08": {
+        "rows": 3961,
+        "positive_rate": 0.34460994698308506,
+        "mean_net_return": 0.0002760006215785324,
+        "median_net_return": -0.0012636148382004749
+      }
+    },
+    "by_symbol": {
+      "AAVEUSDT": {
+        "rows": 1154,
+        "positive_rate": 0.3440207972270364,
+        "mean_net_return": -0.004967536265471395,
+        "median_net_return": -0.0039378774450485295
+      },
+      "ADAUSDT": {
+        "rows": 1239,
+        "positive_rate": 0.3083131557707829,
+        "mean_net_return": -0.004867475616845952,
+        "median_net_return": -0.004848428835489857
+      },
+      "ALGOUSDT": {
+        "rows": 1170,
+        "positive_rate": 0.32735042735042735,
+        "mean_net_return": -0.0029686857244345874,
+        "median_net_return": -0.003
+      },
+      "APTUSDT": {
+        "rows": 1144,
+        "positive_rate": 0.32167832167832167,
+        "mean_net_return": -0.0038640029052541104,
+        "median_net_return": -0.004048219181092491
+      },
+      "ATOMUSDT": {
+        "rows": 1281,
+        "positive_rate": 0.3185011709601874,
+        "mean_net_return": -0.004217714998719185,
+        "median_net_return": -0.004475651746187912
+      },
+      "AVAXUSDT": {
+        "rows": 1119,
+        "positive_rate": 0.3118856121537087,
+        "mean_net_return": -0.004890637886957387,
+        "median_net_return": -0.004091703056768534
+      },
+      "BCHUSDT": {
+        "rows": 1119,
+        "positive_rate": 0.2707774798927614,
+        "mean_net_return": -0.0059660542551474545,
+        "median_net_return": -0.004532399299474574
+      },
+      "BNBUSDT": {
+        "rows": 1104,
+        "positive_rate": 0.26358695652173914,
+        "mean_net_return": -0.004166228833743821,
+        "median_net_return": -0.0029072806920275003
+      },
+      "BTCUSDT": {
+        "rows": 1131,
+        "positive_rate": 0.2493368700265252,
+        "mean_net_return": -0.004424299435962995,
+        "median_net_return": -0.0032853019538188174
+      },
+      "CHZUSDT": {
+        "rows": 1189,
+        "positive_rate": 0.33641715727502103,
+        "mean_net_return": -0.004271597262020924,
+        "median_net_return": -0.003
+      },
+      "DOGEUSDT": {
+        "rows": 1110,
+        "positive_rate": 0.3144144144144144,
+        "mean_net_return": -0.003556350115797779,
+        "median_net_return": -0.002549161553236809
+      },
+      "DOTUSDT": {
+        "rows": 1187,
+        "positive_rate": 0.34540859309182814,
+        "mean_net_return": -0.0015721399444226297,
+        "median_net_return": -0.003
+      },
+      "EGLDUSDT": {
+        "rows": 1092,
+        "positive_rate": 0.3424908424908425,
+        "mean_net_return": -0.0032247040857844135,
+        "median_net_return": -0.003
+      },
+      "ETHUSDT": {
+        "rows": 1053,
+        "positive_rate": 0.2849002849002849,
+        "mean_net_return": -0.004448714607346735,
+        "median_net_return": -0.0032546967813235047
+      },
+      "FETUSDT": {
+        "rows": 1101,
+        "positive_rate": 0.33605812897366033,
+        "mean_net_return": -0.0037439289467774226,
+        "median_net_return": -0.0036333122229260635
+      },
+      "FILUSDT": {
+        "rows": 1096,
+        "positive_rate": 0.38503649635036497,
+        "mean_net_return": -0.0017441828065960852,
+        "median_net_return": -0.0013712157848921854
+      },
+      "FLOWUSDT": {
+        "rows": 1129,
+        "positive_rate": 0.31886625332152346,
+        "mean_net_return": -0.004105168753377086,
+        "median_net_return": -0.003
+      },
+      "GALAUSDT": {
+        "rows": 1215,
+        "positive_rate": 0.3176954732510288,
+        "mean_net_return": -0.004613282827883481,
+        "median_net_return": -0.003888099467140413
+      },
+      "GRTUSDT": {
+        "rows": 1126,
+        "positive_rate": 0.33481349911190056,
+        "mean_net_return": -0.0011516590168389252,
+        "median_net_return": -0.002483922528977553
+      },
+      "ICPUSDT": {
+        "rows": 1076,
+        "positive_rate": 0.33178438661710036,
+        "mean_net_return": -0.002816847344324561,
+        "median_net_return": -0.003
+      },
+      "IMXUSDT": {
+        "rows": 1111,
+        "positive_rate": 0.3357335733573357,
+        "mean_net_return": -0.0020761219501152467,
+        "median_net_return": -0.0023502274204029146
+      },
+      "LDOUSDT": {
+        "rows": 1054,
+        "positive_rate": 0.3899430740037951,
+        "mean_net_return": -0.002480764855532365,
+        "median_net_return": -0.0003539727830836866
+      },
+      "LINKUSDT": {
+        "rows": 1042,
+        "positive_rate": 0.345489443378119,
+        "mean_net_return": -0.0027597578871791342,
+        "median_net_return": -0.003
+      },
+      "LTCUSDT": {
+        "rows": 1049,
+        "positive_rate": 0.3126787416587226,
+        "mean_net_return": -0.0033268259795107757,
+        "median_net_return": -0.0023354009747452694
+      },
+      "MANAUSDT": {
+        "rows": 1154,
+        "positive_rate": 0.35008665511265163,
+        "mean_net_return": -0.0022845392892588976,
+        "median_net_return": -0.003
+      },
+      "MINAUSDT": {
+        "rows": 1068,
+        "positive_rate": 0.3661048689138577,
+        "mean_net_return": -0.00355060832546621,
+        "median_net_return": -0.003
+      },
+      "NEARUSDT": {
+        "rows": 1093,
+        "positive_rate": 0.3467520585544373,
+        "mean_net_return": -0.0021643354833859436,
+        "median_net_return": -0.003502260170768487
+      },
+      "OPUSDT": {
+        "rows": 1163,
+        "positive_rate": 0.351676698194325,
+        "mean_net_return": -0.004650292541655721,
+        "median_net_return": -0.003
+      },
+      "PEPEUSDT": {
+        "rows": 1013,
+        "positive_rate": 0.3425468904244817,
+        "mean_net_return": -0.0007592766960668114,
+        "median_net_return": -0.003
+      },
+      "QNTUSDT": {
+        "rows": 1115,
+        "positive_rate": 0.3273542600896861,
+        "mean_net_return": -0.001502717395571553,
+        "median_net_return": -0.0032910360884749164
+      },
+      "RENDERUSDT": {
+        "rows": 1066,
+        "positive_rate": 0.37429643527204504,
+        "mean_net_return": -0.0010378938401884895,
+        "median_net_return": -0.0003732074055265962
+      },
+      "SANDUSDT": {
+        "rows": 1219,
+        "positive_rate": 0.3232157506152584,
+        "mean_net_return": -0.005018708841016374,
+        "median_net_return": -0.004358695652173947
+      },
+      "SHIBUSDT": {
+        "rows": 1150,
+        "positive_rate": 0.3226086956521739,
+        "mean_net_return": -0.0033795965137664763,
+        "median_net_return": -0.003
+      },
+      "SOLUSDT": {
+        "rows": 1118,
+        "positive_rate": 0.3005366726296959,
+        "mean_net_return": -0.004071537948530555,
+        "median_net_return": -0.003818612931616114
+      },
+      "STXUSDT": {
+        "rows": 1168,
+        "positive_rate": 0.3236301369863014,
+        "mean_net_return": -0.003992958234238825,
+        "median_net_return": -0.003
+      },
+      "SUIUSDT": {
+        "rows": 1073,
+        "positive_rate": 0.3364398881640261,
+        "mean_net_return": -0.002885322689980098,
+        "median_net_return": -0.00201892081289434
+      },
+      "THETAUSDT": {
+        "rows": 1018,
+        "positive_rate": 0.31335952848722987,
+        "mean_net_return": -0.0023702289034794907,
+        "median_net_return": -0.004152862782502762
+      },
+      "TIAUSDT": {
+        "rows": 1140,
+        "positive_rate": 0.3526315789473684,
+        "mean_net_return": -0.0005431775176101802,
+        "median_net_return": -0.0018995257758563895
+      },
+      "TONUSDT": {
+        "rows": 828,
+        "positive_rate": 0.32971014492753625,
+        "mean_net_return": -0.004731025131639732,
+        "median_net_return": -0.003
+      },
+      "TRXUSDT": {
+        "rows": 1209,
+        "positive_rate": 0.18114143920595532,
+        "mean_net_return": -0.0033052493698399136,
+        "median_net_return": -0.0026580027359780463
+      },
+      "UNIUSDT": {
+        "rows": 1086,
+        "positive_rate": 0.34714548802946593,
+        "mean_net_return": -0.0019764506353508533,
+        "median_net_return": -0.0020224223681676286
+      },
+      "USDCUSDT": {
+        "rows": 669,
+        "positive_rate": 0.0,
+        "mean_net_return": -0.002964743383398032,
+        "median_net_return": -0.002959983593273094
+      },
+      "VETUSDT": {
+        "rows": 1230,
+        "positive_rate": 0.3048780487804878,
+        "mean_net_return": -0.004025824061166676,
+        "median_net_return": -0.0036134289545477457
+      },
+      "XLMUSDT": {
+        "rows": 1227,
+        "positive_rate": 0.3023634881825591,
+        "mean_net_return": -0.0034786887212441336,
+        "median_net_return": -0.003
+      },
+      "XRPUSDT": {
+        "rows": 1277,
+        "positive_rate": 0.28191072826938135,
+        "mean_net_return": -0.004296444474514312,
+        "median_net_return": -0.003937998311603128
+      }
+    },
+    "by_strategy": {
+      "breakout": {
+        "rows": 7982,
+        "positive_rate": 0.30493610623903783,
+        "mean_net_return": -0.0025934917196071255,
+        "median_net_return": -0.005377703270106946
+      },
+      "mean_reversion": {
+        "rows": 42193,
+        "positive_rate": 0.3208115090180836,
+        "mean_net_return": -0.003482775537938865,
+        "median_net_return": -0.0029800149887585477
+      }
+    },
+    "by_trend_regime": {
+      "down": {
+        "rows": 36084,
+        "positive_rate": 0.33194767764105976,
+        "mean_net_return": -0.003464643807581797,
+        "median_net_return": -0.002855233311594538
+      },
+      "range": {
+        "rows": 7246,
+        "positive_rate": 0.2533811758211427,
+        "mean_net_return": -0.00359155534624702,
+        "median_net_return": -0.003
+      },
+      "up": {
+        "rows": 6845,
+        "positive_rate": 0.31497443389335283,
+        "mean_net_return": -0.002426206279981171,
+        "median_net_return": -0.006363228699551524
+      }
+    },
+    "by_volatility_regime": {
+      "high": {
+        "rows": 20370,
+        "positive_rate": 0.3134511536573392,
+        "mean_net_return": -0.0017118167780271467,
+        "median_net_return": -0.003
+      },
+      "low": {
+        "rows": 29805,
+        "positive_rate": 0.32159033719174634,
+        "mean_net_return": -0.004454966999152679,
+        "median_net_return": -0.003
+      }
+    }
+  }
+}
+```
